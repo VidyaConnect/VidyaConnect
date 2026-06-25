@@ -13,42 +13,42 @@ Sri Lankan schools currently rely on fragmented and inefficient communication me
 
 These approaches often lead to:
 
-Parents missing important announcements
-Teachers repeatedly sharing the same information through multiple channels
-Administrators lacking delivery and response tracking
-Students missing assignment deadlines
-Paper-based consent forms requiring manual follow-up
+Parents missing important announcements  
+Teachers repeatedly sharing the same information through multiple channels  
+Administrators lacking delivery and response tracking  
+Students missing assignment deadlines  
+Paper-based consent forms requiring manual follow-up  
 
 There is currently no centralized platform that provides announcements, assignments, attendance management, consent forms, notifications, and school events in one place.
 
 ## Project Objectives
 
-Develop and deploy a functional MVP for school communication and administration.
-Implement structured communication between schools, teachers, parents, and students.
-Digitize attendance and absence management processes.
-Replace paper-based consent forms with digital workflows.
-Provide a unified calendar and event management system.
+Develop and deploy a functional MVP for school communication and administration.  
+Implement structured communication between schools, teachers, parents, and students.  
+Digitize attendance and absence management processes.  
+Replace paper-based consent forms with digital workflows.  
+Provide a unified calendar and event management system.  
 
 ## Target Users
 
-School Administrators
-Teachers
-Parents / Guardians
-Students
+School Administrators  
+Teachers  
+Parents / Guardians  
+Students  
 
 ## Key Features
 
-Communication Hub
-Assignment & Task Tracking
-Smart Notification System
-Digital Consent & Administrative Forms
-Attendance Management
+Communication Hub  
+Assignment & Task Tracking  
+Smart Notification System  
+Digital Consent & Administrative Forms  
+Attendance Management  
 
 ## Extended Features
 
-Insights Dashboard
-Bulk Data Management
-Calendar Integration
+Insights Dashboard  
+Bulk Data Management  
+Calendar Integration  
 
 ## System Architecture
 
