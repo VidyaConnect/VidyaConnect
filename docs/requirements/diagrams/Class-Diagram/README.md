@@ -1,8 +1,8 @@
-# School Communication Hub - Class Diagram
+# VidyaConnect platform - Class Diagram
 
 ## Overview
 
-This repository contains the UML Class Diagram for the School Communication Hub project.
+This repository contains the UML Class Diagram for the VidyaConnect platform.
 
 ## Class Diagram
 
