@@ -15,7 +15,7 @@ You can view or edit the full EER Diagram here:
 
 ## 🖼️ EER Diagram
 
-![EER Diagram](EER-Diagram.png)
+![EER Diagram](EER_Diagram.png)
 
 This diagram represents the complete database design, including entities, relationships, attributes, and constraints used in the system.
 
