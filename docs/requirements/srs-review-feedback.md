@@ -1,6 +1,6 @@
 # VidyaConnect SRS Review Feedback
 
-Reviewer: Mentor  
+Reviewer: Ishan Liyanage  
 Focus: SRS consistency, scope, multi-tenancy, architecture alignment, DevOps direction, NFRs, and implementation readiness
 
 ## Overall Assessment
