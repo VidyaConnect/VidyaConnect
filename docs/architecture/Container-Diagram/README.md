@@ -8,4 +8,3 @@ The diagram illustrates the high-level containers of the system, including the m
 
 ## Diagram
 
-![Container Diagram](Container_Diagram.png)
