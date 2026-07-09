@@ -1,10 +1,10 @@
 # Task 13: Research AWS Educate and AWS Account Setup
 
-**Project:** SchoolLink – Sri Lanka School Communication Platform   
+**Project:** VidyaConnect – Sri Lanka School Communication Platform   
 
 ## 1. Overview
 
-This document covers the research into AWS account types, a comparison of options suitable for the SchoolLink project, the recommended account choice, and the step-by-step setup process.
+This document covers the research into AWS account types, a comparison of options suitable for the VidyaConnect project, the recommended account choice, and the step-by-step setup process.
 
 ---
 
@@ -27,7 +27,7 @@ AWS Educate is Amazon's free learning programme for students and educators. It p
 | Best for | Learning AWS concepts, completing badge courses, experimenting |
 | Link | aws.amazon.com/education/awseducate |
 
-**Limitation for SchoolLink:** AWS Educate sandbox environments are not suitable for hosting a persistent application. Resources may reset between sessions, meaning your database and server cannot stay running continuously. It is excellent for learning but not for deployment.
+**Limitation for VidyaConnect:** AWS Educate sandbox environments are not suitable for hosting a persistent application. Resources may reset between sessions, meaning your database and server cannot stay running continuously. It is excellent for learning but not for deployment.
 
 ---
 
@@ -48,7 +48,7 @@ AWS Free Tier is a standard AWS account with 12 months of free usage limits on c
 | Best for | Hosting a real application with persistent uptime |
 | Link | aws.amazon.com/free |
 
-**Advantage for SchoolLink:** Resources are persistent. Your Node.js backend, PostgreSQL database, and S3 file storage stay running continuously — exactly what a pilot school needs.
+**Advantage for VidyaConnect:** Resources are persistent. Your Node.js backend, PostgreSQL database, and S3 file storage stay running continuously — exactly what a pilot school needs.
 
 ---
 
@@ -87,7 +87,7 @@ GitHub Education partners with AWS to provide students with AWS Activate credits
 
 **Primary: AWS Free Tier (Personal Account)**
 
-AWS Free Tier is the recommended account type for deploying SchoolLink because:
+AWS Free Tier is the recommended account type for deploying VidyaConnect because:
 
 - Resources are **persistent** — the backend server, database, and file storage stay running continuously without resetting
 - Free tier limits are sufficient for a pilot school deployment (one school, ~500 users, low traffic)
@@ -110,7 +110,7 @@ Click **"Create a Free Account"**
 
 ### Step 2 — Enter your email and account name
 - Use a personal email address (Gmail is fine)
-- Account name suggestion: `schoollink-project` or your name
+- Account name suggestion: `VidyaConnect` or your name
 - Click **"Verify email address"**
 - Enter the verification code sent to your email
 
@@ -154,7 +154,7 @@ Click **"Create a Free Account"**
 
 ### Step 11 — Create an IAM user for daily use
 - Go to **IAM → Users → Create user**
-- Username: `schoollink-dev`
+- Username: `VidyaConnect-dev`
 - Attach policy: `AdministratorAccess` (for development)
 - Enable console access with a password
 - **Do not use the root account for daily work** — use this IAM user
