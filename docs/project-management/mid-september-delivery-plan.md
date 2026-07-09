@@ -38,7 +38,81 @@ Complete UI coverage + working core vertical slices + credible architecture foun
 
 The goal is not to finish every feature completely. The goal is to prove that the platform architecture, authentication, tenant isolation, frontend, backend services, local deployment, and key user flows work.
 
-## 3. Definition of 60% Completion
+## 3. Project Plan Diagrams
+
+### 3.1 Phase Timeline
+
+```mermaid
+gantt
+    title VidyaConnect Mid-September Delivery Timeline
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b %d
+
+    section Foundation
+    Phase 1 - Foundation Setup           :p1, 2026-07-09, 2026-07-21
+    Phase 2 - Login and Announcements    :p2, 2026-07-22, 2026-08-04
+
+    section Core Vertical Slices
+    Phase 3 - Attendance and File Upload :p3, 2026-08-05, 2026-08-18
+    Phase 4 - UI Stabilization           :p4, 2026-08-19, 2026-08-25
+
+    section Academic Constraint
+    Exam Period - Light Work Only        :crit, p5, 2026-08-26, 2026-09-05
+
+    section Review Preparation
+    Phase 6 - Demo Readiness             :p6, 2026-09-06, 2026-09-15
+```
+
+### 3.2 Workstream Ownership Map
+
+```mermaid
+flowchart LR
+    Team["5 Student Team"]
+
+    Team --> DevOps["Workstream 1<br/>DevOps and Local Environment"]
+    Team --> Identity["Workstream 2<br/>Identity, Tenant, School/User Foundation"]
+    Team --> Backend["Workstream 3<br/>Backend Microservices and API Contracts"]
+    Team --> Web["Workstream 4<br/>Web/Admin Frontend"]
+    Team --> Mobile["Workstream 5<br/>Mobile Frontend"]
+
+    DevOps --> D1["Docker Compose<br/>Keycloak<br/>PostgreSQL<br/>Nginx<br/>LocalStack<br/>Observability"]
+    Identity --> I1["Keycloak realm<br/>Roles<br/>JWT validation<br/>school_id context<br/>Seed users"]
+    Backend --> B1["Service skeletons<br/>API contracts<br/>Announcements<br/>Attendance<br/>Files"]
+    Web --> W1["Admin dashboard<br/>Announcement creation<br/>Attendance marking<br/>UI shells"]
+    Mobile --> M1["Parent/student views<br/>Announcements<br/>Attendance<br/>Absence upload UI"]
+```
+
+### 3.3 Core Vertical Slice Flow
+
+```mermaid
+flowchart TD
+    Start["Start Local Docker Compose"] --> Login["Login with Keycloak"]
+    Login --> Token["JWT validated by backend service"]
+    Token --> Tenant["Role and school_id tenant context extracted"]
+    Tenant --> Announcement["Announcement vertical slice"]
+    Announcement --> CreateNotice["Teacher/Admin creates announcement"]
+    CreateNotice --> ViewNotice["Parent/Student views school-scoped announcement"]
+    Tenant --> Attendance["Attendance vertical slice"]
+    Attendance --> MarkAbsent["Teacher marks student absent"]
+    MarkAbsent --> ParentReason["Parent submits absence reason"]
+    ParentReason --> Upload["Upload document through File Service"]
+    Upload --> LocalStack["File stored in LocalStack S3"]
+    LocalStack --> Evidence["Demo evidence: UI, API, DB, logs, file metadata"]
+```
+
+### 3.4 Scope Priority Map
+
+```mermaid
+flowchart TB
+    Must["Must Work by Mid September<br/>Local Docker, Keycloak, tenant context, announcements, attendance, absence upload, basic logs"]
+    Partial["UI Complete / Backend Partial<br/>Assignments, consent forms, dashboards, reports, notification preferences"]
+    Future["Future / Not Required Before Mid September<br/>AI, LMS, advanced messaging, full push delivery, production AWS, calendar sync, advanced analytics"]
+
+    Must --> Partial
+    Partial --> Future
+```
+
+## 4. Definition of 60% Completion
 
 For this project, 60% completion by mid September should mean:
 
@@ -57,7 +131,7 @@ For this project, 60% completion by mid September should mean:
 
 This is a realistic and defensible 60% milestone.
 
-## 4. What Full UI Means
+## 5. What Full UI Means
 
 Full UI does not mean every screen must be fully integrated with backend logic.
 
@@ -96,7 +170,7 @@ Web/admin portal:
 - file/document view
 - basic reports/dashboard
 
-## 5. Scope Classification
+## 6. Scope Classification
 
 ### Must Be Working by Mid September
 
@@ -142,7 +216,7 @@ These should not consume major implementation time before mid September:
 - health records
 - discipline records
 
-## 6. Technical Direction
+## 7. Technical Direction
 
 The project should follow the agreed technical direction:
 
@@ -165,7 +239,7 @@ Important rule:
 Nothing is considered ready for AWS until it runs locally using Docker Compose.
 ```
 
-## 7. Team Workstreams
+## 8. Team Workstreams
 
 The team has five students. The work should be divided by ownership, but everyone must understand the full flow.
 
@@ -260,7 +334,7 @@ Primary milestone:
 Parent/student can demonstrate the main mobile experience.
 ```
 
-## 8. Timeline
+## 9. Timeline
 
 ### Phase 1: Foundation Setup
 
@@ -418,7 +492,7 @@ Expected outputs:
 - project board shows progress
 - documentation supports 60% completion claim
 
-## 9. Recommended First GitHub Issues
+## 10. Recommended First GitHub Issues
 
 Create and prioritize:
 
@@ -433,7 +507,7 @@ Create and prioritize:
 9. Set up LocalStack S3 for file handling
 10. Add local observability baseline
 
-## 10. Demo Strategy
+## 11. Demo Strategy
 
 The mid September demo should not try to show every module equally.
 
@@ -455,7 +529,7 @@ Recommended demo path:
 
 This proves both product value and technical architecture.
 
-## 11. Risk Management
+## 12. Risk Management
 
 ### Risk: Too Many Features
 
@@ -500,7 +574,7 @@ Mitigation:
 - AWS deployment is not the main mid September goal
 - prepare AWS deployment plan, but do not block demo on AWS
 
-## 12. Completion Evidence
+## 13. Completion Evidence
 
 By mid September, the team should show:
 
@@ -517,7 +591,7 @@ By mid September, the team should show:
 - updated architecture and API contracts
 - known limitations and next steps
 
-## 13. Mentor Guidance To Team
+## 14. Mentor Guidance To Team
 
 ```text
 The mid September target is not about building every feature completely. It is about proving that the architecture works, the core product value is real, and the team can deliver an integrated system.
@@ -526,4 +600,3 @@ Focus on full UI coverage plus working vertical slices for login, announcements,
 
 Finish risky integration before the exam period. During exams, do only light cleanup, documentation, Figma polish, and bug fixes.
 ```
-
