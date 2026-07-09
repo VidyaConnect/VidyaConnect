@@ -71,7 +71,73 @@ Suggested service routing:
 /api/v1/reports       -> Reporting Service
 ```
 
-## 3. Service Communication and Ownership
+## 3. Identity Provider and Authentication
+
+VidyaConnect should use an Identity Provider (IdP) instead of building username/password authentication from scratch.
+
+Recommended foundation choice:
+
+- Keycloak
+
+Recommended deployment:
+
+- Run Keycloak as a Docker container on AWS EC2.
+- Use PostgreSQL as the Keycloak database.
+- Configure a `VidyaConnect` realm.
+- Backend services validate JWT access tokens issued by Keycloak.
+
+Suggested Keycloak setup:
+
+```text
+Realm:
+VidyaConnect
+
+Clients:
+mobile-app
+web-admin
+backend-services
+
+Roles:
+SUPER_ADMIN
+SCHOOL_ADMIN
+TEACHER
+PARENT
+STUDENT
+```
+
+Keycloak should handle:
+
+- login
+- password reset
+- refresh tokens
+- token issuing
+- user sessions
+- OIDC/OAuth2 flows
+- base role claims
+
+Backend services must still handle application authorization:
+
+- Can this user access this `school_id`?
+- Can this teacher access this class?
+- Can this parent access this child?
+- Can this student access only their own records?
+- Is this action allowed for this role in this tenant?
+
+Important rule:
+
+```text
+Keycloak handles authentication. VidyaConnect services handle business authorization and tenant isolation.
+```
+
+Alternative:
+
+- AWS Cognito can be considered later for a more AWS-native production option.
+
+Avoid:
+
+- custom username/password/JWT authentication unless the university explicitly requires it.
+
+## 4. Service Communication and Ownership
 
 For the foundation implementation, keep service communication simple.
 
@@ -90,7 +156,7 @@ Service ownership rules:
 - Shared concepts such as `school_id`, `user_id`, and role claims must be consistently represented across services.
 - Cross-service calls must preserve authenticated user context and tenant context.
 
-## 4. Web/Admin Frontend
+## 5. Web/Admin Frontend
 
 The web/admin frontend should not use AWS Amplify for the foundation deployment.
 
@@ -109,7 +175,7 @@ Suggested architecture wording:
 The web/admin frontend will be built as a Node.js/Next.js application and deployed as a container on AWS EC2. Nginx will route traffic to the frontend container and backend microservice containers. AWS Amplify is not used in the foundation deployment because the project aims to give students practical experience with containerized deployment and server configuration.
 ```
 
-## 5. Mobile App
+## 6. Mobile App
 
 The mobile application should be built using React Native.
 
@@ -122,7 +188,7 @@ Recommended approach:
 - Use Expo/EAS or APK/AAB builds for testing.
 - Do not treat AWS Amplify as the deployment target for the React Native mobile UI.
 
-## 6. Database
+## 7. Database
 
 Recommended database:
 
@@ -144,7 +210,7 @@ Database expectations:
 - Prefer separate schemas per service where practical.
 - Avoid direct cross-service database access. A service should own its own tables/schema and expose data through its API.
 
-## 7. File Storage
+## 8. File Storage
 
 Recommended file storage:
 
@@ -167,7 +233,7 @@ Recommended access pattern:
 - Keep S3 objects private by default.
 - Enforce `school_id` / tenant access before generating file URLs.
 
-## 8. Notifications
+## 9. Notifications
 
 The notification architecture must be consistent across the SRS, architecture document, and diagrams.
 
@@ -186,7 +252,7 @@ Notification rules:
 - Notifications must be scoped to the correct user and school.
 - Absence notifications should be part of the foundation scope.
 
-## 9. Observability
+## 10. Observability
 
 VidyaConnect should use a hybrid observability approach.
 
@@ -238,7 +304,7 @@ Extended observability can include:
 
 Observability should support the application. It should not become a separate large project that delays core product delivery.
 
-## 10. API Contracts
+## 11. API Contracts
 
 The team should add API contracts at this stage, but keep them lightweight and foundation-scope only.
 
@@ -314,7 +380,7 @@ Error:
 404 Class or student not found
 ```
 
-## 11. DevOps Learning Goal
+## 12. DevOps Learning Goal
 
 The foundation deployment should avoid easy managed platforms where possible.
 
@@ -326,6 +392,7 @@ Students should learn:
 - environment variables
 - HTTPS
 - GitHub Actions
+- Keycloak
 - AWS RDS
 - AWS S3
 - AWS IAM
@@ -344,6 +411,7 @@ Microservices-oriented backend with each service running as a separate container
 containerized web/admin app on AWS EC2,
 Nginx as reverse proxy / lightweight API gateway,
 Docker Compose for the foundation deployment,
+Keycloak as the Identity Provider,
 AWS RDS PostgreSQL,
 AWS S3,
 AWS SNS for notification dispatch,

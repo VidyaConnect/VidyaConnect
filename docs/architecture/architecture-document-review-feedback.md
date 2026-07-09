@@ -317,7 +317,60 @@ where: { school_id: context.schoolId }
 
 This will make the multi-tenant enforcement stronger.
 
-## 11. C2 Container Diagram Is Mostly Good
+## 11. Add Identity Provider Guidance
+
+The architecture document should clearly state whether authentication is custom-built or delegated to an Identity Provider (IdP).
+
+Recommended direction:
+
+- Use Keycloak as the foundation Identity Provider.
+- Deploy Keycloak as a Docker container on AWS EC2.
+- Use PostgreSQL as the Keycloak database.
+- Backend microservices validate JWT access tokens issued by Keycloak.
+
+This is better than building username/password/JWT authentication from scratch because it teaches students real industry identity concepts while avoiding common security mistakes.
+
+### Suggested Keycloak Setup
+
+```text
+Realm:
+VidyaConnect
+
+Clients:
+mobile-app
+web-admin
+backend-services
+
+Roles:
+SUPER_ADMIN
+SCHOOL_ADMIN
+TEACHER
+PARENT
+STUDENT
+```
+
+### Required Clarification
+
+The architecture must clearly separate authentication and authorization:
+
+```text
+Keycloak handles authentication.
+VidyaConnect backend services handle business authorization and tenant isolation.
+```
+
+Keycloak can confirm who the user is and what base roles they have. But backend services must still enforce:
+
+- whether the user can access a specific `school_id`
+- whether a teacher can access a specific class
+- whether a parent can access a specific child
+- whether a student can access only their own records
+- whether a cross-school request should return `403 Forbidden`
+
+### Alternative
+
+AWS Cognito can be mentioned as a future/production alternative, but Keycloak is better for the student learning goal because it is visible, inspectable, and deployable as a container.
+
+## 12. C2 Container Diagram Is Mostly Good
 
 The C2 diagram is much better than the previous architecture diagram.
 
@@ -339,7 +392,7 @@ It correctly shows:
 - Make it clear whether the teacher uses mobile, web, or both.
 - Avoid showing future features like marks if they are not foundation scope.
 
-## 12. Context Diagram Still Needs Cleanup
+## 13. Context Diagram Still Needs Cleanup
 
 The context diagram is improved, but still has a few issues.
 
@@ -360,7 +413,7 @@ Keep the C1 diagram simple:
 
 Move detailed data flows to C2/C3 or sequence diagrams.
 
-## 13. DevOps Files Are A Good Addition
+## 14. DevOps Files Are A Good Addition
 
 The new DevOps task files are useful:
 
@@ -382,7 +435,7 @@ Add future DevOps tasks for:
 - environment variables and secrets
 - backup and restore test
 
-## 14. Add API Contracts
+## 15. Add API Contracts
 
 The architecture document describes the REST API layer, controllers, middleware, services, and backend boundaries. However, it does not contain real API contracts.
 
@@ -474,7 +527,7 @@ Error:
 
 API contracts are especially important because the project is microservices-oriented. Each service must have a clear boundary and defined contract. Without API contracts, students may build mobile screens, web screens, and backend services using different assumptions.
 
-## 15. Final Priority Fix List
+## 16. Final Priority Fix List
 
 The team should prioritize these fixes:
 
@@ -489,6 +542,7 @@ The team should prioritize these fixes:
 9. Replace AWS Amplify web deployment with containerized web/admin deployment on EC2.
 10. Make tenant context stronger in the authentication code-level diagram.
 11. Add a foundation API contract document under `docs/api/api-contracts.md`.
+12. Add Keycloak/IdP guidance and clearly separate authentication from business authorization.
 
 ## Suggested Message To Team
 
@@ -506,6 +560,7 @@ Before treating it as final, please clean up consistency issues:
 7. Remove remaining old wording such as EC2/Render.
 8. Add a lightweight API contract document for foundation modules under docs/api/api-contracts.md.
 9. Replace AWS Amplify references with containerized web/admin deployment on EC2.
+10. Add Keycloak as the recommended IdP and clarify that backend services still enforce school_id and role-based business authorization.
 
 Overall, this is a strong revision. The main remaining work is consistency cleanup and making the architecture easier to implement from.
 ```
