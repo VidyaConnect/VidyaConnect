@@ -5,11 +5,25 @@ Purpose: summarize the agreed technical direction for VidyaConnect based on ment
 
 ## 1. Application Architecture
 
-VidyaConnect should use a layered monolithic architecture for the foundation implementation.
+VidyaConnect should use a microservices-oriented architecture for the foundation implementation.
 
-The backend should not be designed as microservices at this stage. A layered monolith is more suitable for a five-student university project because it is easier to build, test, deploy, and understand.
+Each major business capability should be implemented as a separate backend service with a clear responsibility, API boundary, code module, Docker container, and deployment route.
 
-Recommended backend layers:
+The foundation deployment can still be simple. Services may initially run on the same AWS EC2 instance using Docker Compose, but the codebase and containers should be structured so each service is independently buildable and deployable.
+
+Recommended service boundaries:
+
+- Auth / Identity Service
+- School and User Management Service
+- Announcement / Communication Service
+- Assignment Service
+- Attendance Service
+- Consent Form Service
+- Notification Service
+- File Service
+- Reporting Service
+
+Each service should still follow clean internal layering:
 
 - Controller / API layer
 - Authentication, RBAC, and tenant middleware
@@ -19,25 +33,64 @@ Recommended backend layers:
 
 Every school-specific request must enforce `school_id` / tenant isolation.
 
+Important rule:
+
+```text
+Do not make microservices only in diagrams. If the architecture says microservices, each service must have its own responsibility, API boundary, code module, Dockerfile/container, and deployment route.
+```
+
 ## 2. Backend
 
 Recommended backend stack:
 
 - Node.js
 - Express.js
-- REST API
+- REST APIs per service
 - TypeScript, if the team is comfortable with it
 - Prisma or another structured ORM/migration tool
 
 Deployment direction:
 
-- Deploy the backend as a container on AWS EC2.
-- Use Nginx as the reverse proxy.
+- Deploy each backend service as a separate container on AWS EC2.
+- Use Docker Compose for the foundation deployment.
+- Use Nginx as the reverse proxy / lightweight API gateway.
 - Use Docker as the preferred runtime.
-- PM2 can be used only as a fallback if Docker becomes too time-consuming.
 - Use GitHub Actions for CI/CD.
 
-## 3. Web/Admin Frontend
+Suggested service routing:
+
+```text
+/api/v1/auth          -> Auth Service
+/api/v1/schools       -> School and User Management Service
+/api/v1/announcements -> Announcement / Communication Service
+/api/v1/assignments   -> Assignment Service
+/api/v1/attendance    -> Attendance Service
+/api/v1/consent-forms -> Consent Form Service
+/api/v1/notifications -> Notification Service
+/api/v1/files         -> File Service
+/api/v1/reports       -> Reporting Service
+```
+
+## 3. Service Communication and Ownership
+
+For the foundation implementation, keep service communication simple.
+
+Recommended approach:
+
+- Use REST over HTTP between services only when one service needs data or an action from another service.
+- Use internal events for notification-triggering workflows where practical.
+- Avoid introducing Kafka, RabbitMQ, or complex service mesh tools at this stage unless there is a clear requirement.
+- Use correlation/request IDs so logs can be traced across services.
+
+Service ownership rules:
+
+- Each service owns its own business logic.
+- Each service owns its own tables or schema area in PostgreSQL.
+- Other services should not directly query another service's tables.
+- Shared concepts such as `school_id`, `user_id`, and role claims must be consistently represented across services.
+- Cross-service calls must preserve authenticated user context and tenant context.
+
+## 4. Web/Admin Frontend
 
 The web/admin frontend should not use AWS Amplify for the foundation deployment.
 
@@ -48,15 +101,15 @@ Recommended approach:
 - Build the web/admin frontend as a Node.js/Next.js application.
 - Package it as a container.
 - Deploy it on AWS EC2.
-- Use Nginx to route traffic to the frontend container and backend API container.
+- Use Nginx to route traffic to the frontend container and backend service containers.
 
 Suggested architecture wording:
 
 ```text
-The web/admin frontend will be built as a Node.js/Next.js application and deployed as a container on AWS EC2. Nginx will route traffic to the frontend container and backend API container. AWS Amplify is not used in the foundation deployment because the project aims to give students practical experience with containerized deployment and server configuration.
+The web/admin frontend will be built as a Node.js/Next.js application and deployed as a container on AWS EC2. Nginx will route traffic to the frontend container and backend microservice containers. AWS Amplify is not used in the foundation deployment because the project aims to give students practical experience with containerized deployment and server configuration.
 ```
 
-## 4. Mobile App
+## 5. Mobile App
 
 The mobile application should be built using React Native.
 
@@ -69,7 +122,7 @@ Recommended approach:
 - Use Expo/EAS or APK/AAB builds for testing.
 - Do not treat AWS Amplify as the deployment target for the React Native mobile UI.
 
-## 5. Database
+## 6. Database
 
 Recommended database:
 
@@ -87,8 +140,11 @@ Database expectations:
 - Use migrations.
 - Avoid manual database changes in production-like environments.
 - Every school-specific entity must be directly or indirectly scoped to a school.
+- For the foundation deployment, services may share one AWS RDS PostgreSQL instance.
+- Prefer separate schemas per service where practical.
+- Avoid direct cross-service database access. A service should own its own tables/schema and expose data through its API.
 
-## 6. File Storage
+## 7. File Storage
 
 Recommended file storage:
 
@@ -111,14 +167,14 @@ Recommended access pattern:
 - Keep S3 objects private by default.
 - Enforce `school_id` / tenant access before generating file URLs.
 
-## 7. Notifications
+## 8. Notifications
 
 The notification architecture must be consistent across the SRS, architecture document, and diagrams.
 
 Recommended model:
 
 ```text
-Backend Notification Service publishes notification events.
+Backend services publish notification events.
 AWS SNS acts as the dispatch layer.
 SNS delivers through platform push providers such as Firebase Cloud Messaging for Android and APNs for iOS.
 ```
@@ -130,7 +186,7 @@ Notification rules:
 - Notifications must be scoped to the correct user and school.
 - Absence notifications should be part of the foundation scope.
 
-## 8. Observability
+## 9. Observability
 
 VidyaConnect should use a hybrid observability approach.
 
@@ -169,7 +225,7 @@ Foundation observability should include:
 - basic metrics endpoint
 - CloudWatch EC2/RDS monitoring
 - Grafana dashboard
-- OpenTelemetry instrumentation for key API requests
+- OpenTelemetry instrumentation for key API requests across services
 
 ### Extended Scope
 
@@ -182,7 +238,7 @@ Extended observability can include:
 
 Observability should support the application. It should not become a separate large project that delays core product delivery.
 
-## 9. API Contracts
+## 10. API Contracts
 
 The team should add API contracts at this stage, but keep them lightweight and foundation-scope only.
 
@@ -258,7 +314,7 @@ Error:
 404 Class or student not found
 ```
 
-## 10. DevOps Learning Goal
+## 11. DevOps Learning Goal
 
 The foundation deployment should avoid easy managed platforms where possible.
 
@@ -284,7 +340,10 @@ The goal is not only to deploy the application, but also to understand how real 
 The agreed technical direction is:
 
 ```text
-Containerized backend + containerized web/admin app on AWS EC2,
+Microservices-oriented backend with each service running as a separate container,
+containerized web/admin app on AWS EC2,
+Nginx as reverse proxy / lightweight API gateway,
+Docker Compose for the foundation deployment,
 AWS RDS PostgreSQL,
 AWS S3,
 AWS SNS for notification dispatch,
