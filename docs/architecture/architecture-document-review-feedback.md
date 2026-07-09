@@ -12,7 +12,7 @@ The document includes many of the important areas discussed earlier:
 - multi-tenancy and school-level isolation
 - `school_id` / tenant-scoped access
 - AWS / AWS Educate deployment direction
-- layered backend architecture
+- microservices-oriented backend architecture
 - C4-style diagrams
 - security architecture
 - non-functional requirements
@@ -49,9 +49,9 @@ The following areas are now in good shape:
 - It includes AWS RDS PostgreSQL for relational data.
 - It includes AWS S3 for uploaded files.
 - It includes AWS CloudWatch for logs and monitoring.
-- It includes AWS EC2, Docker/PM2, and Nginx for backend deployment.
+- It includes AWS EC2, Docker, and Nginx for backend deployment.
 - It includes GitHub Actions for CI/CD.
-- It explains why a layered monolith is better than microservices for this student project.
+- It should clearly align with the intended microservices-oriented backend direction.
 - It includes observability topics such as logs, errors, metrics, health checks, dashboards, and alerting.
 - It includes ADRs explaining major architecture choices.
 - It includes a code-level diagram for the authentication module.
@@ -67,11 +67,11 @@ The table of contents still contains old deployment wording:
 9.5 Web Portal Deployment - Vercel
 ```
 
-But the actual body content correctly says:
+The body content has moved closer to the AWS direction, but it should be updated to the latest agreed deployment direction:
 
 ```text
 9.4 Backend Deployment - AWS EC2
-9.5 Web Portal Deployment - AWS Amplify
+9.5 Web/Admin Frontend Deployment - AWS EC2 Container
 ```
 
 ### Required Fix
@@ -263,18 +263,20 @@ Firebase
 
 Then confirm each reference is either removed or clearly explained as an old/rejected alternative.
 
-## 9. AWS Amplify Should Be Justified Carefully
+## 9. Web/Admin Frontend Deployment Should Be Containerized
 
-The document uses AWS Amplify for the web portal.
+The document currently uses AWS Amplify for the web portal.
 
-This is acceptable because it keeps the web deployment within AWS, but the team should be clear that the main backend/deployment learning still happens through EC2, RDS, S3, IAM, CloudWatch, Nginx, Docker/PM2, and GitHub Actions.
+The latest technical direction is that the web/admin frontend should be deployed as a container on AWS EC2, together with the backend microservice containers.
 
-### Suggested Clarification
+AWS Amplify should not be used for the foundation deployment because it hides too much of the deployment process. The students should learn containerized frontend deployment, Nginx routing, environment variables, HTTPS, and GitHub Actions deployment.
 
-Add a short note:
+### Required Fix
+
+Replace AWS Amplify references with this direction:
 
 ```text
-AWS Amplify is used only for hosting the Next.js web portal. Backend deployment and infrastructure learning remain focused on EC2, RDS, S3, IAM, CloudWatch, Nginx, Docker/PM2, and GitHub Actions.
+The web/admin frontend will be built as a Node.js/Next.js application and deployed as a container on AWS EC2. Nginx will route traffic to the frontend container and backend microservice containers.
 ```
 
 ## 10. Authentication Code-Level Diagram Is Good
@@ -380,7 +382,99 @@ Add future DevOps tasks for:
 - environment variables and secrets
 - backup and restore test
 
-## 14. Final Priority Fix List
+## 14. Add API Contracts
+
+The architecture document describes the REST API layer, controllers, middleware, services, and backend boundaries. However, it does not contain real API contracts.
+
+That is acceptable for an architecture document, but the project now needs a separate API contract document so mobile, web, and backend work can proceed without guessing.
+
+### Required Fix
+
+Create:
+
+```text
+docs/api/api-contracts.md
+```
+
+Start with a lightweight Markdown contract first. Later, after the API design stabilizes, the team can convert it into:
+
+```text
+docs/api/openapi.yaml
+```
+
+### Foundation Scope API Modules
+
+The first API contract should cover foundation modules only:
+
+- Auth
+- Schools / tenant basics
+- Users / roles
+- Classes
+- Students / parents / teachers
+- Announcements
+- Assignments
+- Attendance and absence response
+- Consent forms
+- Notifications
+- Files
+- Health check
+
+### Each Endpoint Should Define
+
+For every endpoint, include:
+
+- method and URL
+- purpose
+- owning microservice
+- allowed roles
+- tenant rule
+- request body
+- success response
+- error responses
+- notes
+
+### Example Format
+
+```text
+POST /api/v1/attendance
+
+Owning service:
+Attendance Service
+
+Purpose:
+Teacher marks attendance for a class on a selected date.
+
+Allowed roles:
+Teacher, School Admin
+
+Tenant rule:
+Class must belong to the authenticated user's school_id.
+
+Request:
+{
+  "classId": "cls_123",
+  "date": "2026-07-09",
+  "records": [
+    { "studentId": "stu_001", "status": "PRESENT" },
+    { "studentId": "stu_002", "status": "ABSENT" }
+  ]
+}
+
+Success:
+201 Created
+
+Error:
+400 Validation error
+401 Unauthenticated
+403 Not allowed / cross-school access
+404 Class or student not found
+```
+
+### Why This Matters
+
+API contracts are especially important because the project is microservices-oriented. Each service must have a clear boundary and defined contract. Without API contracts, students may build mobile screens, web screens, and backend services using different assumptions.
+
+## 15. Final Priority Fix List
 
 The team should prioritize these fixes:
 
@@ -392,8 +486,9 @@ The team should prioritize these fixes:
 6. Add measurable NFR acceptance criteria.
 7. Remove remaining old wording such as `EC2/Render`.
 8. Rename PostgreSQL to AWS RDS PostgreSQL where deployment-specific.
-9. Clarify AWS Amplify usage for the web portal.
+9. Replace AWS Amplify web deployment with containerized web/admin deployment on EC2.
 10. Make tenant context stronger in the authentication code-level diagram.
+11. Add a foundation API contract document under `docs/api/api-contracts.md`.
 
 ## Suggested Message To Team
 
@@ -402,13 +497,15 @@ Good improvement on the architecture document. It is now much stronger and inclu
 
 Before treating it as final, please clean up consistency issues:
 
-1. Regenerate/update the table of contents. It still mentions Render and Vercel, while the body uses AWS EC2 and AWS Amplify.
+1. Regenerate/update the table of contents. It still mentions Render and Vercel, and the web/admin deployment should now be updated to EC2 container deployment.
 2. Make notification architecture consistent. Some places say AWS SNS, while the context diagram still shows Firebase Cloud Messaging.
 3. Remove Google Calendar from the foundation context diagram, or label it clearly as Future Scope.
 4. Rename AI/RAG as Future Scope in Section 5.4.9.
 5. Improve the C3 diagram to show backend boundaries clearly: controllers, middleware, services, repositories, and external adapters.
 6. Add measurable acceptance criteria to important NFRs.
 7. Remove remaining old wording such as EC2/Render.
+8. Add a lightweight API contract document for foundation modules under docs/api/api-contracts.md.
+9. Replace AWS Amplify references with containerized web/admin deployment on EC2.
 
 Overall, this is a strong revision. The main remaining work is consistency cleanup and making the architecture easier to implement from.
 ```
