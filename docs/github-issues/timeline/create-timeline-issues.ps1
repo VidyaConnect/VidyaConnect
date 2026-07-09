@@ -20,7 +20,7 @@ $issues = @(
   @{ File = "phase-05-exam-light-work.md"; Title = "Phase 5: Exam Period Light Work"; Labels = "phase,exam-period,documentation,low-risk" },
   @{ File = "phase-06-demo-readiness.md"; Title = "Phase 6: Mid-September Demo Readiness"; Labels = "phase,demo,milestone,university-review" },
   @{ File = "task-demo-script.md"; Title = "Task: Prepare Mid-September Demo Script"; Labels = "task,demo,presentation" },
-  @{ File = "task-completion-evidence.md"; Title = "Task: Prepare 60 Percent Completion Evidence"; Labels = "task,evidence,university-review" }
+  @{ File = "task-completion-evidence.md"; Title = "Task: Prepare Interim Progress Evidence"; Labels = "task,evidence,university-review" }
 )
 
 $baseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -56,4 +56,3 @@ foreach ($issue in $issues) {
   Write-Host "Creating issue: $($issue.Title)"
   gh issue create --title $issue.Title --body-file $bodyPath --label $issue.Labels
 }
-

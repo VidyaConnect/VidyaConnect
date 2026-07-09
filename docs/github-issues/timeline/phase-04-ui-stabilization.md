@@ -23,7 +23,7 @@ Complete UI coverage, stabilize the demo flows, and avoid risky new backend scop
 
 ## Acceptance Criteria
 
-- Full UI coverage exists for main modules.
+- UI coverage exists for core workflows.
 - Login + announcement demo is stable.
 - Attendance + absence demo is stable.
 - Mock/stub sections are clearly understood.
@@ -32,4 +32,3 @@ Complete UI coverage, stabilize the demo flows, and avoid risky new backend scop
 ## Suggested Labels
 
 `phase`, `ui`, `stabilization`, `demo`
-

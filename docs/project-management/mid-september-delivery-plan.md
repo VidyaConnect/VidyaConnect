@@ -2,14 +2,14 @@
 
 Prepared by: Ishan Liyanage  
 Date: 2026-07-09  
-Purpose: define a practical delivery plan for the university expectation of full UI and approximately 60% completion by mid September 2026
+Purpose: define a practical delivery plan for interim readiness by mid September 2026
 
 ## 1. Project Reality
 
-The university expects:
+The interim guide expects:
 
 ```text
-Full UI + approximately 60% project completion by mid September 2026
+Individual logbook evidence, clear personal contribution, and demonstrable project progress
 ```
 
 Current date:
@@ -112,11 +112,11 @@ flowchart TB
     Partial --> Future
 ```
 
-## 4. Definition of 60% Completion
+## 4. Definition of Interim Readiness
 
-For this project, 60% completion by mid September should mean:
+For this project, interim readiness by mid September should mean:
 
-- full UI coverage for main modules
+- UI readiness for main modules
 - local Docker Compose environment working
 - Keycloak authentication working
 - tenant-aware user/school context working
@@ -129,13 +129,13 @@ For this project, 60% completion by mid September should mean:
 - basic observability visible locally
 - documentation updated enough to explain architecture and implementation progress
 
-This is a realistic and defensible 60% milestone.
+This is a realistic and defensible interim milestone.
 
-## 5. What Full UI Means
+## 5. What UI Readiness Means
 
-Full UI does not mean every screen must be fully integrated with backend logic.
+UI readiness does not mean every screen must be fully integrated with backend logic.
 
-For mid September, full UI should mean:
+For mid September, UI readiness should mean:
 
 - all main user roles have screens
 - main navigation is complete
@@ -437,7 +437,7 @@ Focus:
 
 Expected outputs:
 
-- full UI coverage
+- UI coverage for core workflows
 - login + announcement demo stable
 - attendance + absence demo stable
 - local setup documented
@@ -487,10 +487,10 @@ Focus:
 Expected outputs:
 
 - demo-ready system
-- full UI walkthrough
+- UI walkthrough
 - working vertical slices
 - project board shows progress
-- documentation supports 60% completion claim
+- documentation supports the interim progress and evidence claim
 
 ## 10. Recommended First GitHub Issues
 
@@ -580,7 +580,7 @@ By mid September, the team should show:
 
 - GitHub project board
 - completed issues
-- full UI screenshots
+- UI screenshots
 - local Docker Compose running
 - Keycloak login
 - working announcement flow
@@ -594,9 +594,9 @@ By mid September, the team should show:
 ## 14. Mentor Guidance To Team
 
 ```text
-The mid September target is not about building every feature completely. It is about proving that the architecture works, the core product value is real, and the team can deliver an integrated system.
+The mid September target is not about building every feature completely. It is about proving that the architecture works, the core product value is real, and the team can explain their individual work with evidence.
 
-Focus on full UI coverage plus working vertical slices for login, announcements, attendance, absence response, and file upload. Do not spend time on AI, LMS, advanced messaging, or production AWS deployment before the core demo is stable.
+Focus on UI readiness plus working vertical slices for login, announcements, attendance, absence response, and file upload. Do not spend time on AI, LMS, advanced messaging, or production AWS deployment before the core demo is stable.
 
 Finish risky integration before the exam period. During exams, do only light cleanup, documentation, Figma polish, and bug fixes.
 ```

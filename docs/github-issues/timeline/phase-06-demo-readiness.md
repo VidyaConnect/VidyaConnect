@@ -6,7 +6,7 @@
 
 ## Goal
 
-Prepare the project for the university mid-September review, showing full UI and credible 60% completion.
+Prepare the project for the university mid-September review, showing clear progress, working evidence, and demo readiness.
 
 ## Tasks
 
@@ -26,12 +26,11 @@ Prepare the project for the university mid-September review, showing full UI and
 ## Acceptance Criteria
 
 - Demo can be run reliably.
-- Full UI walkthrough is ready.
+- UI walkthrough is ready.
 - Working vertical slices are stable.
-- Evidence supports 60% completion claim.
+- Evidence supports the team's interim progress and individual contribution claims.
 - Known limitations are documented honestly.
 
 ## Suggested Labels
 
 `phase`, `demo`, `milestone`, `university-review`
-

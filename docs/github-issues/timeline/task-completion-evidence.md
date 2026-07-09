@@ -1,14 +1,14 @@
-# Task: Prepare 60 Percent Completion Evidence
+# Task: Prepare Interim Progress Evidence
 
 ## Goal
 
-Prepare evidence that supports the mid-September 60% completion claim.
+Prepare evidence that supports the mid-September interim review, individual contribution, and project progress.
 
 ## Evidence Checklist
 
 - GitHub project board screenshots.
 - Completed issue list.
-- Full UI screenshots.
+- UI screenshots.
 - Local Docker Compose running screenshot.
 - Keycloak login screenshot.
 - Announcement flow screenshot/video.
@@ -30,4 +30,3 @@ Prepare evidence that supports the mid-September 60% completion claim.
 ## Suggested Labels
 
 `task`, `evidence`, `university-review`
-
