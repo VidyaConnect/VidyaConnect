@@ -83,6 +83,7 @@ The component diagram follows these architectural principles:
 
 ![VidyaConnect Component Diagram](./VidyaConnect-Component-Diagram.png)
 
+
 ## Editable Source
 
 The editable Draw.io diagram is included in this directory.
