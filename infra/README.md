@@ -1,13 +1,10 @@
 # Infrastructure
 
-This directory contains infrastructure and deployment-related configurations for the VidyaConnect platform.
+This directory contains infrastructure-related configurations for VidyaConnect.
 
-## Planned Components
+## Structure
 
-- Docker Compose
-- Nginx
-- LocalStack
-- Keycloak
-- Environment Configuration
-
-These files will be added during the infrastructure setup phase.
+- docker/ - Docker Compose and container configuration
+- nginx/ - Nginx reverse proxy configuration
+- keycloak/ - Keycloak authentication configuration
+- localstack/ - Local AWS service emulation
