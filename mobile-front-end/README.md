@@ -1,26 +1,18 @@
 # Mobile Frontend
 
-This directory contains the React Native mobile application.
+This directory contains the React Native mobile application for the VidyaConnect platform.
 
 ## Planned Technology
 
 - React Native
+- REST API
 
-## Purpose
+## Main Modules
 
-The mobile application will be used by:
-
-- Administrator
-- School Admins 
-- Teachers
-- Parents
-- Students
-  
-
-Main features include:
-
+- Authentication
+- Dashboard
 - Announcements
-- Assignments
 - Attendance
+- Assignments
 - Consent Forms
 - Notifications
