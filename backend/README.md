@@ -3,16 +3,11 @@
 This directory contains the backend services for the VidyaConnect platform.
 
 ## Planned Technology
-
 - Node.js
 - Express.js
 - PostgreSQL
-- JWT Authentication
 
-## Purpose
-
-This module will implement:
-
+## Main Responsibilities
 - Authentication
 - User Management
 - School Management
