@@ -10,9 +10,12 @@ This directory contains the React Native mobile application.
 
 The mobile application will be used by:
 
+- Administrator
+- School Admins 
 - Teachers
 - Parents
 - Students
+  
 
 Main features include:
 
