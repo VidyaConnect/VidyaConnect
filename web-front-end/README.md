@@ -1,23 +1,20 @@
 # Web Frontend
 
-This directory contains the Web Administration Portal.
+This directory contains the web administration portal for the VidyaConnect platform.
 
 ## Planned Technology
 
-- React
 - Next.js
+- REST API
 
-## Purpose
+## Main Modules
 
-The web portal will be used by:
-
-- Administrator 
-- School Admin
-- Teacher 
-
-Main features include:
-
+- Authentication
+- Dashboard
 - School Management
 - User Management
-- Reports
 - Announcements
+- Attendance
+- Assignments
+- Consent Forms
+- Reports
