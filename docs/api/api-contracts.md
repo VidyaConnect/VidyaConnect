@@ -32,7 +32,7 @@ All API routes must use the following prefix:
 
 Every API response follows the standard structure:
 
-```json
+```json```
 {
   "success": true,
   "message": "Operation completed successfully.",
