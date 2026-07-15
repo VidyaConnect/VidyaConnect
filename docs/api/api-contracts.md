@@ -1,4 +1,3 @@
-
 # VidyaConnect API Contracts v1
 
 This document specifies the official API endpoints, methods, expected request/response models, role permissions, and tenant isolation logic for the VidyaConnect microservices ecosystem.
@@ -42,7 +41,6 @@ Manages platform security contexts, token issuance, multi-factor setups, and use
   "email": "user@vidyaconnect.lk",
   "password": "SecurePassword123!"
 }
-
 Success Response (200 OK)
 {
   "success": true,
@@ -61,7 +59,6 @@ Success Response (200 OK)
 }
 
 Reset Password Request
-
 Method: POST
 
 Endpoint: /auth/password-reset/request
@@ -71,18 +68,17 @@ Allowed Roles: Public
 Tenant Rule: Cross-references the targeted email against registered tenant identifiers.
 
 Request
+JSON
 {
   "email": "user@vidyaconnect.lk"
 }
-
 Success Response (200 OK)
-
+JSON
 {
   "success": true,
   "message": "Password reset email dispatched successfully.",
   "data": {}
 }
-
 
 3. Core Administrative & School Operations Service
 Overview
@@ -99,16 +95,17 @@ Allowed Roles: Super Admin
 
 Tenant Rule: Creates a new distinct isolation boundary (school_id).
 
-Request
 
+Request
+JSON
 {
   "name": "Ananda College",
   "address": "Colombo 10, Sri Lanka",
   "contactNumber": "+94112345678",
   "domain": "anandacollege.lk"
 }
-
 Success Response (201 Created)
+JSON
 {
   "success": true,
   "message": "School entity provisioned successfully.",
@@ -116,7 +113,6 @@ Success Response (201 Created)
     "schoolId": "SCH001"
   }
 }
-
 Get Classes List
 Method: GET
 
@@ -126,9 +122,8 @@ Allowed Roles: School Admin, Principal, Teacher, Parent, Student
 
 Tenant Rule: Scopes responses explicitly to the user's active token school_id.
 
-
 Success Response (200 OK)
-
+JSON
 {
   "success": true,
   "message": "Classes data payload compiled.",
@@ -141,7 +136,6 @@ Success Response (200 OK)
     }
   ]
 }
-
 Assign Teacher to Subject
 Method: POST
 
@@ -158,8 +152,6 @@ JSON
   "subjectId": "SUB991",
   "classId": "CLS001"
 }
-
-
 Success Response (200 OK)
 JSON
 {
@@ -199,7 +191,6 @@ JSON
     "studentId": "STU001"
   }
 }
-
 Link Parent to Student
 Method: POST
 
@@ -223,7 +214,6 @@ JSON
   "message": "Parent-student boundary map applied successfully.",
   "data": {}
 }
-
 5. Announcements Service
 Overview
 Handles the distribution of institutional and class-level notices.
@@ -281,8 +271,6 @@ JSON
     "id": "ANN002"
   }
 }
-
-
 6. Attendance Service
 Overview
 Manages the verification and retention of daily student presence.
@@ -339,8 +327,6 @@ JSON
   "message": "Justification submitted successfully.",
   "data": {}
 }
-
-
 7. Consent Forms Service
 Overview
 Manages digital validation distribution and verification for parents.
@@ -395,8 +381,6 @@ JSON
   "message": "Response submitted successfully.",
   "data": {}
 }
-
-
 8. File Service
 Overview
 Interacts with AWS S3 using authenticated token structures to prevent public leakage.
@@ -487,7 +471,5 @@ JSON
     }
   }
 }
-
-
 
 
