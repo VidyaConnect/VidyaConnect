@@ -1,42 +1,85 @@
 # VidyaConnect API Contracts v1
 
-This document specifies the official API endpoints, methods, expected request/response models, role permissions, and tenant isolation logic for the VidyaConnect microservices ecosystem.
+## Document Overview
+
+This document defines the official API contracts for the **VidyaConnect platform microservices ecosystem**.
+
+It specifies:
+
+- API endpoints
+- HTTP methods
+- Request and response models
+- Role-based permissions
+- Multi-tenancy isolation rules
+- Service ownership boundaries
+- Standard API response formats
 
 ---
 
-## 1. Global Specifications & Architecture Rules
+# 1. Global Specifications & Architecture Rules
 
-*   **Base URL Path:** All API routes are prefixed by `/api/v1`.
-*   **Response Wrapping:** Every API response must adhere to a standardized schema containing `success`, `message`, and `data` fields.
-*   **Error Standard:** Errors must return an appropriate HTTP status code (4xx/5xx) accompanied by a descriptive error payload mirroring the schema structure:
-    ```json
-    {
-      "success": false,
-      "message": "Error description goes here.",
-      "data": {}
-    }
-    ```
-*   **Multi-Tenancy Guardrails:** Except for cross-tenant public infrastructure flags, every stateful transaction must implicitly extract and enforce authorization filtering utilizing the JWT context `school_id` property.
+## 1.1 Base API Path
+
+All API routes must use the following prefix:
+
+
+/api/v1
+
 
 ---
 
-## 2. Authentication & User Management Service
+## 1.2 Standard Response Format
 
-### Overview
-Manages platform security contexts, token issuance, multi-factor setups, and user credential validation layers.
+Every API response follows the standard structure:
 
-**Owning Microservice:** Authentication & Security Engine
-
----
-
-### User Login
-*   **Method:** POST
-*   **Endpoint:** `/auth/login`
-*   **Allowed Roles:** Public
-*   **Tenant Rule:** Validates user identifiers across institutional sub-domains to map the correct `school_id`.
-
-#### Request
 ```json
+{
+  "success": true,
+  "message": "Operation completed successfully.",
+  "data": {}
+}
+1.3 Error Response Format
+
+All errors must return appropriate HTTP status codes with the following structure:
+
+{
+  "success": false,
+  "message": "Error description goes here.",
+  "data": {}
+}
+1.4 Multi-Tenancy Security Rules
+
+VidyaConnect follows a multi-tenant architecture.
+
+Rules:
+
+Each school operates as an isolated tenant.
+Every authenticated request contains a JWT context.
+The JWT contains the school_id property.
+All state-changing operations must validate tenant ownership.
+Users cannot access data belonging to another school.
+2. Authentication & User Management Service
+Service Overview
+
+Manages:
+
+User authentication
+JWT token generation
+Credential validation
+Password recovery
+Security context management
+
+Owning Microservice:
+
+Authentication & Security Engine
+2.1 User Login
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/auth/login
+Allowed Roles	Public
+Tenant Rule	Validates user identity and maps correct school_id
+Request
 {
   "email": "user@vidyaconnect.lk",
   "password": "SecurePassword123!"
@@ -57,47 +100,45 @@ Success Response (200 OK)
     }
   }
 }
-
-Reset Password Request
-Method: POST
-
-Endpoint: /auth/password-reset/request
-
-Allowed Roles: Public
-
-Tenant Rule: Cross-references the targeted email against registered tenant identifiers.
-
+2.2 Password Reset Request
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/auth/password-reset/request
+Allowed Roles	Public
+Tenant Rule	Checks registered tenant identifiers
 Request
-JSON
 {
   "email": "user@vidyaconnect.lk"
 }
 Success Response (200 OK)
-JSON
 {
   "success": true,
   "message": "Password reset email dispatched successfully.",
   "data": {}
 }
-
 3. Core Administrative & School Operations Service
-Overview
-Provides foundational management tools for schools, academic classes, subject frameworks, and user records.
+Service Overview
 
-Owning Microservice: School Operations Core
+Provides:
 
-Create New School
-Method: POST
+School management
+Class management
+Subject management
+Academic assignments
+User administration
 
-Endpoint: /schools
+Owning Microservice:
 
-Allowed Roles: Super Admin
-
-Tenant Rule: Creates a new distinct isolation boundary (school_id).
-
-
+School Operations Core
+3.1 Create New School
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/schools
+Allowed Roles	Super Admin
+Tenant Rule	Creates new school isolation boundary
 Request
-JSON
 {
   "name": "Ananda College",
   "address": "Colombo 10, Sri Lanka",
@@ -105,7 +146,6 @@ JSON
   "domain": "anandacollege.lk"
 }
 Success Response (201 Created)
-JSON
 {
   "success": true,
   "message": "School entity provisioned successfully.",
@@ -113,17 +153,14 @@ JSON
     "schoolId": "SCH001"
   }
 }
-Get Classes List
-Method: GET
-
-Endpoint: /classes
-
-Allowed Roles: School Admin, Principal, Teacher, Parent, Student
-
-Tenant Rule: Scopes responses explicitly to the user's active token school_id.
-
-Success Response (200 OK)
-JSON
+3.2 Get Classes List
+Endpoint Information
+Property	Value
+Method	GET
+Endpoint	/classes
+Allowed Roles	School Admin, Principal, Teacher, Parent, Student
+Tenant Rule	Filters using user's school_id
+Success Response
 {
   "success": true,
   "message": "Classes data payload compiled.",
@@ -136,54 +173,50 @@ JSON
     }
   ]
 }
-Assign Teacher to Subject
-Method: POST
-
-Endpoint: /subjects/assign
-
-Allowed Roles: School Admin, Principal
-
-Tenant Rule: Validates that both the subject and the teacher exist inside the actor's school_id.
-
+3.3 Assign Teacher to Subject
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/subjects/assign
+Allowed Roles	School Admin, Principal
 Request
-JSON
 {
   "teacherId": "TCH005",
   "subjectId": "SUB991",
   "classId": "CLS001"
 }
-Success Response (200 OK)
-JSON
+Success Response
 {
   "success": true,
   "message": "Academic assignment verified and logged.",
   "data": {}
 }
 4. Student & Parent Relationship Service
-Overview
-Maintains student profiles, links parents or guardians to their respective children, and routes records accordingly.
+Service Overview
 
-Owning Microservice: Relationship Registry Engine
+Responsible for:
 
-Create Student Profile
-Method: POST
+Student profile creation
+Parent-student linking
+Relationship validation
 
-Endpoint: /students
+Owning Microservice:
 
-Allowed Roles: School Admin
-
-Tenant Rule: Appends the new student entity directly to the administrator's structural school_id.
-
+Relationship Registry Engine
+4.1 Create Student Profile
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/students
+Allowed Roles	School Admin
 Request
-JSON
 {
   "firstName": "Arjun",
   "lastName": "Perera",
   "dateOfBirth": "2011-05-14",
   "classId": "CLS001"
 }
-Success Response (201 Created)
-JSON
+Response
 {
   "success": true,
   "message": "Student profile instantiated successfully.",
@@ -191,46 +224,43 @@ JSON
     "studentId": "STU001"
   }
 }
-Link Parent to Student
-Method: POST
-
-Endpoint: /relationships/parent-student
-
-Allowed Roles: School Admin
-
-Tenant Rule: Strictly requires both entities to belong to the exact same school_id.
-
+4.2 Link Parent to Student
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/relationships/parent-student
+Allowed Roles	School Admin
 Request
-JSON
 {
   "parentId": "PRN441",
   "studentId": "STU001",
   "relationshipType": "FATHER"
 }
-Success Response (200 OK)
-JSON
+Response
 {
   "success": true,
   "message": "Parent-student boundary map applied successfully.",
   "data": {}
 }
 5. Announcements Service
-Overview
-Handles the distribution of institutional and class-level notices.
+Service Overview
 
-Owning Microservice: Announcement Service
+Handles:
 
-Get Announcements
-Method: GET
+School announcements
+Class announcements
+Institutional communication
 
-Endpoint: /announcements
+Owning Microservice:
 
-Allowed Roles: School Admin, Principal, Teacher, Parent, Student
-
-Tenant Rule: Filters announcements strictly within the user's school_id.
-
-Success Response (200 OK)
-JSON
+Announcement Service
+5.1 Get Announcements
+Endpoint Information
+Property	Value
+Method	GET
+Endpoint	/announcements
+Allowed Roles	School Admin, Principal, Teacher, Parent, Student
+Response
 {
   "success": true,
   "message": "Announcements retrieved successfully.",
@@ -245,25 +275,20 @@ JSON
     }
   ]
 }
-Create Announcement
-Method: POST
-
-Endpoint: /announcements
-
-Allowed Roles: School Admin, Teacher
-
-Tenant Rule: Formally tied to the sender's authenticated school_id.
-
+5.2 Create Announcement
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/announcements
+Allowed Roles	School Admin, Teacher
 Request
-JSON
 {
   "title": "Grade 10 Parent Meeting",
   "content": "Discussion regarding project milestones.",
   "type": "CLASS_SPECIFIC",
   "classId": "CLS001"
 }
-Success Response (201 Created)
-JSON
+Response
 {
   "success": true,
   "message": "Announcement created successfully.",
@@ -272,86 +297,83 @@ JSON
   }
 }
 6. Attendance Service
-Overview
-Manages the verification and retention of daily student presence.
+Service Overview
 
-Owning Microservice: Attendance Service
+Manages:
 
-Submit Attendance
-Method: POST
+Daily attendance recording
+Absence justification
 
-Endpoint: /attendance
+Owning Microservice:
 
-Allowed Roles: Teacher
-
-Tenant Rule: Records must bind exclusively to the teacher's active tenant school_id.
-
+Attendance Service
+6.1 Submit Attendance
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/attendance
+Allowed Roles	Teacher
 Request
-JSON
 {
   "classId": "CLS001",
   "date": "2026-07-15",
   "records": [
-    { "studentId": "STU001", "status": "PRESENT" },
-    { "studentId": "STU002", "status": "ABSENT" }
+    {
+      "studentId": "STU001",
+      "status": "PRESENT"
+    },
+    {
+      "studentId": "STU002",
+      "status": "ABSENT"
+    }
   ]
 }
-Success Response (200 OK)
-JSON
+Response
 {
   "success": true,
   "message": "Attendance records saved successfully.",
   "data": {}
 }
-Submit Absence Justification
-Method: POST
-
-Endpoint: /attendance/justification
-
-Allowed Roles: Parent/Guardian
-
-Tenant Rule: Verified against the parent's authenticated tenant boundary.
-
+6.2 Submit Absence Justification
+Endpoint Information
+Property	Value
+Method	POST
+Endpoint	/attendance/justification
+Allowed Roles	Parent/Guardian
 Request
-JSON
 {
   "studentId": "STU002",
   "date": "2026-07-15",
   "reason": "Medical appointment",
-  "attachmentUrl": "[https://s3.vidyaconnect.lk/absences/med-01.pdf](https://s3.vidyaconnect.lk/absences/med-01.pdf)"
+  "attachmentUrl": "https://s3.vidyaconnect.lk/absences/med-01.pdf"
 }
-Success Response (200 OK)
-JSON
+Response
 {
   "success": true,
   "message": "Justification submitted successfully.",
   "data": {}
 }
 7. Consent Forms Service
-Overview
-Manages digital validation distribution and verification for parents.
+Service Overview
 
-Owning Microservice: Consent Form Service
+Handles digital consent management.
 
-Create Consent Form
-Method: POST
+Owning Microservice:
 
-Endpoint: /consent-forms
-
-Allowed Roles: School Admin
-
-Tenant Rule: Bound directly to the issuing admin's school_id.
-
+Consent Form Service
+7.1 Create Consent Form
+Endpoint
+POST /consent-forms
+Allowed Roles
+School Admin
 Request
-JSON
 {
   "title": "Field Trip to Colombo Museum",
   "description": "Annual educational field excursion.",
   "deadline": "2026-07-20T23:59:59Z",
-  "attachmentUrl": "[https://s3.vidyaconnect.lk/forms/trip-details.pdf](https://s3.vidyaconnect.lk/forms/trip-details.pdf)"
+  "attachmentUrl": "https://s3.vidyaconnect.lk/forms/trip-details.pdf"
 }
-Success Response (201 Created)
-JSON
+Response
 {
   "success": true,
   "message": "Consent form issued successfully.",
@@ -359,76 +381,48 @@ JSON
     "formId": "CNS001"
   }
 }
-Respond to Consent Form
-Method: POST
-
-Endpoint: /consent-forms/{formId}/response
-
-Allowed Roles: Parent/Guardian
-
-Tenant Rule: Verified via parent's token schema context.
-
+7.2 Respond to Consent Form
+POST /consent-forms/{formId}/response
 Request
-JSON
 {
   "studentId": "STU001",
   "status": "ACCEPTED"
 }
-Success Response (200 OK)
-JSON
-{
-  "success": true,
-  "message": "Response submitted successfully.",
-  "data": {}
-}
 8. File Service
-Overview
-Interacts with AWS S3 using authenticated token structures to prevent public leakage.
+Service Overview
 
-Owning Microservice: File Access Layer / Service
+Provides secure AWS S3 file operations.
 
-Request Pre-Signed Upload URL
-Method: POST
+Owning Microservice:
 
-Endpoint: /files/upload-url
-
-Allowed Roles: School Admin, Teacher, Parent
-
-Tenant Rule: Extracted metadata must comply with the tenant context mapping.
-
+File Access Layer
+8.1 Request Upload URL
+POST /files/upload-url
 Request
-JSON
 {
   "fileName": "report.pdf",
   "fileType": "application/pdf"
 }
-Success Response (200 OK)
-JSON
+Response
 {
   "success": true,
   "message": "Pre-signed URL generated.",
   "data": {
-    "uploadUrl": "[https://vidyaconnect.s3.amazonaws.com/SCH001/report.pdf?AWSAccessKeyId=](https://vidyaconnect.s3.amazonaws.com/SCH001/report.pdf?AWSAccessKeyId=)...",
-    "downloadUrl": "[https://dev-api.vidyaconnect.lk/api/v1/files/SCH001/report.pdf](https://dev-api.vidyaconnect.lk/api/v1/files/SCH001/report.pdf)"
+    "uploadUrl": "https://vidyaconnect.s3.amazonaws.com/file",
+    "downloadUrl": "https://dev-api.vidyaconnect.lk/api/v1/files/report.pdf"
   }
 }
 9. Notifications Service
-Overview
-Dispatches operational payloads downstream via AWS SNS nodes.
+Service Overview
 
-Owning Microservice: Notification Service
+Handles system notifications.
 
-Get Notification History
-Method: GET
+Owning Microservice:
 
-Endpoint: /notifications
-
-Allowed Roles: Super Admin, School Admin, Teacher, Parent, Student
-
-Tenant Rule: Constrained strictly to the user's specific context footprint.
-
-Success Response (200 OK)
-JSON
+Notification Service
+9.1 Get Notification History
+GET /notifications
+Response
 {
   "success": true,
   "message": "Notification log retrieved.",
@@ -443,22 +437,19 @@ JSON
   ]
 }
 10. Health Check System
-Overview
-Exposes status flags checking active downstream dependencies for platform monitoring.
+Service Overview
 
-Owning Microservice: Infrastructure Management Layer
+Monitors platform availability and dependencies.
 
-System Status
-Method: GET
+Owning Microservice:
 
-Endpoint: /health
-
-Allowed Roles: Public
-
-Tenant Rule: Not Applicable
-
-Success Response (200 OK)
-JSON
+Infrastructure Management Layer
+10.1 System Status
+Endpoint
+GET /health
+Allowed Roles
+Public
+Response
 {
   "success": true,
   "message": "System operational.",
@@ -471,5 +462,6 @@ JSON
     }
   }
 }
+
 
 
