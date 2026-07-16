@@ -60,6 +60,22 @@
       "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
       "attributes" : { }
     }, {
+      "id" : "4f7c2125-7186-4f42-bd31-8ac15023ca4c",
+      "name" : "school-admin",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
+      "attributes" : { }
+    }, {
+      "id" : "768e510e-4008-42e6-b4ce-3b9314369eaa",
+      "name" : "parent",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
+      "attributes" : { }
+    }, {
       "id" : "0392eb0e-268c-44b8-a4e7-9e1c77e3295d",
       "name" : "uma_authorization",
       "description" : "${role_uma_authorization}",
@@ -68,9 +84,33 @@
       "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
       "attributes" : { }
     }, {
+      "id" : "4b1f7628-edf8-4830-9280-91249c8e7165",
+      "name" : "teacher",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
+      "attributes" : { }
+    }, {
       "id" : "333e61b6-449b-4ea8-bf8d-cedb8a5627eb",
       "name" : "offline_access",
       "description" : "${role_offline-access}",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
+      "attributes" : { }
+    }, {
+      "id" : "6315f972-0d36-4f9b-9e29-d7245383f91d",
+      "name" : "student",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
+      "attributes" : { }
+    }, {
+      "id" : "74ac39eb-ccba-4cc0-8163-42d19ab1c6ce",
+      "name" : "super-admin",
+      "description" : "",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "65cef1e6-3b1a-4dde-8c45-88d8c62ebf22",
@@ -375,6 +415,122 @@
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister" : false,
   "webAuthnPolicyPasswordlessAcceptableAaguids" : [ ],
   "webAuthnPolicyPasswordlessExtraOrigins" : [ ],
+  "users" : [ {
+    "id" : "e42439f7-3eb1-4f45-8390-5f7bf6bc5a9a",
+    "username" : "test-parent",
+    "firstName" : "Test",
+    "lastName" : "Parent",
+    "email" : "test-parent@vidyaconnect.local",
+    "emailVerified" : false,
+    "createdTimestamp" : 1784219356202,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "115c3167-61b5-4958-9d36-c57489bc8d84",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784219375204,
+      "secretData" : "{\"value\":\"phHMx0Qm3s7EeHO5mZi7LI27jkxDFELMG9JUbmIHds+2IrLEdbXTXdiihKFoqC6AQagVR/08YiL7ZtWuaHd0Xg==\",\"salt\":\"+08ikMQcWpOsdligt+ci9A==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-vidyaconnect", "parent" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "b5e0c8e8-260b-4f99-a141-4dbd6472454e",
+    "username" : "test-school-admin",
+    "firstName" : "Test",
+    "lastName" : "School Admin",
+    "email" : "test-school-admin@vidyaconnect.local",
+    "emailVerified" : false,
+    "createdTimestamp" : 1784219222173,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "1d3822bb-d598-47fc-979a-7ac290813223",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784219245742,
+      "secretData" : "{\"value\":\"l3Ag2iRXEttWxdKvNIVN0wpdb2waDHqjId61DL8kUR2UAIoNVEv3uFsFJ3wu0KAcC3OBbx9+kqYO+b6RrD1Dcw==\",\"salt\":\"baVkhxzgYRNUHAUmXo+/Cw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-vidyaconnect", "school-admin" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "08562d9e-4f31-4ccd-bc04-899aa0d7c8a5",
+    "username" : "test-student",
+    "firstName" : "Test",
+    "lastName" : "Student",
+    "email" : "test-student@vidyaconnect.local",
+    "emailVerified" : false,
+    "createdTimestamp" : 1784219420837,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "2ab2eaf3-7cb3-4798-8d25-da4c1594d946",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784219438096,
+      "secretData" : "{\"value\":\"l6nivhWVb0RZzaiim8saF5Lp5vTxf48ucA3BAPP1if2lWxntq27tMK+bzxFzGtDicN2X8ej5zfh/x8z34+KCUA==\",\"salt\":\"eCea7u5MYzG9a0ap7/MXng==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-vidyaconnect", "student" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "d05333e4-dfaa-4370-b3a7-0b196a0921a0",
+    "username" : "test-super-admin",
+    "firstName" : "Test",
+    "lastName" : "Super Admin",
+    "email" : "test-super-admin@vidyaconnect.local",
+    "emailVerified" : false,
+    "createdTimestamp" : 1784219138472,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "6528cca7-e8b8-41cd-a0de-83d9f96985e6",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784219180528,
+      "secretData" : "{\"value\":\"me8gCtIhuAH9uqoBZGuLJs4SgNMf2G41tG4R3cPA7VeTH9xhNJ8m7nx1TR4bh3KFOiiZ53iobiiC79iX+JDBqQ==\",\"salt\":\"bjCbNOwuTOVe/CqzxNwgvw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-vidyaconnect", "super-admin" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "a3f1628f-5151-4da7-9245-cce1ca088429",
+    "username" : "test-teacher",
+    "firstName" : "Test",
+    "lastName" : "Teacher",
+    "email" : "test-teacher@vidyaconnect.local",
+    "emailVerified" : false,
+    "createdTimestamp" : 1784219296232,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "56df9d9c-1001-4add-b24b-d2cbf1314ccf",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1784219319504,
+      "secretData" : "{\"value\":\"wg1NsEKGzgQ68SqtNvRPMrTLNFU6rlzH7OAFM1/WJE7VpWWx7CpPx6Ve1+PJ5HosGqlp7d53O5lK/h8CkXcfrg==\",\"salt\":\"VzIj5tJNE5KmuU4rjyvAjw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-vidyaconnect", "teacher" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
     "roles" : [ "offline_access" ]
