@@ -1,31 +1,25 @@
-const logger = {
-  info: (service, message, data = '') => {
-    console.log(JSON.stringify({
-      level: 'info',
-      service,
-      message,
-      data,
-      timestamp: new Date().toISOString()
-    }));
-  },
-  error: (service, message, error = '') => {
-    console.error(JSON.stringify({
-      level: 'error',
-      service,
-      message,
-      error: error.message || error,
-      timestamp: new Date().toISOString()
-    }));
-  },
-  warn: (service, message, data = '') => {
-    console.warn(JSON.stringify({
-      level: 'warn',
-      service,
-      message,
-      data,
-      timestamp: new Date().toISOString()
-    }));
-  }
-};
+export const logger = {
 
-module.exports = logger;
+  info(message, metadata = {}) {
+    console.log(
+      JSON.stringify({
+        level: "INFO",
+        message,
+        timestamp: new Date().toISOString(),
+        ...metadata
+      })
+    );
+  },
+
+  error(message, metadata = {}) {
+    console.error(
+      JSON.stringify({
+        level: "ERROR",
+        message,
+        timestamp: new Date().toISOString(),
+        ...metadata
+      })
+    );
+  }
+
+};

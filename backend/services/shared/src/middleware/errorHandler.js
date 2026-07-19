@@ -1,24 +1,10 @@
-const errorHandler = (err, req, res, next) => {
-  console.error(`[ERROR] ${new Date().toISOString()}`, err);
+export const errorHandler = (err, req, res, next) => {
 
-  if (err.code === 'P2002') {
-    return res.status(409).json({ 
-      success: false, 
-      message: 'Record already exists' 
-    });
-  }
+  console.error(err);
 
-  if (err.code === 'P2025') {
-    return res.status(404).json({ 
-      success: false, 
-      message: 'Record not found' 
-    });
-  }
-
-  return res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Internal server error'
+  res.status(err.status || 500).json({
+    success:false,
+    message:err.message || "Internal Server Error"
   });
-};
 
-module.exports = errorHandler;
+};
