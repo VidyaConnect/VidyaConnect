@@ -1,16 +1,10 @@
 import express from "express";
+import healthRoutes from "./routes/health.routes.js";
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 
-// Health Check Endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    service: "school-user-service",
-    status: "UP"
-  });
-});
+app.use("/health", healthRoutes);
 
 export default app;
