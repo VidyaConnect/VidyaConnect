@@ -7,5 +7,8 @@
   "exports": {
     ".": "./src/index.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0"
+  }
 }
