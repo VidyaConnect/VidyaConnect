@@ -1,4 +1,4 @@
-# VidyaConnect API Contracts v2
+# VidyaConnect API Contracts v1
 
 This document defines the official API contracts for the VidyaConnect platform microservices ecosystem.
 
