@@ -1,82 +1,239 @@
-# VidyaConnect Local Development Startup Guide
+# VidyaConnect Local Development Setup Guide
 
-This guide provides step-by-step instructions for engineers to clone, configure, and spin up the complete VidyaConnect microservices ecosystem on a local machine for development and testing.
-
----
-
-## Prerequisites
-
-Before starting, ensure you have the following software installed on your local system:
-
-*   **Docker & Docker Compose:** To run containerized dependencies (PostgreSQL, Keycloak, Nginx, LocalStack).
-*   **Git:** To clone the repository.
-*   **Node.js (v18 or higher):** For running front-end and backend Node-based services locally.
-*   **PostgreSQL Client (Optional):** Such as pgAdmin or DBeaver.
+This guide provides step-by-step instructions for engineers to clone, configure, and launch the **VidyaConnect local development foundation environment** for development and testing.
 
 ---
 
-## 1. Cloning the Repository
+# Prerequisites
+
+Before starting, ensure you have the following software installed on your local machine:
+
+- **Docker Desktop (with Docker Compose support):** To run PostgreSQL, Keycloak, Nginx, LocalStack and other shared infrastructure services.
+- **Git:** To clone the project repository.
+- **Node.js (v18 or higher):** To run backend services and frontend applications.
+- **npm:** Installed together with Node.js.
+- **PostgreSQL Client (Optional):** Such as pgAdmin or DBeaver for database inspection.
+- **Visual Studio Code (Recommended):** For development.
+
+---
+
+# 1. Clone the Repository
+
+Clone the project repository and navigate to the project directory.
 
 ```bash
-```
-git clone [https://github.com/VidyaConnect/VidyaConnect.git](https://github.com/VidyaConnect/VidyaConnect.git)
+git clone https://github.com/VidyaConnect/VidyaConnect.git
 cd VidyaConnect
+```
 
+---
 
+# 2. Configure Environment Variables
 
-## 2. Environment Variables Configuration
-Locate the environmental templates in the root directory or inside the respective services:
+Some backend services contain their own `.env.example` files.
 
-Copy .env.example to .env in the root folder.
+For each service that provides one:
 
-Update the template variables to match your local setup credentials.
+- Copy `.env.example` to `.env`.
+- Update the environment variables according to your local development configuration.
 
+> **Note:** Only create `.env` files where a corresponding `.env.example` exists. The project does not currently require a single root-level `.env` file.
 
+---
 
+# 3. Launch Local Infrastructure
 
-## 3. Launching Infrastructure Containers
-To spin up the shared local infrastructure, run the following command from the repository root:
+From the project root directory, start the shared infrastructure services.
 
+```bash
+docker compose -f infra/docker/docker-compose.local.yml up -d
+```
 
-docker-compose up -d
+---
 
-### Verification of Services
+## Verify Running Services
 
 | Service | Local URL / Port | Purpose |
-| :--- | :--- | :--- |
-| **Nginx Reverse Proxy** | `http://localhost:80` | Routes API requests to correct backend microservices |
-| **PostgreSQL Database** | `localhost:5432` | Shared transactional database storage |
-| **Keycloak IAM** | `http://localhost:8080` | Manages authentication realms, clients, and roles |
-| **LocalStack** | `http://localhost:4566` | Simulates AWS S3 and SNS nodes locally |
+|----------|------------------|---------|
+| **Nginx Reverse Proxy** | http://localhost | Routes requests to frontend and backend services |
+| **PostgreSQL Database** | localhost:5432 | Shared relational database |
+| **Keycloak IAM** | http://localhost:8080 | Authentication, authorization, realms, clients and roles |
+| **LocalStack** | http://localhost:4566 | Local AWS service emulation (S3, SNS) |
 
+---
 
+# 4. Launch Backend Microservices
 
+Navigate to the required backend service.
 
-## 4. Launching Backend Microservices
-Navigate to the targeted backend microservice directory (e.g., backend/school-ops-service):
+Example:
 
-cd backend/school-ops-service
+```bash
+cd backend/services/school-user-service
 npm install
 npm run dev
+```
+
+Repeat the same process for any additional backend services that need to be executed.
+
+---
+
+# 5. Launch the Web Frontend
+
+```bash
+cd web-front-end
+npm install
+npm run dev
+```
+
+Access the application at:
+
+```
+http://localhost:3000
+```
+
+---
+
+# 6. Launch the Mobile Frontend
+
+```bash
+cd mobile-front-end
+npm install
+npm start
+```
+
+Follow the React Native instructions to launch the application on an emulator or connected device.
+
+---
+
+# Useful Docker Commands
+
+### View Running Containers
+
+```bash
+docker ps
+```
+
+### View All Containers
+
+```bash
+docker ps -a
+```
+
+### View Infrastructure Logs
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml logs
+```
+
+### View Logs for a Specific Service
+
+Example:
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml logs keycloak
+```
+
+Replace `keycloak` with:
+
+- postgres
+- nginx
+- localstack
+
+---
+
+# Stop Local Infrastructure
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml down
+```
+
+---
+
+# Restart Local Infrastructure
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml restart
+```
+
+---
+
+# Reset Local Infrastructure
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml down -v
+docker compose -f infra/docker/docker-compose.local.yml up -d
+```
+
+> **Warning:** This command removes Docker volumes and deletes locally stored development data.
+
+---
+
+# Basic Troubleshooting
+
+## Docker Containers Do Not Start
+
+Check running containers:
+
+```bash
+docker ps -a
+```
+
+View container logs:
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml logs
+```
+
+---
+
+## Backend Cannot Connect to PostgreSQL
+
+- Verify the PostgreSQL container is running.
+- Check the database configuration in the service `.env` file.
+- Ensure port **5432** is available.
+
+---
+
+## Keycloak Cannot Be Accessed
+
+Verify Keycloak is running:
+
+```bash
+docker compose -f infra/docker/docker-compose.local.yml logs keycloak
+```
+
+---
+
+## LocalStack Connection Issues
+
+Verify LocalStack is running correctly.
+
+Default endpoint:
+
+```
+http://localhost:4566
+```
+
+---
+
+## npm Dependency Errors
+
+Delete dependencies and reinstall packages.
+
+```bash
+rm -rf node_modules
+npm install
+```
 
 
 
+---
 
-## 5. Launching Front-End Shells
-Web Administration Portal (web-front-end)
+# Notes
 
-  cd web-front-end
-  npm install
-  npm run dev
-
-Access at: http://localhost:3000
-
-
-Mobile App (mobile-front-end)
-
-   cd mobile-front-end
-   npm install
-   npm start
-
-
-
+- Always start the shared infrastructure before launching backend services.
+- Backend services can be started independently during development.
+- LocalStack is used for local object storage instead of AWS.
+- Keep service-specific configuration inside each service directory.
+- Update this guide whenever the local development environment changes.
