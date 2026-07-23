@@ -19,7 +19,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,26 +79,202 @@ services:
     networks:
       - vidyaconnect-network
 
-  # ── Backend API (Placeholder) ────────────
-  backend:
-    image: node:20-alpine
-    container_name: vidyaconnect-backend
+ # ── School User Service ──────────────────
+  school-user-service:
+    build:
+      context: ../../backend/services
+      dockerfile: school-user-service/Dockerfile
+    container_name: vidyaconnect-school-user-service
     restart: unless-stopped
-    working_dir: /app
-    command: sh -c "echo 'Backend placeholder running' && sleep infinity"
+
     ports:
-      - "3000:3000"
+      - "3001:3001"
+
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER:-vidyaconnect_user}:${POSTGRES_PASSWORD:-localpassword}@postgres:5432/${POSTGRES_DB:-vidyaconnect}
+      PORT: 3001
+
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=school_user"
       KEYCLOAK_URL: http://keycloak:8080
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+ # ── Announcement Service ─────────────────
+  announcement-service:
+    build:
+      context: ../../backend/services
+      dockerfile: announcement-service/Dockerfile
+    container_name: vidyaconnect-announcement-service
+    restart: unless-stopped
+
+    ports:
+      - "3002:3002"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── Attendance Service ───────────────────
+  attendance-service:
+    build:
+      context: ../../backend/services
+      dockerfile: attendance-service/Dockerfile
+    container_name: vidyaconnect-attendance-service
+    restart: unless-stopped
+
+    ports:
+      - "3003:3003"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── Assignment Service ───────────────────
+  assignment-service:
+    build:
+      context: ../../backend/services
+      dockerfile: assignment-service/Dockerfile
+    container_name: vidyaconnect-assignment-service
+    restart: unless-stopped
+
+    ports:
+      - "3004:3004"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=assignment"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── Consent Form Service ─────────────────
+  consent-form-service:
+    build:
+      context: ../../backend/services
+      dockerfile: consent-form-service/Dockerfile
+    container_name: vidyaconnect-consent-form-service
+    restart: unless-stopped
+
+    ports:
+      - "3005:3005"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=consent_form"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── File Service ─────────────────────────
+  file-service:
+    build:
+      context: ../../backend/services
+      dockerfile: file-service/Dockerfile
+    container_name: vidyaconnect-file-service
+    restart: unless-stopped
+
+    ports:
+      - "3006:3006"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3006
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=file"
       AWS_ENDPOINT: http://localstack:4566
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+
     depends_on:
       postgres:
         condition: service_healthy
+      localstack:
+        condition: service_started
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── Notification Service ─────────────────
+  notification-service:
+    build:
+      context: ../../backend/services
+      dockerfile: notification-service/Dockerfile
+    container_name: vidyaconnect-notification-service
+    restart: unless-stopped
+
+    ports:
+      - "3007:3007"
+
+
+    environment:
+      NODE_ENV: development
+      PORT: 3007
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=notification"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+    
+
+  # ── Report Service ───────────────────────
+  report-service:
+    build:
+      context: ../../backend/services
+      dockerfile: report-service/Dockerfilev
+    container_name: vidyaconnect-report-service
+    restart: unless-stopped
+
+    ports:
+      - "3008:3008"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3008
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=report"
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+
     networks:
       - vidyaconnect-network
 
@@ -110,13 +286,13 @@ services:
     working_dir: /app
     command: sh -c "echo 'Web admin placeholder running' && sleep infinity"
     ports:
-      - "3001:3001"
+      - "3100:3001"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3001
       NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
     depends_on:
-      - backend
+      - keycloak
     networks:
       - vidyaconnect-network
 
