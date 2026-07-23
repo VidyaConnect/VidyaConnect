@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["school_user"]
+}
+
+enum Role {
+  ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+
+  @@schema("school_user")
+}
+
+model School {
+  id      String  @id @default(uuid())
+  name    String
+  email   String  @unique
+  phone   String?
+  address String?
+  logoUrl String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  classes  Class[]
+  students Student[]
+  teachers Teacher[]
+  parents  Parent[]
+
+  @@map("schools")
+  @@schema("school_user")
+}
+
+model User {
+  id String @id @default(uuid())
+
+  /// User ID from Keycloak
+  keycloakId String @unique
+
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id])
+
+  fullName String
+  email    String  @unique
+  phone    String?
+
+  role Role
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student?
+  teacher Teacher?
+  parent  Parent?
+
+  @@index([schoolId])
+  @@index([role])
+  @@map("users")
+  @@schema("school_user")
+}
+
+model Student {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id])
+
+  parentId String?
+
+  parent Parent? @relation(fields: [parentId], references: [id])
+
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id])
+
+  admissionNumber String?   @unique
+  dateOfBirth     DateTime?
+  gender          String?
+
+  enrollmentDate DateTime @default(now())
+  isActive       Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([classId])
+  @@index([parentId])
+  @@map("students")
+  @@schema("school_user")
+}
+
+model Teacher {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id])
+
+  classTeacherOf Class? @relation("ClassTeacher")
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@map("teachers")
+  @@schema("school_user")
+}
+
+model Parent {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schoolId String
+  school   School? @relation(fields: [schoolId], references: [id])
+
+  occupation String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students Student[]
+
+  @@index([schoolId])
+  @@map("parents")
+  @@schema("school_user")
+}
+
+model Class {
+  id String @id @default(uuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id])
+
+  classTeacherId String? @unique
+
+  classTeacher Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+
+  className    String
+  gradeLevel   String
+  academicYear String
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students Student[]
+
+  @@unique([schoolId, className, gradeLevel, academicYear])
+  @@index([schoolId])
+  @@map("classes")
+  @@schema("school_user")
+}
