@@ -55,6 +55,8 @@ These apply platform-wide. Each endpoint below only lists the ones relevant to i
 | `consent-form-service` | Consent forms and parent responses |
 | `file-service` | Pre-signed S3 upload/download URLs, file metadata |
 | `notification-service` | Notification history and delivery |
+| `community-service` | School and Class specific communities |
+
 
 ### 1.6 Multi-Tenancy Security Rules
 
