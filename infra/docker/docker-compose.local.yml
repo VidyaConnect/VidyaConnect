@@ -259,7 +259,7 @@ services:
   report-service:
     build:
       context: ../../backend/services
-      dockerfile: report-service/Dockerfilev
+      dockerfile: report-service/Dockerfile
     container_name: vidyaconnect-report-service
     restart: unless-stopped
 
