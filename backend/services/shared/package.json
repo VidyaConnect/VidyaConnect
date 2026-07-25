@@ -1,0 +1,11 @@
+{
+  "name": "@vidyaconnect/shared",
+  "version": "1.0.0",
+  "description": "Shared middleware and utilities for VidyaConnect services",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "dependencies": {}
+}
