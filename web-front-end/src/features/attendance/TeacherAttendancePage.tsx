@@ -1,109 +1,142 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Topbar from '@/components/Topbar'
-import SearchBar from '@/components/SearchBar'
 import ClassSelector from '@/components/ClassSelector'
 import AttendanceCard from '@/components/AttendanceCard'
 import StudentRoster from '@/components/StudentRoster'
 import AbsenceFollowUp from '@/components/AbsenceFollowUp'
 import { useAttendance, useAbsenceFollowUp } from '@/features/attendance/hooks'
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  MoreIcon,
+  SaveIcon,
+  CalendarIcon,
+  HelpIcon,
+} from '@/components/Icons'
 
 export default function TeacherAttendancePage() {
+  const router = useRouter()
   const [currentPage, setCurrentPage] = useState('attendance')
-  const { students, selectedClass, updateAttendanceStatus, getSummary } = useAttendance()
+  const [searchTerm, setSearchTerm] = useState('')
+  const { students, selectedClass, updateAttendanceStatus } = useAttendance()
   const { followUps, updateFollowUp } = useAbsenceFollowUp()
-  const summary = getSummary()
-  const currentDate = new Date().toISOString().split('T')[0]
+  const currentDate = '2024-10-25'
+  const filteredStudents = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return students
+    }
+
+    return students.filter(({ student }) =>
+      [student.name, student.rollNo, selectedClass.name]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    )
+  }, [searchTerm, selectedClass.name, students])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
       <Navbar userRole="teacher" currentPage={currentPage} onNavigate={setCurrentPage} />
-      <div className="ml-64">
-        <Topbar
-          title="Mark Attendance"
-          subtitle={`${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
-          userRole="teacher"
-        />
+      <Topbar
+        userRole="teacher"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        searchPlaceholder="Search student..."
+        searchClassName="max-w-[420px]"
+      />
 
-        <main className="p-8">
-          {/* Filters */}
-          <div className="mb-8 flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+      <main className="ml-56 px-6 pb-24 pt-6">
+        <div className="mb-5 flex items-start justify-between gap-6">
+          <div>
+            <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Mark Attendance</h1>
+            <p className="mt-1 text-sm text-[#555962]">
+              Manage daily attendance records for your assigned classes.
+            </p>
+          </div>
+
+          <div className="flex items-end gap-4">
+            <div className="w-32">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">
+                Class
+              </label>
               <ClassSelector
                 selectedClass="8a"
                 onChange={(value) => console.log('Class changed:', value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-              <input
-                type="date"
-                defaultValue={currentDate}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
+            <div className="w-44">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">
+                Date
+              </label>
+              <div className="flex h-10 items-center gap-2.5 rounded-md border border-[#c9ced9] bg-white px-3 text-sm text-[#25272c]">
+                <CalendarIcon size={16} className="text-[#4f5661]" />
+                10/24/2023
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-6 mb-8">
-            <AttendanceCard
-              icon="✓"
-              label="Present"
-              count={summary.presentToday}
-              bgColor="bg-white"
-            />
-            <AttendanceCard
-              icon="✕"
-              label="Absent"
-              count={summary.absentToday}
-              bgColor="bg-white"
-            />
-            <AttendanceCard
-              icon="⏱"
-              label="Late"
-              count={summary.lateToday}
-              bgColor="bg-white"
-            />
-            <AttendanceCard
-              icon="❓"
-              label="Unmarked"
-              count={summary.notMarkedToday}
-              bgColor="bg-white"
-            />
-          </div>
-
-          {/* Student Roster with Status Toggle */}
-          <StudentRoster
-            students={students}
-            onStatusChange={updateAttendanceStatus}
-            currentDate={currentDate}
+        <div className="mb-5 grid grid-cols-4 gap-4">
+          <AttendanceCard
+            icon={<CheckCircleIcon size={20} />}
+            label="Present"
+            count="24"
+            valueClassName="text-[#007c6d]"
+            iconBgClassName="bg-[#e2f1ee] text-[#007c6d]"
           />
+          <AttendanceCard
+            icon={<XCircleIcon size={20} />}
+            label="Absent"
+            count="02"
+            valueClassName="text-[#c3161c]"
+            iconBgClassName="bg-[#fde9e8] text-[#c3161c]"
+          />
+          <AttendanceCard
+            icon={<ClockIcon size={20} />}
+            label="Late"
+            count="01"
+            valueClassName="text-[#003b78]"
+            iconBgClassName="bg-[#e8eef8] text-[#003b78]"
+          />
+          <AttendanceCard
+            icon={<MoreIcon size={20} />}
+            label="Unmarked"
+            count="03"
+            valueClassName="text-[#555962]"
+            iconBgClassName="bg-[#e2e2e2] text-[#777b84]"
+            borderClassName="border-dashed border-[#cfd4dd]"
+          />
+        </div>
+        <StudentRoster
+          students={filteredStudents}
+          onStatusChange={updateAttendanceStatus}
+          currentDate={currentDate}
+          onViewMore={(studentId) => router.push(`/attendance/teacher/student/${studentId}`)}
+        />
+        <AbsenceFollowUp followUps={followUps} onAction={updateFollowUp} />
+      </main>
 
-          {/* Absence Follow-up */}
-          <AbsenceFollowUp followUps={followUps} onAction={updateFollowUp} />
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 mt-8">
-            <button className="px-6 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 font-medium transition-colors">
-              Cancel Changes
-            </button>
-            <button className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors">
-              ✓ Save & Close
-            </button>
-          </div>
-
-          {/* Info */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">ℹ</span> {students.length - summary.notMarkedToday}{' '}
-              students remaining to be marked.
-            </p>
-          </div>
-        </main>
-      </div>
+      <footer className="fixed bottom-0 left-56 right-0 z-20 flex h-16 items-center justify-between border-t border-[#cfd4dd] bg-white px-6 shadow-[0_-1px_4px_rgba(15,23,42,0.08)]">
+        <div className="flex items-center gap-2.5 text-sm font-bold text-[#25272c]">
+          <HelpIcon size={16} className="text-[#555962]" />
+          3 students remaining to be marked.
+        </div>
+        <div className="flex items-center gap-5">
+          <button className="text-sm font-bold text-[#003b78] hover:text-[#00569b]">
+            Cancel Changes
+          </button>
+          <button className="inline-flex items-center gap-2 rounded-md bg-[#007c6d] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#006b5f]">
+            <SaveIcon size={16} />
+            Save & Close
+          </button>
+        </div>
+      </footer>
     </div>
   )
 }

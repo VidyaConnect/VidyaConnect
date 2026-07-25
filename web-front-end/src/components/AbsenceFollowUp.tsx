@@ -1,4 +1,5 @@
 import type { AbsenceFollowUp } from '@/features/attendance/types'
+import { WarningIcon, AnnouncementsIcon } from '@/components/Icons'
 
 interface AbsenceFollowUpProps {
   followUps: AbsenceFollowUp[]
@@ -11,45 +12,42 @@ export default function AbsenceFollowUp({ followUps, onAction }: AbsenceFollowUp
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-red-200 p-6 mt-6">
-      <div className="flex items-start gap-3 mb-4">
-        <span className="text-2xl">⚠️</span>
-        <h3 className="text-lg font-semibold text-gray-900">Absence Follow-up Required</h3>
+    <section className="mt-6 overflow-hidden rounded-lg border border-[#cfd4dd] bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-[#cfd4dd] px-5 py-3.5">
+        <WarningIcon size={20} className="text-[#c3161c]" />
+        <h3 className="text-lg font-bold text-[#9f0f17]">Absence Follow-up Required</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[720px]">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left px-4 py-3 font-semibold text-gray-700">Student</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-700">Parent Contact</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-700">
-                Reason Provided
-              </th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-700">Action</th>
+            <tr className="bg-[#f1f1f2] text-left text-xs font-bold uppercase tracking-wider text-[#555962]">
+              <th className="px-5 py-3">Student</th>
+              <th className="px-5 py-3">Parent Contact</th>
+              <th className="px-5 py-3">Reason Provided</th>
+              <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
           <tbody>
             {followUps.map((followUp) => (
-              <tr key={followUp.studentId} className="border-b border-gray-100">
-                <td className="px-4 py-3 text-gray-900 font-medium">{followUp.studentName}</td>
-                <td className="px-4 py-3">
-                  <div>
-                    <p className="text-gray-900">{followUp.parentContact}</p>
-                    <p className="text-gray-500 text-xs">{followUp.email}</p>
-                  </div>
+              <tr key={followUp.studentId} className="border-t border-[#e2e5eb] bg-white">
+                <td className="px-5 py-4 text-base font-bold text-[#25272c]">{followUp.studentName}</td>
+                <td className="px-5 py-4">
+                  <p className="text-sm font-medium text-[#353942]">{followUp.parentContact}</p>
+                  <p className="text-sm font-semibold text-[#5b606a]">{followUp.email}</p>
                 </td>
-                <td className="px-4 py-3">
-                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+                <td className="px-5 py-4">
+                  <span className="rounded-full bg-[#fff7f6] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#c3161c]">
                     Uninformed
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4 text-right">
                   <button
                     onClick={() => onAction(followUp.studentId, 'notify')}
-                    className="text-teal-600 hover:text-teal-700 font-medium flex items-center gap-2"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-[#007c6d] hover:text-[#005f54]"
                   >
-                    ▶ Notify Parent
+                    <AnnouncementsIcon size={16} />
+                    Notify Parent
                   </button>
                 </td>
               </tr>
@@ -57,6 +55,6 @@ export default function AbsenceFollowUp({ followUps, onAction }: AbsenceFollowUp
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   )
 }
