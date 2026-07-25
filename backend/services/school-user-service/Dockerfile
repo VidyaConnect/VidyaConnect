@@ -1,20 +1,15 @@
-# Use Node.js 22 LTS Alpine image
 FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY shared ./shared
 
-# Install dependencies
+COPY school-user-service ./school-user-service
+
+WORKDIR /app/school-user-service
+
 RUN npm install
 
-# Copy application source
-COPY . .
-
-# Expose application port
 EXPOSE 3001
 
-# Start the application
 CMD ["npm", "start"]
