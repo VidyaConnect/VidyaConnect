@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   DashboardIcon,
   ClassesIcon,
@@ -21,7 +20,6 @@ interface NavItem {
   id: string
   label: string
   icon: React.ReactNode
-  badge?: number
 }
 
 interface NavbarProps {
@@ -32,73 +30,83 @@ interface NavbarProps {
 
 export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProps) {
   const teacherMenuItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={20} /> },
-    { id: 'my-classes', label: 'My Classes', icon: <ClassesIcon size={20} /> },
-    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={20} /> },
-    { id: 'messages', label: 'Community & Messages', icon: <CommunityIcon size={20} /> },
-    { id: 'attendance', label: 'Mark Attendance', icon: <AttendanceIcon size={20} /> },
-    { id: 'assignments', label: 'Manage Assignments', icon: <AssignmentsIcon size={20} /> },
-    { id: 'consent', label: 'Consent Forms', icon: <ConsentIcon size={20} /> },
-    { id: 'calendar', label: 'Class Calendar', icon: <CalendarIcon size={20} /> },
-    { id: 'reports', label: 'Reports', icon: <ReportsIcon size={20} /> },
-    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={20} /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={18} /> },
+    { id: 'my-classes', label: 'My Classes', icon: <ClassesIcon size={18} /> },
+    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={18} /> },
+    { id: 'messages', label: 'Community & Messages', icon: <CommunityIcon size={18} /> },
+    { id: 'attendance', label: 'Mark Attendance', icon: <AttendanceIcon size={18} /> },
+    { id: 'assignments', label: 'Manage Assignments', icon: <AssignmentsIcon size={18} /> },
+    { id: 'consent', label: 'Consent Forms', icon: <ConsentIcon size={18} /> },
+    { id: 'calendar', label: 'Class Calendar', icon: <CalendarIcon size={18} /> },
+    { id: 'reports', label: 'Reports', icon: <ReportsIcon size={18} /> },
+    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
   ]
 
   const adminMenuItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={20} /> },
-    { id: 'schools', label: 'Schools', icon: <SchoolsIcon size={20} /> },
-    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={20} /> },
-    { id: 'consent', label: 'Consent Forms', icon: <ConsentIcon size={20} /> },
-    { id: 'attendance', label: 'Attendance', icon: <AttendanceIcon size={20} /> },
-    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={20} /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={18} /> },
+    { id: 'schools', label: 'Schools', icon: <SchoolsIcon size={18} /> },
+    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={18} /> },
+    { id: 'consent', label: 'Consent Forms', icon: <ConsentIcon size={18} /> },
+    { id: 'attendance', label: 'Attendance', icon: <AttendanceIcon size={18} /> },
+    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
   ]
 
   const menuItems = userRole === 'teacher' ? teacherMenuItems : adminMenuItems
+  const isTeacher = userRole === 'teacher'
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-blue-900 to-blue-950 text-white min-h-screen fixed left-0 top-0 p-6 shadow-lg border-r border-blue-800 flex flex-col">
-      {/* Logo Section */}
-      <div className="mb-8 pb-6 border-b border-blue-800">
-        <h1 className="text-2xl font-bold mb-1">VidyaConnect</h1>
-        <p className="text-sm text-blue-200">
-          {userRole === 'teacher' ? 'Teacher Portal' : 'Admin Portal'}
+    <aside
+      className={`fixed left-0 top-0 z-30 flex h-screen w-56 flex-col border-r ${
+        isTeacher ? 'border-[#0b3c78] bg-[#073b78] text-white' : 'border-[#cfd4dd] bg-white text-[#535861]'
+      }`}
+    >
+      <div className="px-5 pb-6 pt-6">
+        <h1 className={`text-xl font-bold leading-none ${isTeacher ? 'text-white' : 'text-[#003b78]'}`}>
+          VidyaConnect
+        </h1>
+        <p className={`mt-1.5 text-sm ${isTeacher ? 'text-[#b9cbe2]' : 'text-[#717783]'}`}>
+          {isTeacher ? 'Teacher Portal' : 'Admin Portal'}
         </p>
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="space-y-1 flex-1 overflow-y-auto">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group ${
-              currentPage === item.id
-                ? 'bg-teal-600 text-white shadow-md'
-                : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'
-            }`}
-          >
-            <span className={`flex-shrink-0 ${currentPage === item.id ? 'text-white' : 'text-blue-300 group-hover:text-blue-100'}`}>
-              {item.icon}
-            </span>
-            <span className="text-sm font-medium">{item.label}</span>
-            {item.badge && (
-              <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {item.badge}
-              </span>
-            )}
-          </button>
-        ))}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3">
+        {menuItems.map((item) => {
+          const active = currentPage === item.id
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
+                isTeacher
+                  ? active
+                    ? 'bg-[#007c6d] text-white'
+                    : 'text-[#d6e3f2] hover:bg-[#0c4b8f]'
+                  : active
+                    ? 'border-l-[3px] border-[#007c6d] bg-[#e9eef3] text-[#007c6d]'
+                    : 'text-[#535861] hover:bg-[#f3f6f9]'
+              }`}
+            >
+              <span className="flex-none">{item.icon}</span>
+              <span className="leading-snug">{item.label}</span>
+            </button>
+          )
+        })}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="border-t border-blue-800 pt-4 space-y-2">
-        <button className="w-full text-left px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-800/50 transition-colors flex items-center gap-3 group">
-          <ProfileIcon size={20} className="text-blue-300 group-hover:text-blue-100" />
-          <span className="text-sm font-medium">Profile</span>
-        </button>
-        <button className="w-full text-left px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-800/50 transition-colors flex items-center gap-3 group">
-          <LogoutIcon size={20} className="text-blue-300 group-hover:text-blue-100" />
-          <span className="text-sm font-medium">Logout</span>
+      <div className={`space-y-1 border-t px-3 py-4 ${isTeacher ? 'border-[#0b4d8f]' : 'border-[#cfd4dd]'}`}>
+        {!isTeacher && (
+          <button className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-[#535861] hover:bg-[#f3f6f9]">
+            <ProfileIcon size={18} />
+            Profile
+          </button>
+        )}
+        <button
+          className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm ${
+            isTeacher ? 'text-[#d6e3f2] hover:bg-[#0c4b8f]' : 'text-[#535861] hover:bg-[#f3f6f9]'
+          }`}
+        >
+          <LogoutIcon size={18} />
+          Logout
         </button>
       </div>
     </aside>

@@ -30,36 +30,36 @@ export default function Sidebar({ userRole, currentPage, onNavigate }: SidebarPr
   const menuItems = userRole === 'teacher' ? teacherMenuItems : adminMenuItems
 
   return (
-    <aside className="w-64 bg-blue-900 text-white min-h-screen fixed left-0 top-0 p-6">
-      <h1 className="text-2xl font-bold mb-8">
+    <aside className="fixed left-0 top-0 min-h-screen w-56 bg-blue-900 p-4 text-white">
+      <h1 className="mb-6 text-xl font-bold">
         <span className="block">VidyaConnect</span>
-        <span className="text-sm font-normal text-blue-200">
+        <span className="text-xs font-normal text-blue-200">
           {userRole === 'teacher' ? 'Teacher Portal' : 'Admin Portal'}
         </span>
       </h1>
 
-      <nav className="space-y-2">
+      <nav className="space-y-1">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onNavigate(item.id)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+            className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
               currentPage === item.id
                 ? 'bg-teal-600 text-white'
                 : 'text-blue-100 hover:bg-blue-800'
             }`}
           >
-            <span className="inline-block mr-3">{item.icon}</span>
+            <span className="mr-2 inline-block">{item.icon}</span>
             {item.label}
           </button>
         ))}
       </nav>
 
-      <div className="absolute bottom-6 left-6 right-6 border-t border-blue-800 pt-4">
-        <button className="w-full text-left px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-800 transition-colors">
+      <div className="absolute bottom-4 left-4 right-4 border-t border-blue-800 pt-3">
+        <button className="w-full rounded-md px-3 py-2 text-left text-sm text-blue-100 transition-colors hover:bg-blue-800">
           👤 Profile
         </button>
-        <button className="w-full text-left px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-800 transition-colors">
+        <button className="w-full rounded-md px-3 py-2 text-left text-sm text-blue-100 transition-colors hover:bg-blue-800">
           🚪 Logout
         </button>
       </div>
