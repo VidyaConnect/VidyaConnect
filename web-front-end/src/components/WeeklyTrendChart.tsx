@@ -1,57 +1,48 @@
-interface WeeklyTrendChartProps {
-  data?: Array<{
-    day: string
-    present: number
-    absent: number
-  }>
-}
-
-export default function WeeklyTrendChart({ data }: WeeklyTrendChartProps) {
-  const mockData = data || [
-    { day: 'Mon', present: 32, absent: 2 },
-    { day: 'Tue', present: 30, absent: 4 },
-    { day: 'Wed', present: 31, absent: 3 },
-    { day: 'Thu', present: 32, absent: 2 },
-    { day: 'Fri', present: 28, absent: 6 },
+export default function WeeklyTrendChart() {
+  const rows = [
+    { grade: 'Grade 1A', value: 98, color: 'bg-[#007c6d]' },
+    { grade: 'Grade 3B', value: 92, color: 'bg-[#2f8d83]' },
+    { grade: 'Grade 5C', value: 85, color: 'bg-[#86a4df]' },
+    { grade: 'Grade 8A', value: 68, color: 'bg-[#cd5a5d]' },
   ]
 
-  const maxValue = 35
-
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Weekly Attendance Trend</h3>
-
-      <div className="mb-4 flex gap-6">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-teal-600 rounded"></div>
-          <span className="text-sm text-gray-700">Present</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-500 rounded"></div>
-          <span className="text-sm text-gray-700">Absent</span>
+    <section className="max-w-[720px] rounded-lg border border-[#cfd4dd] bg-white px-5 py-5 shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-[#003b78]">Weekly Attendance Trend</h2>
+        <div className="flex items-center gap-5 text-sm text-[#5c6068]">
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded bg-[#007c6d]" />
+            Present
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded bg-[#c3161c]" />
+            Absent
+          </div>
         </div>
       </div>
 
+      <div className="mb-5 space-y-5">
+        <div className="h-px bg-[#cfd4dd]" />
+        <div className="h-px bg-[#cfd4dd]" />
+        <div className="h-px bg-[#cfd4dd]" />
+      </div>
+
       <div className="space-y-4">
-        {mockData.map((item) => (
-          <div key={item.day}>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">{item.day}</span>
-              <span className="text-sm text-gray-500">{item.present} students</span>
-            </div>
-            <div className="flex gap-1 h-8">
+        {rows.map((row) => (
+          <div key={row.grade} className="grid grid-cols-[110px_1fr] items-center gap-5">
+            <p className="text-sm font-bold text-[#555962]">{row.grade}</p>
+            <div className="h-6 rounded-full bg-[#e6e8eb]">
               <div
-                className="bg-teal-600 rounded"
-                style={{ width: `${(item.present / maxValue) * 100}%` }}
-              ></div>
-              <div
-                className="bg-red-500 rounded"
-                style={{ width: `${(item.absent / maxValue) * 100}%` }}
-              ></div>
+                className={`flex h-6 items-center justify-end rounded-full pr-2.5 text-xs font-bold text-[#073247] ${row.color}`}
+                style={{ width: `${row.value}%` }}
+              >
+                {row.value}%
+              </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }
