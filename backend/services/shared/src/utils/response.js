@@ -3,13 +3,11 @@ export const successResponse = (
   data,
   message = "Success"
 ) => {
-
   return res.status(200).json({
-    success:true,
+    success: true,
     message,
     data
   });
-
 };
 
 
@@ -18,10 +16,12 @@ export const errorResponse = (
   message,
   status = 500
 ) => {
-
   return res.status(status).json({
-    success:false,
+    success: false,
     message
   });
-
 };
+
+
+// Alias for older middleware compatibility
+export const error = errorResponse;
