@@ -300,6 +300,7 @@ services:
 volumes:
   postgres_data:
   localstack_data:
+  keycloak_data:
 
 # ── Network (all containers talk to each other) ──
 networks:
