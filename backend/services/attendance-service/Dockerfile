@@ -1,20 +1,17 @@
-# Use Node.js 22 LTS Alpine image
 FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY shared ./shared
+RUN npm install --prefix ./shared
 
-# Install dependencies
+COPY attendance-service ./attendance-service
+
+WORKDIR /app/attendance-service
+
 RUN npm install
+RUN npx prisma generate
 
-# Copy application source
-COPY . .
-
-# Expose application port
 EXPOSE 3003
 
-# Start the application
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
