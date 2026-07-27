@@ -19,8 +19,7 @@ import { AttendanceStatus, StudentAttendance } from "../types/attendance";
 
 const STATUS_OPTIONS: { key: AttendanceStatus; label: string }[] = [
   { key: "present", label: "P" },
-  { key: "absent", label: "A" },
-  { key: "late", label: "L" }
+  { key: "absent", label: "A" }
 ];
 
 function statusColors(status: AttendanceStatus) {
@@ -95,10 +94,6 @@ export function TeacherMarkAttendanceScreen() {
           <View style={styles.summaryCard}>
             <Text style={[styles.summaryValue, { color: colors.danger }]}>{counts.absent}</Text>
             <Text style={styles.summaryLabel}>Absent</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={[styles.summaryValue, { color: colors.latePurple }]}>{counts.late}</Text>
-            <Text style={styles.summaryLabel}>Late</Text>
           </View>
         </View>
 
