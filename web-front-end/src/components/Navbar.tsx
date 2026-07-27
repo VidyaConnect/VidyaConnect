@@ -23,7 +23,7 @@ interface NavItem {
 }
 
 interface NavbarProps {
-  userRole: 'teacher' | 'admin'
+  userRole: 'teacher' | 'admin' | 'super-admin'
   currentPage: string
   onNavigate: (page: string) => void
 }
@@ -51,21 +51,33 @@ export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProp
     { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
   ]
 
-  const menuItems = userRole === 'teacher' ? teacherMenuItems : adminMenuItems
-  const isTeacher = userRole === 'teacher'
+  const superAdminMenuItems: NavItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={18} /> },
+    { id: 'school-registry', label: 'School Registry', icon: <SchoolsIcon size={18} /> },
+    { id: 'schools', label: 'Schools', icon: <SchoolsIcon size={18} /> },
+    { id: 'admin-management', label: 'Admin Management', icon: <ProfileIcon size={18} /> },
+    { id: 'school-requests', label: 'School Requests', icon: <ConsentIcon size={18} /> },
+    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={18} /> },
+    { id: 'system-reports', label: 'System Reports', icon: <ReportsIcon size={18} /> },
+    { id: 'system-settings', label: 'System Settings', icon: <SettingsIcon size={18} /> },
+    { id: 'audit-logs', label: 'Audit Logs', icon: <ReportsIcon size={18} /> },
+  ]
+
+  const menuItems =
+    userRole === 'teacher'
+      ? teacherMenuItems
+      : userRole === 'super-admin'
+      ? superAdminMenuItems
+      : adminMenuItems
 
   return (
-    <aside
-      className={`fixed left-0 top-0 z-30 flex h-screen w-56 flex-col border-r ${
-        isTeacher ? 'border-[#0b3c78] bg-[#073b78] text-white' : 'border-[#cfd4dd] bg-white text-[#535861]'
-      }`}
-    >
+    <aside className="fixed left-0 top-0 z-30 flex h-screen w-56 flex-col border-r border-[#0b3c78] bg-[#073b78] text-white">
       <div className="px-5 pb-6 pt-6">
-        <h1 className={`text-xl font-bold leading-none ${isTeacher ? 'text-white' : 'text-[#003b78]'}`}>
+        <h1 className="text-xl font-bold leading-none text-white">
           VidyaConnect
         </h1>
-        <p className={`mt-1.5 text-sm ${isTeacher ? 'text-[#b9cbe2]' : 'text-[#717783]'}`}>
-          {isTeacher ? 'Teacher Portal' : 'Admin Portal'}
+        <p className="mt-1.5 text-sm text-[#b9cbe2]">
+          {userRole === 'teacher' ? 'Teacher Portal' : userRole === 'super-admin' ? 'Super Admin Portal' : 'Admin Portal'}
         </p>
       </div>
 
@@ -77,13 +89,7 @@ export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProp
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
-                isTeacher
-                  ? active
-                    ? 'bg-[#007c6d] text-white'
-                    : 'text-[#d6e3f2] hover:bg-[#0c4b8f]'
-                  : active
-                    ? 'border-l-[3px] border-[#007c6d] bg-[#e9eef3] text-[#007c6d]'
-                    : 'text-[#535861] hover:bg-[#f3f6f9]'
+                active ? 'bg-[#007c6d] text-white' : 'text-[#d6e3f2] hover:bg-[#0c4b8f]'
               }`}
             >
               <span className="flex-none">{item.icon}</span>
@@ -93,18 +99,12 @@ export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProp
         })}
       </nav>
 
-      <div className={`space-y-1 border-t px-3 py-4 ${isTeacher ? 'border-[#0b4d8f]' : 'border-[#cfd4dd]'}`}>
-        {!isTeacher && (
-          <button className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-[#535861] hover:bg-[#f3f6f9]">
-            <ProfileIcon size={18} />
-            Profile
-          </button>
-        )}
-        <button
-          className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm ${
-            isTeacher ? 'text-[#d6e3f2] hover:bg-[#0c4b8f]' : 'text-[#535861] hover:bg-[#f3f6f9]'
-          }`}
-        >
+      <div className="space-y-1 border-t border-[#0b4d8f] px-3 py-4">
+        <button className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-[#d6e3f2] hover:bg-[#0c4b8f]">
+          <ProfileIcon size={18} />
+          Profile
+        </button>
+        <button className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-[#d6e3f2] hover:bg-[#0c4b8f]">
           <LogoutIcon size={18} />
           Logout
         </button>
