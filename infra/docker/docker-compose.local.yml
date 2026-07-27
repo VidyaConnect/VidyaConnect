@@ -76,6 +76,7 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+      - ../localstack/init-aws.sh:/etc/localstack/init.sh
     networks:
       - vidyaconnect-network
 
@@ -219,6 +220,7 @@ services:
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+      S3_BUCKET: vidyaconnect-files
 
     depends_on:
       postgres:

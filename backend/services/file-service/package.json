@@ -1,20 +1,27 @@
 {
   "name": "file-service",
   "version": "1.0.0",
-  "description": "VidyaConnect File Service",
+  "description": "VidyaConnect File Service - S3/LocalStack signed URL flow with PostgreSQL metadata",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "@prisma/client": "^6.19.3",
     "@vidyaconnect/shared": "file:../shared",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "prisma": "^6.19.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
