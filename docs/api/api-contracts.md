@@ -482,18 +482,25 @@ Since VidyaConnect still needs a local user record (for relationships, class ass
 
 **Owning Microservice:** `announcement-service`
 
+**Permission Model**
+
+| Type | Created by | Readable by |
+|---|---|---|
+| `SYSTEM_WIDE` | `SUPER_ADMIN` | `SCHOOL_ADMIN`, `TEACHER`, `PARENT`, `STUDENT` (all schools) |
+| `SCHOOL_WIDE` | `SCHOOL_ADMIN` | `TEACHER`, `PARENT`, `STUDENT` (within that school only) |
+
 ### 6.1 Get Announcements
 
 | Property | Value |
 |---|---|
 | Method | GET |
 | Endpoint | `/announcements` |
-| Allowed Roles | `SCHOOL_ADMIN`, `TEACHER`, `PARENT`, `STUDENT` |
-| Tenant / Ownership Enforcement | Always filtered to caller's `schoolId`. `PARENT`/`STUDENT` additionally only see `SCHOOL_WIDE` announcements plus `CLASS_SPECIFIC` ones for classes they (or their linked student) belong to. |
+| Allowed Roles | `SUPER_ADMIN`, `SCHOOL_ADMIN`, `TEACHER`, `PARENT`, `STUDENT` |
+| Tenant / Ownership Enforcement | Returns all `SYSTEM_WIDE` announcements plus `SCHOOL_WIDE` announcements matching caller's `schoolId` from JWT. `SUPER_ADMIN` sees `SYSTEM_WIDE` only, not any single school's `SCHOOL_WIDE` items. |
 
 **Success Response (200 OK)**
 
-```json
+​```json
 {
   "success": true,
   "message": "Announcements retrieved successfully.",
@@ -503,14 +510,22 @@ Since VidyaConnect still needs a local user record (for relationships, class ass
       "title": "Term Test Schedule",
       "content": "The term test will begin next Monday.",
       "type": "SCHOOL_WIDE",
-      "classId": null,
+      "schoolId": "SCH001",
       "createdAt": "2026-07-15T10:00:00Z"
+    },
+    {
+      "id": "ANN002",
+      "title": "Platform Maintenance Notice",
+      "content": "VidyaConnect will be briefly unavailable this weekend.",
+      "type": "SYSTEM_WIDE",
+      "schoolId": null,
+      "createdAt": "2026-07-14T09:00:00Z"
     }
   ]
 }
-```
+​```
 
-**Error Responses:** `401`, `403` (role not permitted)
+**Error Responses:** `401`
 
 ### 6.2 Create Announcement
 
@@ -518,35 +533,42 @@ Since VidyaConnect still needs a local user record (for relationships, class ass
 |---|---|
 | Method | POST |
 | Endpoint | `/announcements` |
-| Allowed Roles | `SCHOOL_ADMIN`, `TEACHER` |
-| Tenant / Ownership Enforcement | Created under caller's `schoolId`. If `type` is `CLASS_SPECIFIC`, `classId` must belong to the caller's school, and for `TEACHER` callers, must be a class they're assigned to. |
+| Allowed Roles | `SUPER_ADMIN` (for `type: SYSTEM_WIDE`), `SCHOOL_ADMIN` (for `type: SCHOOL_WIDE`) |
+| Tenant / Ownership Enforcement | For `SYSTEM_WIDE`: `schoolId` must be null; not tenant-scoped, restricted to `SUPER_ADMIN` only. For `SCHOOL_WIDE`: `schoolId` is taken from the caller's JWT, never the request body; restricted to `SCHOOL_ADMIN` only. |
 
-**Request**
+**Request — System-wide (SUPER_ADMIN only)**
 
-```json
+​```json
+{
+  "title": "Platform Maintenance Notice",
+  "content": "VidyaConnect will be briefly unavailable this weekend.",
+  "type": "SYSTEM_WIDE"
+}
+​```
+
+**Request — School-wide (SCHOOL_ADMIN only)**
+
+​```json
 {
   "title": "Grade 10 Parent Meeting",
   "content": "Discussion regarding project milestones.",
-  "type": "CLASS_SPECIFIC",
-  "classId": "CLS001"
+  "type": "SCHOOL_WIDE"
 }
-```
+​```
 
 **Success Response (201 Created)**
 
-```json
+​```json
 {
   "success": true,
   "message": "Announcement created successfully.",
   "data": {
-    "id": "ANN002"
+    "id": "ANN003"
   }
 }
-```
+​```
 
-**Error Responses:** `400`, `401`, `403` (role not permitted, or `TEACHER` not assigned to `classId`), `404` (classId not found in caller's school)
-
----
+**Error Responses:** `400` (validation, or `type`/`schoolId` mismatch), `401`, `403` (`SCHOOL_ADMIN` attempting `SYSTEM_WIDE`, or any other role attempting to create at all)
 
 ## 7. Attendance Service
 
