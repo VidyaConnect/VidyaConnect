@@ -27,3 +27,32 @@ The backend is built as a set of independently deployable **microservices**, eac
 - Assignments
 - Consent Forms
 - Notifications
+
+  ## Architecture
+
+Each microservice lives in its own folder under `backend/services/`:
+
+```
+backend/
+└── services/
+    ├── school-user-service/
+    ├── announcement-service/
+    ├── attendance-service/
+    ├── assignment-service/
+    ├── consent-form-service/
+    ├── file-service/
+    └── notification-service/
+```
+
+All services share one PostgreSQL instance but are isolated by **schema** — never by separate databases — so each service owns its own tables without owning its own database server:
+
+| Service | Schema |
+|---|---|
+| School/User Service | `school_user` |
+| Assignment Service | `assignment` |
+| Attendance Service | `attendance` |
+| Notification Service | `notification` |
+| File Service | `file` |
+| Report/Insights Service | `report` |
+
+This keeps services independently deployable and testable, while still allowing simple local development with a single Postgres container.
