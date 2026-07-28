@@ -27,7 +27,7 @@ export const SUPER_ADMIN_PAGE_ROUTES: Record<string, string> = {
   schools: '/super-admin/schools',
   'admin-management': '/super-admin/admin-management',
   'school-requests': '/super-admin/school-requests',
-  announcements: '/announcements/super-admin-compose',
+  announcements: '/announcements/super-admin-view',
   'system-reports': '/super-admin/system-reports',
   'system-settings': '/super-admin/system-settings',
   'audit-logs': '/super-admin/audit-logs',
