@@ -37,6 +37,7 @@ export interface Announcement {
     role: 'super-admin' | 'school-admin' | 'teacher';
     department?: string; // e.g. "INFRASTRUCTURE DEPT." from image 5
   };
+  source?: string;           // e.g. "Regional Cluster A", "System Core" — image 1's platform alerts
   publishDate: string;   // ISO date string, e.g. "2026-07-23T09:00:00Z"
   createdAt: string;
   updatedAt: string;
