@@ -222,3 +222,58 @@ Every service should install and use the shared package so behavior stays consis
 - Logger
 - Response utilities
 - Error handler
+
+### 15. Docker
+
+Create:
+
+- `Dockerfile`
+- `.dockerignore`
+
+### 16. Add to Docker Compose
+
+Add the new service to `docker-compose.local.yml`:
+
+```yaml
+assignment-service:
+  build:
+    context: ../../backend/services
+    dockerfile: assignment-service/Dockerfile
+  ports:
+    - "3002:3002"
+  env_file:
+    - ../../backend/services/assignment-service/.env
+```
+
+### 17. Test
+
+Verify:
+
+- `GET /health` responds correctly
+- Prisma migration succeeds
+- Service starts locally
+- Docker container starts and stays healthy
+
+---
+
+## New Service Checklist
+
+Use this checklist for every new microservice added to the platform:
+
+- [ ] Create service folder
+- [ ] Initialize Node project (`package.json`)
+- [ ] Install dependencies
+- [ ] Create folder structure
+- [ ] Configure `.env`
+- [ ] Configure Prisma
+- [ ] Create service-specific schema
+- [ ] Generate Prisma client
+- [ ] Create initial migration
+- [ ] Create Express app and server
+- [ ] Add health endpoint
+- [ ] Integrate shared middleware
+- [ ] Create Dockerfile
+- [ ] Add service to Docker Compose
+- [ ] Test locally and in Docker
+
+Following these steps for every new service keeps the architecture consistent and makes it easier for the whole team to develop and maintain all services the same way.
