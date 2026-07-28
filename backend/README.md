@@ -174,3 +174,51 @@ Only include the entities owned by that service. For example, the Assignment Ser
 - `Assignment`
 - `Submission`
 - `TeacherSubjectMapping`
+
+### 9. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 10. Create migration
+
+```bash
+npx prisma migrate dev --name init_<service-name>
+```
+
+### 11. Create Express app
+
+In `src/app.js`, set up:
+
+- Express instance
+- JSON body-parsing middleware
+- Route mounting
+- Centralized error handler
+
+### 12. Create server.js
+
+In `src/server.js`, start the Express server on the configured `PORT`.
+
+### 13. Add health check
+
+```
+GET /health
+```
+
+```json
+{
+  "status": "UP",
+  "service": "assignment-service"
+}
+```
+
+### 14. Connect shared package
+
+Every service should install and use the shared package so behavior stays consistent platform-wide:
+
+- JWT middleware
+- RBAC middleware
+- Logger
+- Response utilities
+- Error handler
