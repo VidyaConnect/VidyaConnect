@@ -278,6 +278,31 @@ Since VidyaConnect still needs a local user record (for relationships, class ass
 **Error Responses:** `401`, `403`
 
 ---
+### 3.6 Get Current School Context
+
+| Property | Value |
+|---|---|
+| Method | GET |
+| Endpoint | `/schools/me` |
+| Allowed Roles | Any authenticated user |
+| Tenant / Ownership Enforcement | Returns only the school matching `schoolId` from the caller's JWT; no `schoolId` param accepted from the client. |
+
+**Success Response (200 OK)**
+
+​```json
+{
+  "success": true,
+  "message": "School context retrieved successfully.",
+  "data": {
+    "schoolId": "SCH001",
+    "name": "Ananda College",
+    "domain": "anandacollege.lk"
+  }
+}
+​```
+
+**Error Responses:** `401` (invalid/missing token), `404` (JWT valid but school record not found — should not normally occur; indicates a provisioning issue)
+
 
 ## 4. Core School Operations
 
