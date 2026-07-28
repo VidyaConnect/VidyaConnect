@@ -1,0 +1,73 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["announcement"]
+}
+
+enum AnnouncementType {
+  SYSTEM
+  SCHOOL
+
+  @@schema("announcement")
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@schema("announcement")
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  URGENT
+  EMERGENCY
+
+  @@schema("announcement")
+}
+
+model Announcement {
+  id String @id @default(uuid())
+
+  title String
+  content String
+
+  type AnnouncementType
+
+  status AnnouncementStatus @default(DRAFT)
+
+  priority AnnouncementPriority @default(NORMAL)
+
+  /// Null for SYSTEM announcements
+  schoolId String?
+
+  /// User ID from the School User Service / Identity Service
+  createdByUserId String
+
+  attachmentId String?
+
+  requiresConfirmation Boolean @default(false)
+
+  isRetracted Boolean @default(false)
+
+  publishedAt DateTime?
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([createdByUserId])
+  @@index([type])
+
+  @@map("announcements")
+  @@schema("announcement")
+}

@@ -1,20 +1,18 @@
-# Use Node.js 22 LTS Alpine image
 FROM node:22-alpine
 
-# Set working directory
-WORKDIR /app
+WORKDIR /workspace
 
-# Copy package files
-COPY package*.json ./
+# Copy the shared package
+COPY shared ./shared
 
-# Install dependencies
+# Copy the announcement service
+COPY announcement-service ./announcement-service
+
+# Install dependencies from inside the service folder
+WORKDIR /workspace/announcement-service
+
 RUN npm install
 
-# Copy application source
-COPY . .
-
-# Expose application port
 EXPOSE 3002
 
-# Start the application
 CMD ["npm", "start"]
