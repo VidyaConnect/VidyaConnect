@@ -78,8 +78,7 @@ Supported roles:
 - Super Admin
 - School Admin
 - Teacher
-- Parent
-- Student
+
 
 ---
 
