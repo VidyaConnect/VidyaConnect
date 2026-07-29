@@ -15,10 +15,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(initialUser);
 
   const loginAs = async (role: UserRole) => {
+    const nameByRole: Record<UserRole, string> = {
+      "super-admin": "System Admin",
+      "school-admin": "School Admin",
+      teacher: "Ms. Perera",
+      parent: "Nithi Fernando",
+      student: "Kavindu Silva",
+    };
     const profile: UserProfile = {
       id: "user-1",
-      name: role === "teacher" ? "Ms. Perera" : role === "parent" ? "Nithi Fernando" : "School Admin",
-      role
+      name: nameByRole[role],
+      role,
     };
     setUser(profile);
   };

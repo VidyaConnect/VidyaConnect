@@ -6,11 +6,13 @@ import { ScreenContainer } from "../components/layout/ScreenContainer";
 import { useAuth } from "../context/AuthContext";
 import { colors } from "../constants/colors";
 
-const roleLabels = {
+const roleLabels: Record<string, string> = {
+  "super-admin": "Super Admin",
+  "school-admin": "School Admin",
   teacher: "Teacher",
   parent: "Parent",
-  "school-admin": "School Admin"
-} as const;
+  student: "Student",
+};
 
 export default function HomePage() {
   const router = useRouter();
