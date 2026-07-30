@@ -133,11 +133,6 @@ Features:
 - View announcements
 - Manage school communications
 
-Integrated with:
-
-```
-Announcement Service
-```
 
 ---
 
