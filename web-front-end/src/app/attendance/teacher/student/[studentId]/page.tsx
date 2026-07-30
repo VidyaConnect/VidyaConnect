@@ -2,8 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
-import Navbar from '@/components/Navbar'
-import Topbar from '@/components/Topbar'
+import DashboardLayout from '@/components/DashboardLayout'
 import {
   CheckCircleIcon as LegendCheckIcon,
   XCircleIcon as LegendXIcon,
@@ -159,17 +158,16 @@ export default function StudentAttendanceDetail() {
   }, [absentDatesSet])
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="teacher" currentPage="attendance" onNavigate={handleNavigate} />
-      <Topbar
-        userRole="teacher"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search student..."
-        searchClassName="max-w-[420px]"
-      />
-
-      <main className="ml-56 px-6 pb-20 pt-5">
+    <DashboardLayout
+      userRole="teacher"
+      currentPage="attendance"
+      onNavigate={handleNavigate}
+      searchValue={searchTerm}
+      onSearch={setSearchTerm}
+      searchPlaceholder="Search student..."
+      searchClassName="max-w-[420px]"
+    >
+      <main className="flex-1 px-8 pb-20 pt-6">
         {/* Back Button */}
         <button
           onClick={() => router.push('/attendance/teacher')}
@@ -368,6 +366,6 @@ export default function StudentAttendanceDetail() {
           System generated report. Confidential Academic Record. © 2023 VidyaConnect.
         </p>
       </main>
-    </div>
+    </DashboardLayout>
   )
 }

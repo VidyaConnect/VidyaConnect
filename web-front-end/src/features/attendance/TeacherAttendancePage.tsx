@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
-import Topbar from '@/components/Topbar'
+import DashboardLayout from '@/components/DashboardLayout'
 import ClassSelector from '@/components/ClassSelector'
 import AttendanceCard from '@/components/AttendanceCard'
 import StudentRoster from '@/components/StudentRoster'
@@ -41,17 +40,33 @@ export default function TeacherAttendancePage() {
   }, [searchTerm, selectedClass.name, students])
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="teacher" currentPage={currentPage} onNavigate={setCurrentPage} />
-      <Topbar
-        userRole="teacher"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search student..."
-        searchClassName="max-w-[420px]"
-      />
-
-      <main className="ml-56 px-6 pb-24 pt-6">
+    <DashboardLayout
+      userRole="teacher"
+      currentPage={currentPage}
+      onNavigate={setCurrentPage}
+      searchValue={searchTerm}
+      onSearch={setSearchTerm}
+      searchPlaceholder="Search student..."
+      searchClassName="max-w-[420px]"
+      footer={
+        <footer className="sticky bottom-0 z-20 flex h-16 shrink-0 items-center justify-between border-t border-[#cfd4dd] bg-white px-8 shadow-[0_-1px_4px_rgba(15,23,42,0.08)]">
+          <div className="flex items-center gap-2.5 text-sm font-bold text-[#25272c]">
+            <HelpIcon size={16} className="text-[#555962]" />
+            3 students remaining to be marked.
+          </div>
+          <div className="flex items-center gap-5">
+            <button className="text-sm font-bold text-[#003b78] hover:text-[#00569b]">
+              Cancel Changes
+            </button>
+            <button className="inline-flex items-center gap-2 rounded-md bg-[#007c6d] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#006b5f]">
+              <SaveIcon size={16} />
+              Save & Close
+            </button>
+          </div>
+        </footer>
+      }
+    >
+      <main className="flex-1 px-8 pb-8 pt-6">
         <div className="mb-5 flex items-start justify-between gap-6">
           <div>
             <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Mark Attendance</h1>
@@ -82,7 +97,7 @@ export default function TeacherAttendancePage() {
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-4 gap-4">
+        <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <AttendanceCard
             icon={<CheckCircleIcon size={20} />}
             label="Present"
@@ -113,6 +128,7 @@ export default function TeacherAttendancePage() {
             borderClassName="border-dashed border-[#cfd4dd]"
           />
         </div>
+
         <StudentRoster
           students={filteredStudents}
           onStatusChange={updateAttendanceStatus}
@@ -121,22 +137,6 @@ export default function TeacherAttendancePage() {
         />
         <AbsenceFollowUp followUps={followUps} onAction={updateFollowUp} />
       </main>
-
-      <footer className="fixed bottom-0 left-56 right-0 z-20 flex h-16 items-center justify-between border-t border-[#cfd4dd] bg-white px-6 shadow-[0_-1px_4px_rgba(15,23,42,0.08)]">
-        <div className="flex items-center gap-2.5 text-sm font-bold text-[#25272c]">
-          <HelpIcon size={16} className="text-[#555962]" />
-          3 students remaining to be marked.
-        </div>
-        <div className="flex items-center gap-5">
-          <button className="text-sm font-bold text-[#003b78] hover:text-[#00569b]">
-            Cancel Changes
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-md bg-[#007c6d] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#006b5f]">
-            <SaveIcon size={16} />
-            Save & Close
-          </button>
-        </div>
-      </footer>
-    </div>
+    </DashboardLayout>
   )
 }
