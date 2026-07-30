@@ -1,29 +1,39 @@
 // src/features/auth/types/auth.types.ts
 
-export type UserRole = "SuperAdmin" | "SchoolAdmin" | "Teacher";
-
 export interface LoginRequest {
   email: string;
   password: string;
-  role: UserRole;
-}
-
-// ASSUMPTION — CONFIRM WITH SEHAJINIE:
-// Assumes JWT returned in JSON body, not an httpOnly cookie.
-export interface LoginResponse {
-  token: string;
-  user: User;
 }
 
 export interface User {
   id: string;
+  fullName: string;
   email: string;
-  name: string;
-  role: UserRole;
-  schoolId?: string;
+  phone: string | null;
+  role: string; // "ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "PARENT" | "STUDENT"
 }
 
-export interface ApiError {
+export interface School {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface LoginResponseData {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: User;
+  school: School | null;
+}
+
+export interface ApiSuccessResponse<T> {
+  success: true;
   message: string;
-  statusCode: number;
+  data: T;
+}
+
+export interface ApiErrorResponse {
+  success: false;
+  message: string;
 }

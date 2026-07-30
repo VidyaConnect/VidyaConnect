@@ -1,4 +1,7 @@
+import 'dotenv/config';
 import jwksClient from "jwks-rsa";
+
+console.log('DEBUG shared/keycloak.js - JWKS_URI:', process.env.KEYCLOAK_JWKS_URI);
 
 const client = jwksClient({
   jwksUri: process.env.KEYCLOAK_JWKS_URI,

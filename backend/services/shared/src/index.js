@@ -1,5 +1,7 @@
 export { logger } from "./utils/logger.js";
 
+export { getSigningKey } from "./config/keycloak.js";
+
 export {
     successResponse,
     errorResponse
@@ -10,5 +12,3 @@ export {errorHandler} from "./middleware/errorHandler.js";
 export { default as auth } from "./middleware/auth.js";
 
 export { default as rbac } from "./middleware/rbac.js";
-
-export { default as response } from "./utils/response.js";

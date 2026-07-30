@@ -1,10 +1,10 @@
 import prisma from "../config/prisma.js";
 
-export const findUserByKeycloakId = async (keycloakId, schoolId) => {
+export const findUserByKeycloakId = async (keycloakId, schoolId = undefined) => {
   return prisma.user.findFirst({
     where: {
       keycloakId,
-      schoolId,
+      ...(schoolId && { schoolId }),
     },
     include: {
       school: true,

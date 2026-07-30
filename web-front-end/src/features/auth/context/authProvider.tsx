@@ -1,13 +1,13 @@
 "use client";
 
 import { createContext, useState, ReactNode } from "react";
-import type { User, LoginRequest } from "../types/auth.types";
+import type { User, LoginRequest, LoginResponseData } from "../types/auth.types";
 import { loginUser } from "../services/authApi";
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponseData>;
   logout: () => void;
 }
 
@@ -17,20 +17,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function login(credentials: LoginRequest) {
+  async function login(credentials: LoginRequest): Promise<LoginResponseData> {
     setIsLoading(true);
     try {
       const response = await loginUser(credentials);
-      // ASSUMPTION — CONFIRM WITH SEHAJINIE: delete this line if backend uses httpOnly cookies
-      localStorage.setItem("token", response.token);
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
       setUser(response.user);
+      return response;
     } finally {
       setIsLoading(false);
     }
   }
 
   function logout() {
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     setUser(null);
   }
 

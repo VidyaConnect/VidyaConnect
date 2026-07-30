@@ -84,11 +84,11 @@ function extractRole(decoded) {
   // Default Keycloak realm roles
   if (decoded.realm_access?.roles) {
     const appRoles = [
-      "SUPER_ADMIN",
-      "SCHOOL_ADMIN",
-      "TEACHER",
-      "PARENT",
-      "STUDENT",
+      "admin",
+      "school-admin",
+      "teacher",
+      "parent",
+      "student",
     ];
 
     const role = decoded.realm_access.roles.find((r) =>
