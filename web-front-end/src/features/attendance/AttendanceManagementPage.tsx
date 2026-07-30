@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
-import Topbar from '@/components/Topbar'
+import DashboardLayout from '@/components/DashboardLayout'
 import ClassSelector from '@/components/ClassSelector'
 import AttendanceCard from '@/components/AttendanceCard'
 import WeeklyTrendChart from '@/components/WeeklyTrendChart'
@@ -20,17 +19,16 @@ export default function AttendanceManagementPage() {
   const [searchTerm, setSearchTerm] = useState('')
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="admin" currentPage={currentPage} onNavigate={setCurrentPage} />
-      <Topbar
-        userRole="admin"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search student or class..."
-        searchClassName="max-w-[320px]"
-      />
-
-      <main className="ml-56 px-6 pt-5">
+    <DashboardLayout
+      userRole="admin"
+      currentPage={currentPage}
+      onNavigate={setCurrentPage}
+      searchValue={searchTerm}
+      onSearch={setSearchTerm}
+      searchPlaceholder="Search data..."
+      searchClassName="max-w-[280px]"
+    >
+      <main className="flex-1 px-8 pb-8 pt-6">
         <div className="mb-5 flex items-start justify-between gap-6">
           <div>
             <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Attendance Management</h1>
@@ -57,7 +55,7 @@ export default function AttendanceManagementPage() {
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-4 gap-4">
+        <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <AttendanceCard
             icon={<UserCheckIcon size={40} className="opacity-10" />}
             label="PRESENT TODAY"
@@ -122,6 +120,6 @@ export default function AttendanceManagementPage() {
 
         <WeeklyTrendChart />
       </main>
-    </div>
+    </DashboardLayout>
   )
 }

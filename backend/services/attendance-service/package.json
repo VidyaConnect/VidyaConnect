@@ -7,9 +7,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate:dev": "prisma migrate dev"
+    "prisma:generate": "node scripts/prisma-local-engine.mjs generate",
+    "prisma:migrate": "node scripts/prisma-local-engine.mjs migrate deploy",
+    "prisma:migrate:dev": "node scripts/prisma-local-engine.mjs migrate dev",
+    "prisma:studio": "node scripts/prisma-local-engine.mjs studio"
   },
   "keywords": [],
   "author": "",

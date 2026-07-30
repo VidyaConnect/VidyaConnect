@@ -49,8 +49,29 @@ Tables:
 Run migrations:
 
 ```bash
+cd backend/services/attendance-service
+cp .env.example .env
+npm install
+npm run prisma:generate
 npm run prisma:migrate:dev
 ```
+
+### Prisma Studio
+
+Prisma is **per microservice**, not at `backend/services/` root. Run from the attendance-service folder:
+
+```bash
+cd backend/services/attendance-service
+npm run prisma:studio
+```
+
+Prerequisites:
+1. PostgreSQL must be running (Docker: `docker compose -f infra/docker/docker-compose.local.yml up postgres`)
+2. `.env` must exist with `DATABASE_URL` (copy from `.env.example`)
+3. Migrations must be applied first (`npm run prisma:migrate:dev`)
+
+Do **not** run `npx prisma studio` from `backend/services/` — that folder has no schema.
+Ignore the mentor's root `backend/prisma/schema.prisma`; attendance uses its own schema at `attendance-service/prisma/schema.prisma`.
 
 ## Running Locally
 
