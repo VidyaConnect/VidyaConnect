@@ -5,11 +5,11 @@ import { FontAwesome } from "@expo/vector-icons";
 import { AppHeader } from "../../../components/layout/AppHeader";
 import { colors } from "../../../constants/colors";
 import { UserRole } from "../../../types";
-import { Announcement, AnnouncementPriority, CAN_POST_ANNOUNCEMENTS } from "../types/announcement";
+import { Announcement, AnnouncementTag, CAN_POST_ANNOUNCEMENTS } from "../types/announcement";
 import { getAnnouncements } from "../services/announcementService";
 import { AnnouncementCard } from "./AnnouncementCard";
 
-type FilterTab = "all" | "critical" | "warning";
+type FilterTab = "all" | "general" | "important" | "draft";
 
 const TITLE_BY_ROLE: Record<string, { title: string; subtitle: string }> = {
   "super-admin": { title: "System Announcements", subtitle: "Announcements you've posted" },
@@ -19,8 +19,12 @@ const TITLE_BY_ROLE: Record<string, { title: string; subtitle: string }> = {
   student: { title: "Announcements", subtitle: "School & platform updates" },
 };
 
-const isCritical = (p: AnnouncementPriority) => p === "critical" || p === "emergency";
-const isWarning = (p: AnnouncementPriority) => p === "warning" || p === "urgent";
+const FILTER_LABELS: Record<FilterTab, string> = {
+  all: "All",
+  general: "General",
+  important: "Important",
+  draft: "Draft",
+};
 
 interface AnnouncementListViewProps {
   role: UserRole;
@@ -46,14 +50,11 @@ export function AnnouncementListView({ role }: AnnouncementListViewProps) {
   const canPost = CAN_POST_ANNOUNCEMENTS.includes(role);
   const headerCopy = TITLE_BY_ROLE[role];
 
-  const activeAlertCount = announcements.filter(
-    (a) => isCritical(a.priority) || isWarning(a.priority)
-  ).length;
+  const importantCount = announcements.filter((a) => a.tag === "important").length;
 
   const filtered = announcements.filter((a) => {
-    if (filter === "critical") return isCritical(a.priority);
-    if (filter === "warning") return isWarning(a.priority);
-    return true;
+    if (filter === "all") return true;
+    return a.tag === (filter as AnnouncementTag);
   });
 
   return (
@@ -66,21 +67,23 @@ export function AnnouncementListView({ role }: AnnouncementListViewProps) {
 
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <Text style={styles.heading}>{filter === "all" ? "All Alerts" : filter === "critical" ? "Critical Alerts" : "Warnings"}</Text>
+          <Text style={styles.heading}>
+            {filter === "all" ? "All Announcements" : `${FILTER_LABELS[filter]} Announcements`}
+          </Text>
           <View style={styles.countPill}>
-            <Text style={styles.countText}>{activeAlertCount} Active Alerts</Text>
+            <Text style={styles.countText}>{importantCount} Important</Text>
           </View>
         </View>
 
         <View style={styles.tabRow}>
-          {(["all", "critical", "warning"] as FilterTab[]).map((tab) => (
+          {(["all", "general", "important", "draft"] as FilterTab[]).map((tab) => (
             <Pressable
               key={tab}
               onPress={() => setFilter(tab)}
               style={[styles.tab, filter === tab && styles.tabActive]}
             >
               <Text style={[styles.tabText, filter === tab && styles.tabTextActive]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {FILTER_LABELS[tab]}
               </Text>
             </Pressable>
           ))}
@@ -107,7 +110,7 @@ export function AnnouncementListView({ role }: AnnouncementListViewProps) {
       {canPost && (
         <Pressable
           style={styles.fab}
-          onPress={() => router.push("/announcements/create")}
+          onPress={() => router.push(`/announcements/create/${role}`)}
         >
           <FontAwesome name="plus" size={22} color={colors.surface} />
         </Pressable>
@@ -152,6 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     marginBottom: 16,
+    flexWrap: "wrap",
   },
   tab: {
     paddingHorizontal: 16,

@@ -4,14 +4,16 @@ import { useEffect, useState } from 'react';
 import { Announcement } from '../types/announcement';
 import { getAnnouncements, markAsViewed } from '../services/announcementService';
 
-const PRIORITY_STYLES: Record<string, string> = {
-  critical: 'bg-red-100 text-red-700',
-  emergency: 'bg-red-100 text-red-700',
-  urgent: 'bg-yellow-100 text-yellow-700',
-  warning: 'bg-yellow-100 text-yellow-700',
-  update: 'bg-green-100 text-green-700',
-  info: 'bg-blue-100 text-blue-700',
-  normal: 'bg-gray-100 text-gray-700',
+const TAG_STYLES: Record<string, string> = {
+  general: 'bg-green-100 text-green-700',
+  important: 'bg-red-100 text-red-700',
+  draft: 'bg-yellow-100 text-yellow-700',
+};
+
+const TAG_LABELS: Record<string, string> = {
+  general: 'General',
+  important: 'Important',
+  draft: 'Draft',
 };
 
 export default function AnnouncementList() {
@@ -44,7 +46,6 @@ export default function AnnouncementList() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* LEFT: List */}
       <div className="lg:col-span-2 space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -74,10 +75,10 @@ export default function AnnouncementList() {
                 <span className="font-medium text-gray-900">{a.title}</span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    PRIORITY_STYLES[a.priority] || PRIORITY_STYLES.normal
+                    TAG_STYLES[a.tag] || TAG_STYLES.general
                   }`}
                 >
-                  {a.priority}
+                  {TAG_LABELS[a.tag] || 'General'}
                 </span>
               </div>
               <p className="text-sm text-gray-500 truncate mt-1">{a.content}</p>
@@ -91,7 +92,6 @@ export default function AnnouncementList() {
         </div>
       </div>
 
-      {/* RIGHT: Detail panel */}
       <div className="border border-gray-200 rounded-lg p-5">
         {selected ? (
           <>
@@ -146,10 +146,7 @@ function ReachBar({ label, percent }: { label: string; percent: number }) {
         <span className="font-medium">{percent}%</span>
       </div>
       <div className="w-full bg-gray-100 rounded-full h-1.5">
-        <div
-          className="bg-green-600 h-1.5 rounded-full"
-          style={{ width: `${percent}%` }}
-        />
+        <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );

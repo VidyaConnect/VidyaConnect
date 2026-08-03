@@ -1,14 +1,6 @@
 import { UserRole } from '../../../types';
 
-export type AnnouncementPriority =
-  | 'info'
-  | 'normal'
-  | 'update'
-  | 'urgent'
-  | 'warning'
-  | 'critical'
-  | 'emergency'
-  | 'feature';
+export type AnnouncementTag = 'general' | 'important' | 'draft';
 
 export type TargetAudience = 'all-schools' | 'school-wide' | 'class-level' | 'specific-entities';
 
@@ -19,11 +11,19 @@ export interface AnnouncementAttachment {
   fileSizeKb: number;
 }
 
+export type AnnouncementStatus = 'draft' | 'published';
+
+export interface AnnouncementViewRecord {
+  userId: string;
+  role: UserRole;
+  viewedAt: string;
+}
+
 export interface Announcement {
   id: string;
   title: string;
   content: string;
-  priority: AnnouncementPriority;
+  tag: AnnouncementTag;
   targetAudience: TargetAudience;
   postedBy: {
     id: string;
@@ -32,21 +32,26 @@ export interface Announcement {
     department?: string;
   };
   source?: string;
+  selectedClass?: string;
   publishDate: string;
   createdAt: string;
   updatedAt: string;
   attachments: AnnouncementAttachment[];
   totalViews: number;
   requireParentConfirmation: boolean;
+  status: AnnouncementStatus;
+  viewRecords: AnnouncementViewRecord[];
 }
 
-// Shape of the form when composing (image 2)
+// Shape of the form when composing (Post Announcement screen)
 export interface CreateAnnouncementInput {
   title: string;
   content: string;
   targetAudience: TargetAudience;
   requireParentConfirmation: boolean;
-  schedulePublication?: string; // ISO date, optional
+  schedulePublication?: string;
+  selectedClass?: string;
+  tag?: 'general' | 'important'; // required to Publish; ignored/overridden when saved as Draft
 }
 
 // Only these 2 roles are allowed to compose announcements

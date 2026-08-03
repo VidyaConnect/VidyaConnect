@@ -1,33 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { AnnouncementPriority, CreateAnnouncementInput } from '../types/announcement';
-import { createAnnouncement } from '../services/announcementService';
-
-const TYPE_OPTIONS: { value: AnnouncementPriority; label: string }[] = [
-  { value: 'info', label: 'Info' },
-  { value: 'update', label: 'Update' },
-  { value: 'critical', label: 'Critical' },
-  { value: 'feature', label: 'Feature' },
-];
+import { CreateAnnouncementInput } from '../types/announcement';
+import { createAnnouncement, saveDraftAnnouncement } from '../services/announcementService';
 
 export default function SuperAdminAnnouncementForm() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [priority, setPriority] = useState<AnnouncementPriority>('info');
+  const [selectedTag, setSelectedTag] = useState<'general' | 'important' | null>(null);
   const [distributeToAll, setDistributeToAll] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [message, setMessage] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  function resetForm() {
+    setTitle('');
+    setContent('');
+    setSelectedTag(null);
+    setDistributeToAll(true);
+  }
+
+  async function handlePublish(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
+    if (!selectedTag) {
+      setMessage('Please choose General or Important before publishing.');
+      return;
+    }
 
     setIsSubmitting(true);
     const input: CreateAnnouncementInput = {
       title,
       content,
-      priority,
+      tag: selectedTag,
       targetAudience: distributeToAll ? 'all-schools' : 'specific-entities',
       requireReadConfirmation: false,
       distributionTags: distributeToAll ? ['Global Network'] : [],
@@ -36,11 +40,29 @@ export default function SuperAdminAnnouncementForm() {
     await createAnnouncement(input);
 
     setIsSubmitting(false);
-    setSuccessMessage('Announcement broadcast successfully!');
-    setTitle('');
-    setContent('');
-    setPriority('info');
-    setDistributeToAll(true);
+    setMessage('Announcement broadcast successfully!');
+    resetForm();
+  }
+
+  async function handleSaveDraft() {
+    if (!title.trim() && !content.trim()) {
+      setMessage('Add a title or message before saving a draft.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const input: CreateAnnouncementInput = {
+      title,
+      content,
+      targetAudience: distributeToAll ? 'all-schools' : 'specific-entities',
+      requireReadConfirmation: false,
+    };
+
+    await saveDraftAnnouncement(input);
+
+    setIsSubmitting(false);
+    setMessage('Draft saved successfully!');
+    resetForm();
   }
 
   return (
@@ -50,8 +72,7 @@ export default function SuperAdminAnnouncementForm() {
         Draft a message to be broadcast across the school network.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        {/* Title */}
+      <form onSubmit={handlePublish} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Announcement Title
@@ -66,48 +87,49 @@ export default function SuperAdminAnnouncementForm() {
           />
         </div>
 
-        {/* Announcement Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Announcement Type
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {TYPE_OPTIONS.map((opt) => (
-              <button
-                type="button"
-                key={opt.value}
-                onClick={() => setPriority(opt.value)}
-                className={`border rounded-md py-2 text-sm font-medium ${
-                  priority === opt.value
-                    ? 'border-green-600 bg-green-50 text-green-700'
-                    : 'border-gray-300 text-gray-600'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedTag('general')}
+              className={`flex-1 border rounded-md py-2 text-sm font-semibold ${
+                selectedTag === 'general'
+                  ? 'bg-green-600 border-green-600 text-white'
+                  : 'border-green-300 bg-green-50 text-green-700'
+              }`}
+            >
+              General
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTag('important')}
+              className={`flex-1 border rounded-md py-2 text-sm font-semibold ${
+                selectedTag === 'important'
+                  ? 'bg-red-600 border-red-600 text-white'
+                  : 'border-red-300 bg-red-50 text-red-700'
+              }`}
+            >
+              Important
+            </button>
           </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Required to publish. Not required to save as draft.
+          </p>
         </div>
 
-        {/* Distribution Network */}
         <div className="border border-gray-200 rounded-md p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">Distribution Network</span>
             <div className="flex items-center gap-4 text-sm">
               <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  checked={distributeToAll}
-                  onChange={() => setDistributeToAll(true)}
-                />
+                <input type="radio" checked={distributeToAll} onChange={() => setDistributeToAll(true)} />
                 All Schools
               </label>
               <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  checked={!distributeToAll}
-                  onChange={() => setDistributeToAll(false)}
-                />
+                <input type="radio" checked={!distributeToAll} onChange={() => setDistributeToAll(false)} />
                 Specific Entities
               </label>
             </div>
@@ -119,7 +141,6 @@ export default function SuperAdminAnnouncementForm() {
           )}
         </div>
 
-        {/* Content */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Message Content
@@ -134,18 +155,25 @@ export default function SuperAdminAnnouncementForm() {
           />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {successMessage && (
-            <span className="text-green-600 text-sm">{successMessage}</span>
-          )}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="ml-auto bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Sending...' : 'Review & Send'}
-          </button>
+          {message && <span className="text-sm text-gray-600">{message}</span>}
+          <div className="ml-auto flex gap-3">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+              className="border border-blue-900 text-blue-900 px-5 py-2 rounded-md text-sm font-medium hover:bg-blue-50 disabled:opacity-50"
+            >
+              Save Draft
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-green-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Sending...' : 'Review & Send'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

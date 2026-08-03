@@ -4,14 +4,10 @@ import { useEffect, useState } from 'react';
 import { Announcement } from '../types/announcement';
 import { getAnnouncements, markAsViewed } from '../services/announcementService';
 
-const BADGE_STYLES: Record<string, { label: string; className: string; borderClass: string }> = {
-  critical: { label: 'CRITICAL ALERT', className: 'bg-red-100 text-red-700', borderClass: 'border-t-4 border-t-red-600' },
-  emergency: { label: 'CRITICAL ALERT', className: 'bg-red-100 text-red-700', borderClass: 'border-t-4 border-t-red-600' },
-  urgent: { label: 'IMPORTANT', className: 'bg-amber-100 text-amber-700', borderClass: '' },
-  warning: { label: 'IMPORTANT', className: 'bg-amber-100 text-amber-700', borderClass: '' },
-  update: { label: 'NEW FEATURE', className: 'bg-green-100 text-green-700', borderClass: '' },
-  info: { label: 'INFORMATION', className: 'bg-blue-100 text-blue-700', borderClass: '' },
-  normal: { label: 'INFORMATION', className: 'bg-gray-100 text-gray-700', borderClass: '' },
+const TAG_STYLES: Record<string, { label: string; className: string; borderClass: string }> = {
+  important: { label: 'IMPORTANT', className: 'bg-red-100 text-red-700', borderClass: 'border-t-4 border-t-red-600' },
+  general: { label: 'GENERAL', className: 'bg-green-100 text-green-700', borderClass: '' },
+  draft: { label: 'DRAFT', className: 'bg-yellow-100 text-yellow-700', borderClass: '' },
 };
 
 function timeAgo(dateString: string): string {
@@ -31,10 +27,9 @@ export default function TeacherAnnouncementFeed() {
   useEffect(() => {
     async function loadData() {
       const data = await getAnnouncements();
-      // Sort so critical/emergency alerts show first, like image 5
       const sorted = [...data].sort((a, b) => {
-        const rank = (p: string) => (p === 'critical' || p === 'emergency' ? 0 : 1);
-        return rank(a.priority) - rank(b.priority);
+        const rank = (t: string) => (t === 'important' ? 0 : 1);
+        return rank(a.tag) - rank(b.tag);
       });
       setAnnouncements(sorted);
       setIsLoading(false);
@@ -63,7 +58,7 @@ export default function TeacherAnnouncementFeed() {
       </div>
 
       {announcements.map((a) => {
-        const badge = BADGE_STYLES[a.priority] || BADGE_STYLES.normal;
+        const badge = TAG_STYLES[a.tag] || TAG_STYLES.general;
         return (
           <div
             key={a.id}

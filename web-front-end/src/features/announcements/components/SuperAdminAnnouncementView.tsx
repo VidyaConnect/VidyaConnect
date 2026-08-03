@@ -2,18 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Announcement, AnnouncementPriority } from '../types/announcement';
+import { Announcement, AnnouncementTag } from '../types/announcement';
 import { getAnnouncements } from '../services/announcementService';
 
-const BADGE_STYLES: Record<string, { label: string; className: string; borderClass: string }> = {
-  critical: { label: 'CRITICAL', className: 'bg-red-100 text-red-700', borderClass: 'border-l-4 border-l-red-600' },
-  emergency: { label: 'CRITICAL', className: 'bg-red-100 text-red-700', borderClass: 'border-l-4 border-l-red-600' },
-  warning: { label: 'WARNING', className: 'bg-amber-100 text-amber-700', borderClass: 'border-l-4 border-l-amber-500' },
-  urgent: { label: 'WARNING', className: 'bg-amber-100 text-amber-700', borderClass: 'border-l-4 border-l-amber-500' },
-  info: { label: 'INFO', className: 'bg-blue-100 text-blue-700', borderClass: 'border-l-4 border-l-blue-600' },
-  update: { label: 'INFO', className: 'bg-blue-100 text-blue-700', borderClass: 'border-l-4 border-l-blue-600' },
-  normal: { label: 'INFO', className: 'bg-blue-100 text-blue-700', borderClass: 'border-l-4 border-l-blue-600' },
-  feature: { label: 'INFO', className: 'bg-blue-100 text-blue-700', borderClass: 'border-l-4 border-l-blue-600' },
+const TAG_STYLES: Record<string, { label: string; className: string; borderClass: string }> = {
+  important: { label: 'IMPORTANT', className: 'bg-red-100 text-red-700', borderClass: 'border-l-4 border-l-red-600' },
+  general: { label: 'GENERAL', className: 'bg-green-100 text-green-700', borderClass: 'border-l-4 border-l-green-600' },
+  draft: { label: 'DRAFT', className: 'bg-yellow-100 text-yellow-700', borderClass: 'border-l-4 border-l-yellow-500' },
 };
 
 function timeAgo(dateString: string): string {
@@ -27,7 +22,7 @@ function timeAgo(dateString: string): string {
   return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 }
 
-type FilterTab = 'all' | 'critical' | 'warning';
+type FilterTab = 'all' | 'general' | 'important' | 'draft';
 
 export default function SuperAdminAnnouncementView() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -37,7 +32,6 @@ export default function SuperAdminAnnouncementView() {
   useEffect(() => {
     async function loadData() {
       const data = await getAnnouncements();
-      // Only show Super Admin's own platform-level announcements on this dashboard
       const platformOnly = data.filter((a) => a.postedBy.role === 'super-admin');
       setAnnouncements(platformOnly);
       setIsLoading(false);
@@ -45,16 +39,12 @@ export default function SuperAdminAnnouncementView() {
     loadData();
   }, []);
 
-  const isCritical = (p: AnnouncementPriority) => p === 'critical' || p === 'emergency';
-  const isWarning = (p: AnnouncementPriority) => p === 'warning' || p === 'urgent';
-
   const filtered = announcements.filter((a) => {
-    if (filter === 'critical') return isCritical(a.priority);
-    if (filter === 'warning') return isWarning(a.priority);
-    return true;
+    if (filter === 'all') return true;
+    return a.tag === (filter as AnnouncementTag);
   });
 
-  const activeAlertCount = announcements.filter((a) => isCritical(a.priority) || isWarning(a.priority)).length;
+  const importantCount = announcements.filter((a) => a.tag === 'important').length;
 
   if (isLoading) {
     return <p className="text-gray-500 text-sm p-6">Loading platform announcements...</p>;
@@ -62,13 +52,12 @@ export default function SuperAdminAnnouncementView() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Platform Announcements</h1>
           <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
             <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600" /> {activeAlertCount} Active Alerts
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600" /> {importantCount} Important
             </span>
             <span>Real-time infrastructure health monitor</span>
           </div>
@@ -86,7 +75,6 @@ export default function SuperAdminAnnouncementView() {
         </div>
       </div>
 
-      {/* Uptime banner (static display) */}
       <div className="bg-blue-950 text-white rounded-lg p-6 flex items-center justify-between">
         <div>
           <p className="text-xs text-blue-200 uppercase tracking-wide">Uptime Integrity</p>
@@ -103,9 +91,8 @@ export default function SuperAdminAnnouncementView() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2">
-        {(['all', 'critical', 'warning'] as FilterTab[]).map((tab) => (
+      <div className="flex items-center gap-2 flex-wrap">
+        {(['all', 'general', 'important', 'draft'] as FilterTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
@@ -118,18 +105,14 @@ export default function SuperAdminAnnouncementView() {
         ))}
       </div>
 
-      {/* Alert list */}
       <div className="space-y-4">
         {filtered.length === 0 && (
           <p className="text-sm text-gray-400 text-center py-10">No alerts match this filter.</p>
         )}
         {filtered.map((a) => {
-          const badge = BADGE_STYLES[a.priority] || BADGE_STYLES.info;
+          const badge = TAG_STYLES[a.tag] || TAG_STYLES.general;
           return (
-            <div
-              key={a.id}
-              className={`bg-white border border-gray-200 rounded-lg p-5 ${badge.borderClass}`}
-            >
+            <div key={a.id} className={`bg-white border border-gray-200 rounded-lg p-5 ${badge.borderClass}`}>
               <div className="flex items-start justify-between">
                 <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${badge.className}`}>
                   {badge.label}

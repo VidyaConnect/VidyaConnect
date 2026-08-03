@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { colors } from "../../../constants/colors";
-import { Announcement, AnnouncementPriority } from "../types/announcement";
+import { Announcement, AnnouncementTag } from "../types/announcement";
 
 interface BadgeStyle {
   label: string;
@@ -11,15 +11,10 @@ interface BadgeStyle {
   icon: React.ComponentProps<typeof FontAwesome>["name"];
 }
 
-const PRIORITY_STYLES: Record<AnnouncementPriority, BadgeStyle> = {
-  critical: { label: "Critical", bg: colors.dangerSoft, text: colors.danger, borderColor: colors.danger, icon: "exclamation-circle" },
-  emergency: { label: "Critical", bg: colors.dangerSoft, text: colors.danger, borderColor: colors.danger, icon: "exclamation-circle" },
-  warning: { label: "Warning", bg: colors.warningSoft, text: colors.warning, borderColor: colors.warning, icon: "exclamation-triangle" },
-  urgent: { label: "Warning", bg: colors.warningSoft, text: colors.warning, borderColor: colors.warning, icon: "exclamation-triangle" },
-  info: { label: "Info", bg: colors.avatarBlue, text: colors.navy, borderColor: colors.navy, icon: "info-circle" },
-  normal: { label: "Info", bg: colors.avatarBlue, text: colors.navy, borderColor: colors.navy, icon: "info-circle" },
-  update: { label: "Info", bg: colors.avatarBlue, text: colors.navy, borderColor: colors.navy, icon: "info-circle" },
-  feature: { label: "Info", bg: colors.avatarBlue, text: colors.navy, borderColor: colors.navy, icon: "info-circle" },
+const TAG_STYLES: Record<AnnouncementTag, BadgeStyle> = {
+  general: { label: "General", bg: colors.successSoft, text: colors.success, borderColor: colors.success, icon: "info-circle" },
+  important: { label: "Important", bg: colors.dangerSoft, text: colors.danger, borderColor: colors.danger, icon: "exclamation-circle" },
+  draft: { label: "Draft", bg: colors.warningSoft, text: colors.warning, borderColor: colors.warning, icon: "pencil" },
 };
 
 function timeAgo(dateString: string): string {
@@ -39,7 +34,7 @@ interface AnnouncementCardProps {
 }
 
 export function AnnouncementCard({ announcement, onPress }: AnnouncementCardProps) {
-  const style = PRIORITY_STYLES[announcement.priority] || PRIORITY_STYLES.normal;
+  const style = TAG_STYLES[announcement.tag] || TAG_STYLES.general;
 
   return (
     <Pressable

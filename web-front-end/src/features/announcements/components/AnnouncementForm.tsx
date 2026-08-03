@@ -1,14 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { AnnouncementPriority, TargetAudience, CreateAnnouncementInput } from '../types/announcement';
-import { createAnnouncement } from '../services/announcementService';
-
-const PRIORITY_OPTIONS: { value: AnnouncementPriority; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'emergency', label: 'Emergency' },
-];
+import { TargetAudience, CreateAnnouncementInput } from '../types/announcement';
+import { createAnnouncement, saveDraftAnnouncement } from '../services/announcementService';
 
 const AUDIENCE_OPTIONS: { value: TargetAudience; label: string }[] = [
   { value: 'school-wide', label: 'School-Wide' },
@@ -19,21 +13,33 @@ const AUDIENCE_OPTIONS: { value: TargetAudience; label: string }[] = [
 export default function AnnouncementForm() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [priority, setPriority] = useState<AnnouncementPriority>('normal');
+  const [selectedTag, setSelectedTag] = useState<'general' | 'important' | null>(null);
   const [targetAudience, setTargetAudience] = useState<TargetAudience>('school-wide');
   const [requireReadConfirmation, setRequireReadConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [message, setMessage] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  function resetForm() {
+    setTitle('');
+    setContent('');
+    setSelectedTag(null);
+    setTargetAudience('school-wide');
+    setRequireReadConfirmation(false);
+  }
+
+  async function handlePublish(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
+    if (!selectedTag) {
+      setMessage('Please choose General or Important before publishing.');
+      return;
+    }
 
     setIsSubmitting(true);
     const input: CreateAnnouncementInput = {
       title,
       content,
-      priority,
+      tag: selectedTag,
       targetAudience,
       requireReadConfirmation,
     };
@@ -41,12 +47,29 @@ export default function AnnouncementForm() {
     await createAnnouncement(input);
 
     setIsSubmitting(false);
-    setSuccessMessage('Announcement published successfully!');
-    setTitle('');
-    setContent('');
-    setPriority('normal');
-    setTargetAudience('school-wide');
-    setRequireReadConfirmation(false);
+    setMessage('Announcement published successfully!');
+    resetForm();
+  }
+
+  async function handleSaveDraft() {
+    if (!title.trim() && !content.trim()) {
+      setMessage('Add a title or message before saving a draft.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const input: CreateAnnouncementInput = {
+      title,
+      content,
+      targetAudience,
+      requireReadConfirmation,
+    };
+
+    await saveDraftAnnouncement(input);
+
+    setIsSubmitting(false);
+    setMessage('Draft saved successfully!');
+    resetForm();
   }
 
   return (
@@ -56,8 +79,7 @@ export default function AnnouncementForm() {
         Draft and broadcast notifications to your school community.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        {/* Title */}
+      <form onSubmit={handlePublish} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Announcement Title
@@ -72,49 +94,56 @@ export default function AnnouncementForm() {
           />
         </div>
 
-        {/* Urgency + Audience */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Urgency Level
-            </label>
-            <div className="flex gap-2">
-              {PRIORITY_OPTIONS.map((opt) => (
-                <button
-                  type="button"
-                  key={opt.value}
-                  onClick={() => setPriority(opt.value)}
-                  className={`flex-1 border rounded-md py-2 text-sm font-medium ${
-                    priority === opt.value
-                      ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 text-gray-600'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Target Audience
-            </label>
-            <select
-              value={targetAudience}
-              onChange={(e) => setTargetAudience(e.target.value as TargetAudience)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Announcement Type
+          </label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedTag('general')}
+              className={`flex-1 border rounded-md py-2 text-sm font-semibold ${
+                selectedTag === 'general'
+                  ? 'bg-green-600 border-green-600 text-white'
+                  : 'border-green-300 bg-green-50 text-green-700'
+              }`}
             >
-              {AUDIENCE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              General
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTag('important')}
+              className={`flex-1 border rounded-md py-2 text-sm font-semibold ${
+                selectedTag === 'important'
+                  ? 'bg-red-600 border-red-600 text-white'
+                  : 'border-red-300 bg-red-50 text-red-700'
+              }`}
+            >
+              Important
+            </button>
           </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Required to publish. Not required to save as draft.
+          </p>
         </div>
 
-        {/* Content */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Target Audience
+          </label>
+          <select
+            value={targetAudience}
+            onChange={(e) => setTargetAudience(e.target.value as TargetAudience)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {AUDIENCE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Announcement Content
@@ -129,7 +158,6 @@ export default function AnnouncementForm() {
           />
         </div>
 
-        {/* Read confirmation toggle */}
         <div className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -143,18 +171,25 @@ export default function AnnouncementForm() {
           </label>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {successMessage && (
-            <span className="text-green-600 text-sm">{successMessage}</span>
-          )}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="ml-auto bg-blue-900 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-blue-800 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Publishing...' : 'Publish Now'}
-          </button>
+          {message && <span className="text-sm text-gray-600">{message}</span>}
+          <div className="ml-auto flex gap-3">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+              className="border border-blue-900 text-blue-900 px-5 py-2 rounded-md text-sm font-medium hover:bg-blue-50 disabled:opacity-50"
+            >
+              Save Draft
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-900 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-blue-800 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Publishing...' : 'Publish Now'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
