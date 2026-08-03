@@ -8,6 +8,11 @@ COPY shared ./shared
 # Copy the announcement service
 COPY announcement-service ./announcement-service
 
+# Install shared package's own dependencies (jsonwebtoken, jwks-rsa)
+WORKDIR /workspace/shared
+
+RUN npm install
+
 # Install dependencies from inside the service folder
 WORKDIR /workspace/announcement-service
 

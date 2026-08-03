@@ -64,10 +64,31 @@ model Announcement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  views AnnouncementView[]
+
   @@index([schoolId])
   @@index([createdByUserId])
   @@index([type])
 
   @@map("announcements")
+  @@schema("announcement")
+}
+
+model AnnouncementView {
+  id String @id @default(uuid())
+
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+
+  /// User ID from the School User Service / Identity Service
+  userId String
+  role   String
+
+  viewedAt DateTime @default(now())
+
+  @@unique([announcementId, userId])
+  @@index([userId])
+
+  @@map("announcement_views")
   @@schema("announcement")
 }

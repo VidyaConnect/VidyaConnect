@@ -1,4 +1,9 @@
-import { createAnnouncement } from "../repositories/announcement.repository.js";
+import {
+  createAnnouncement,
+  findAnnouncementsForParent,
+  findAnnouncementById,
+  upsertAnnouncementView,
+} from "../repositories/announcement.repository.js";
 
 export const createNewAnnouncement = async (
   announcementData,
@@ -42,4 +47,26 @@ export const createNewAnnouncement = async (
 
   return await createAnnouncement(announcement);
 
+};
+
+export const getAnnouncementsForParent = async (user) => {
+  return await findAnnouncementsForParent(user.schoolId);
+};
+
+export const getAnnouncementByIdForParent = async (id, user) => {
+  const announcement = await findAnnouncementById(id);
+
+  if (!announcement || announcement.isRetracted) {
+    return null;
+  }
+
+  const isVisible =
+    announcement.status === "PUBLISHED" &&
+    (announcement.type === "SYSTEM" || announcement.schoolId === user.schoolId);
+
+  return isVisible ? announcement : null;
+};
+
+export const recordAnnouncementView = async (announcementId, user) => {
+  return await upsertAnnouncementView(announcementId, user.userId, user.role);
 };
