@@ -53,18 +53,18 @@ export default function SuperAdminDashboard() {
         searchPlaceholder="Search schools, users, or logs..."
       />
 
-      <main className="ml-64 px-10 pb-28 pt-8">
+      <main className="ml-64 px-8 pb-8 pt-6">
         {/* Header Section */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold text-[#003b78] tracking-tight">Platform Overview</h1>
-            <p className="mt-1.5 text-2xl text-[#6b7280]">Command center for real-time educational network monitoring.</p>
+            <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Platform Overview</h1>
+            <p className="mt-1.5 text-sm text-[#555962]">Command center for real-time educational network monitoring.</p>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            <button className="inline-flex items-center gap-2 rounded-xl border border-[#cfd4dd] bg-white px-5 py-3 text-lg font-bold text-[#475569] shadow-sm hover:bg-slate-50 transition-all">
-              <svg className="h-5 w-5 text-[#64748b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <button className="inline-flex items-center gap-2 rounded-lg border border-[#cfd4dd] bg-white px-3 py-1.5 text-sm font-bold text-[#475569] shadow-sm hover:bg-slate-50 transition-all">
+              <svg className="h-4 w-4 text-[#64748b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -72,8 +72,8 @@ export default function SuperAdminDashboard() {
               </svg>
               This Month
             </button>
-            <button className="inline-flex items-center gap-2 rounded-xl bg-[#073b78] hover:bg-[#062f60] px-5 py-3 text-lg font-bold text-white shadow transition-all">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <button className="inline-flex items-center gap-2 rounded-lg bg-[#073b78] hover:bg-[#062f60] px-3 py-1.5 text-sm font-bold text-white shadow transition-all">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export Report
@@ -82,66 +82,66 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* 4 Cards Grid */}
-        <div className="mb-8 grid grid-cols-4 gap-6">
+        <div className="mb-6 grid grid-cols-4 gap-4">
           {/* Card 1: Total Schools (Blue) */}
-          <div className="rounded-2xl bg-[#073b78] p-6 text-white shadow-sm flex flex-col justify-between h-[150px]">
+          <div className="rounded-lg bg-[#073b78] p-4 text-white shadow-sm flex flex-col justify-between h-auto gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-white/70">Total Schools</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
                 <SchoolRegistryIcon />
               </span>
             </div>
             <div className="flex items-end justify-between">
-              <h2 className="text-4xl font-black">12</h2>
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold">
+              <h2 className="text-3xl font-bold">12</h2>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">
                 +2 this month
               </span>
             </div>
           </div>
 
           {/* Card 2: Total Users (Teal) */}
-          <div className="rounded-2xl bg-[#00a896] p-6 text-white shadow-sm flex flex-col justify-between h-[150px]">
+          <div className="rounded-lg bg-[#00a896] p-4 text-white shadow-sm flex flex-col justify-between h-auto gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-white/70">Total Users</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
                 <WhiteUsersIcon />
               </span>
             </div>
             <div className="flex items-end justify-between">
-              <h2 className="text-4xl font-black">6,847</h2>
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold">
+              <h2 className="text-3xl font-bold">6,847</h2>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">
                 +124 total
               </span>
             </div>
           </div>
 
           {/* Card 3: Active Today */}
-          <div className="rounded-2xl border border-[#cfd4dd] bg-white p-6 shadow-sm flex flex-col justify-between h-[150px]">
+          <div className="rounded-lg border border-[#cfd4dd] bg-white p-4 shadow-sm flex flex-col justify-between h-auto gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-[#64748b]">Active Today</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
                 <ActivityIcon />
               </span>
             </div>
             <div className="flex items-end justify-between">
-              <h2 className="text-4xl font-black text-[#0f172a]">1,203</h2>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
+              <h2 className="text-3xl font-bold text-[#0f172a]">1,203</h2>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
                 Stable
               </span>
             </div>
           </div>
 
           {/* Card 4: System Status */}
-          <div className="rounded-2xl border border-[#cfd4dd] bg-white p-6 shadow-sm flex flex-col justify-between h-[150px]">
+          <div className="rounded-lg border border-[#cfd4dd] bg-white p-4 shadow-sm flex flex-col justify-between h-auto gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-[#64748b]">System Status</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50">
                 <ShieldIcon />
               </span>
             </div>
             <div className="flex items-end justify-between">
-              <h2 className="text-3xl font-black text-[#007c6d]">Operational</h2>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
+              <h2 className="text-xl font-bold text-[#007c6d]">Operational</h2>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
                 All Systems Go
               </span>
             </div>
@@ -149,12 +149,12 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* Recent Schools & Quick Actions grid */}
-        <div className="mb-8 grid grid-cols-12 gap-6">
+        <div className="mb-6 grid grid-cols-12 gap-6">
           {/* Recent Schools (left 8 columns) */}
-          <div className="col-span-8 rounded-2xl border border-[#cfd4dd] bg-white shadow-sm overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#cfd4dd]">
-              <h3 className="text-2xl font-black text-[#003b78]">Recent Schools</h3>
-              <button className="text-base font-bold text-[#007c6d] hover:text-[#005f54]">
+          <div className="col-span-8 rounded-lg border border-[#cfd4dd] bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#cfd4dd]">
+              <h3 className="text-lg font-bold text-[#003b78]">Recent Schools</h3>
+              <button className="text-sm font-bold text-[#007c6d] hover:text-[#005f54]">
                 View All
               </button>
             </div>
@@ -163,19 +163,19 @@ export default function SuperAdminDashboard() {
                 <tbody className="divide-y divide-[#cfd4dd]">
                   {/* School 1 */}
                   <tr className="hover:bg-slate-50">
-                    <td className="px-6 py-5 flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                        <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <td className="px-5 py-3 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-[#0f172a]">St. Xavier's International</p>
-                        <p className="text-xs text-slate-400 mt-0.5">1,420 Students &bull; registered 2d ago</p>
+                        <p className="text-sm font-bold text-[#0f172a]">St. Xavier's International</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">1,420 Students &bull; registered 2d ago</p>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wide">
                         Active
                       </span>
                     </td>
@@ -183,19 +183,19 @@ export default function SuperAdminDashboard() {
 
                   {/* School 2 */}
                   <tr className="hover:bg-slate-50">
-                    <td className="px-6 py-5 flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                        <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <td className="px-5 py-3 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-[#0f172a]">Greenwood Public Academy</p>
-                        <p className="text-xs text-slate-400 mt-0.5">850 Students &bull; registered 5d ago</p>
+                        <p className="text-sm font-bold text-[#0f172a]">Greenwood Public Academy</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">850 Students &bull; registered 5d ago</p>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wide">
                         Active
                       </span>
                     </td>
@@ -203,19 +203,19 @@ export default function SuperAdminDashboard() {
 
                   {/* School 3 */}
                   <tr className="hover:bg-slate-50">
-                    <td className="px-6 py-5 flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                        <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <td className="px-5 py-3 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-[#0f172a]">Oakridge Elementary</p>
-                        <p className="text-xs text-slate-400 mt-0.5">420 Students &bull; registered 1w ago</p>
+                        <p className="text-sm font-bold text-[#0f172a]">Oakridge Elementary</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">420 Students &bull; registered 1w ago</p>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 uppercase tracking-wide">
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wide">
                         Pending
                       </span>
                     </td>
@@ -226,41 +226,41 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Quick Actions (right 4 columns) */}
-          <div className="col-span-4 rounded-2xl border border-[#cfd4dd] bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="col-span-4 rounded-lg border border-[#cfd4dd] bg-white p-5 shadow-sm flex flex-col justify-between">
             <div>
-              <h3 className="text-xl font-black text-[#0f172a] mb-5">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-base font-bold text-[#0f172a] mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-3">
                 {/* Action 1 */}
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-[120px]">
-                  <svg className="h-6 w-6 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <button className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-auto py-4">
+                  <svg className="h-5 w-5 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span className="text-xs font-extrabold text-slate-800 text-center">Register School</span>
+                  <span className="text-[11px] font-bold text-slate-800 text-center">Register School</span>
                 </button>
 
                 {/* Action 2 */}
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-[120px]">
-                  <svg className="h-6 w-6 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <button className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-auto py-4">
+                  <svg className="h-5 w-5 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  <span className="text-xs font-extrabold text-slate-800 text-center">View All Schools</span>
+                  <span className="text-[11px] font-bold text-slate-800 text-center">View All Schools</span>
                 </button>
 
                 {/* Action 3 */}
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-[120px] relative">
-                  <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#073b78] text-[10px] font-black text-white">3</span>
-                  <svg className="h-6 w-6 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <button className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-auto py-4 relative">
+                  <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#073b78] text-[9px] font-bold text-white">3</span>
+                  <svg className="h-5 w-5 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="text-xs font-extrabold text-slate-800 text-center">School Requests</span>
+                  <span className="text-[11px] font-bold text-slate-800 text-center">School Requests</span>
                 </button>
 
                 {/* Action 4 */}
-                <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-[120px]">
-                  <svg className="h-6 w-6 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <button className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors h-auto py-4">
+                  <svg className="h-5 w-5 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="text-xs font-extrabold text-slate-800 text-center">Audit Logs</span>
+                  <span className="text-[11px] font-bold text-slate-800 text-center">Audit Logs</span>
                 </button>
               </div>
             </div>
@@ -268,15 +268,15 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* Global Security Console */}
-        <div className="rounded-2xl border border-[#cfd4dd] bg-[#1e293b] p-6 text-white shadow-sm flex flex-col">
-          <div className="mb-4 flex items-center gap-2 text-xl font-black text-white">
-            <svg className="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+        <div className="rounded-lg border border-[#cfd4dd] bg-[#1e293b] p-5 text-white shadow-sm flex flex-col">
+          <div className="mb-4 flex items-center gap-2 text-base font-bold text-white">
+            <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             Global Security
           </div>
 
-          <div className="space-y-4 font-mono text-sm text-slate-300 bg-slate-900/50 rounded-xl p-4 border border-slate-800">
+          <div className="space-y-3 font-mono text-xs text-slate-300 bg-slate-900/50 rounded-lg p-3 border border-slate-800">
             {/* Log 1 */}
             <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
               <div className="flex items-center gap-3">
@@ -305,7 +305,7 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
 
-          <button className="mt-6 self-center border border-slate-700 hover:bg-slate-800/50 hover:text-white px-8 py-3 rounded-xl text-sm font-bold text-slate-400 transition-all uppercase tracking-wider">
+          <button className="mt-4 self-center border border-slate-700 hover:bg-slate-800/50 hover:text-white px-4 py-2 rounded-lg text-xs font-bold text-slate-400 transition-all uppercase tracking-wider">
             Download Report
           </button>
         </div>
