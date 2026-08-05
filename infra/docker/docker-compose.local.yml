@@ -205,14 +205,13 @@ services:
 
   # ── File Service ─────────────────────────
   file-service:
-    image: node:20-alpine
-    command: sh -c "echo 'File Service placeholder' && sleep infinity"
+    build:
+      context: ../../backend/services
+      dockerfile: file-service/Dockerfile
     container_name: vidyaconnect-file-service
     restart: unless-stopped
-
     ports:
       - "3006:3006"
-
     environment:
       NODE_ENV: development
       PORT: 3006
@@ -221,16 +220,14 @@ services:
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-
+      S3_BUCKET_NAME: vidyaconnect-files-local
     depends_on:
       postgres:
         condition: service_healthy
       localstack:
-        condition: service_healthy    # ← change from service_started
-
+        condition: service_healthy
     networks:
       - vidyaconnect-network
-
 
   # ── Notification Service ─────────────────
   notification-service:
