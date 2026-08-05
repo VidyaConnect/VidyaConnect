@@ -143,6 +143,13 @@ services:
       NODE_ENV: development
       PORT: 3003
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_CLASS_ID: "class-8a"
+      DEV_USER_ROLE: "SCHOOL_ADMIN"
+      DEV_USER_ID: "dev-teacher-id"
+      DEV_STUDENT_ID: "student-001"
+      DEV_PARENT_ID: "dev-parent-id"
 
     depends_on:
       postgres:
@@ -219,6 +226,10 @@ services:
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_USER_ROLE: "TEACHER"
+      DEV_USER_ID: "dev-teacher-id"
 
     depends_on:
       postgres:

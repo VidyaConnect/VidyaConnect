@@ -23,5 +23,10 @@ export const errorResponse = (
 };
 
 
-// Alias for older middleware compatibility
 export const error = errorResponse;
+
+export default {
+  successResponse,
+  errorResponse,
+  error,
+};

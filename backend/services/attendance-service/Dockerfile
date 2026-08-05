@@ -14,4 +14,4 @@ RUN npx prisma generate
 
 EXPOSE 3003
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["sh", "-c", "npx prisma migrate resolve --applied 20260726100000_init_attendance 2>/dev/null || true; npx prisma db push --skip-generate; npm start"]
