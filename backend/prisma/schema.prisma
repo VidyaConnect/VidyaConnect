@@ -1,0 +1,307 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  URGENT
+  EMERGENCY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  ABSENT_EXCUSED
+  LATE
+  EARLY_DEPARTURE
+}
+
+model School {
+  id           String   @id @default(uuid())
+  name         String
+  address      String?
+  email        String   @unique
+  phone        String?
+  logoUrl      String?
+  academicYear String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users         User[]
+  classes       Class[]
+  announcements Announcement[]
+
+  @@map("schools")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  schoolId     String?
+  school       School?  @relation(fields: [schoolId], references: [id])
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  phone        String?
+  isActive     Boolean  @default(true)
+  isFirstLogin Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sentAnnouncements  Announcement[]
+  teacherClassLinks  TeacherClassAssignment[]
+  parentStudentLinks StudentParentLink[]      @relation("ParentLinks")
+  sentMessages       Message[]                @relation("SentMessages")
+  receivedMessages   Message[]                @relation("ReceivedMessages")
+  markedAttendance   AttendanceRecord[]       @relation("MarkedBy")
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Class {
+  id           String   @id @default(uuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id])
+  className    String
+  gradeLevel   String
+  academicYear String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  students          Student[]
+  teacherLinks      TeacherClassAssignment[]
+  announcements     Announcement[]
+  assignments       Assignment[]
+  attendanceRecords AttendanceRecord[]
+  calendarEvents    CalendarEvent[]
+
+  @@map("classes")
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  schoolId       String
+  classId        String
+  class          Class    @relation(fields: [classId], references: [id])
+  studentNumber  String?
+  dateOfBirth    DateTime
+  gender         String
+  enrollmentDate DateTime @default(now())
+  isActive       Boolean  @default(true)
+
+  parentLinks StudentParentLink[]
+  submissions AssignmentSubmission[]
+  attendance  AttendanceRecord[]
+
+  @@map("students")
+}
+
+model StudentParentLink {
+  id           String   @id @default(uuid())
+  studentId    String
+  parentId     String
+  parent       User     @relation("ParentLinks", fields: [parentId], references: [id])
+  student      Student  @relation(fields: [studentId], references: [id])
+  relationship String
+  approvedAt   DateTime @default(now())
+
+  @@unique([studentId, parentId])
+  @@map("student_parent_links")
+}
+
+model TeacherClassAssignment {
+  id             String   @id @default(uuid())
+  teacherId      String
+  classId        String
+  teacher        User     @relation(fields: [teacherId], references: [id])
+  class          Class    @relation(fields: [classId], references: [id])
+  subject        String
+  isClassTeacher Boolean  @default(false)
+  assignedAt     DateTime @default(now())
+
+  @@unique([teacherId, classId, subject])
+  @@map("teacher_class_assignments")
+}
+
+model Announcement {
+  id                   String               @id @default(uuid())
+  schoolId             String
+  school               School               @relation(fields: [schoolId], references: [id])
+  classId              String?
+  class                Class?               @relation(fields: [classId], references: [id])
+  createdById          String
+  createdBy            User                 @relation(fields: [createdById], references: [id])
+  title                String
+  content              String
+  priority             AnnouncementPriority @default(NORMAL)
+  requiresConfirmation Boolean              @default(false)
+  attachmentUrl        String?
+  isRetracted          Boolean              @default(false)
+  publishedAt          DateTime             @default(now())
+  expiresAt            DateTime?
+
+  @@map("announcements")
+}
+
+model Assignment {
+  id               String   @id @default(uuid())
+  schoolId         String
+  classId          String
+  class            Class    @relation(fields: [classId], references: [id])
+  teacherId        String
+  title            String
+  description      String?
+  subject          String
+  dueDate          DateTime
+  attachmentUrl    String?
+  isCancelled      Boolean  @default(false)
+  remindersEnabled Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  submissions AssignmentSubmission[]
+
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id])
+  status       String     @default("NOT_SUBMITTED")
+  fileUrl      String?
+  submittedAt  DateTime?
+  mark         Float?
+  maxMark      Float?
+  feedback     String?
+  markedAt     DateTime?
+
+  @@unique([assignmentId, studentId])
+  @@map("assignment_submissions")
+}
+
+model AttendanceRecord {
+  id        String           @id @default(uuid())
+  schoolId  String
+  classId   String
+  class     Class            @relation(fields: [classId], references: [id])
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  teacherId String
+  teacher   User             @relation("MarkedBy", fields: [teacherId], references: [id])
+  date      DateTime
+  status    AttendanceStatus
+  note      String?
+  markedAt  DateTime         @default(now())
+
+  justification AbsenceJustification?
+
+  @@unique([studentId, date])
+  @@map("attendance_records")
+}
+
+model AbsenceJustification {
+  id           String           @id @default(uuid())
+  attendanceId String           @unique
+  attendance   AttendanceRecord @relation(fields: [attendanceId], references: [id])
+  parentId     String
+  reasonType   String
+  description  String
+  documentUrl  String?
+  submittedAt  DateTime         @default(now())
+  reviewStatus String           @default("PENDING")
+  reviewNote   String?
+  reviewedAt   DateTime?
+
+  @@map("absence_justifications")
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  schoolId    String
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+  recipientId String
+  recipient   User      @relation("ReceivedMessages", fields: [recipientId], references: [id])
+  content     String
+  status      String    @default("SENT")
+  sentAt      DateTime  @default(now())
+  readAt      DateTime?
+
+  @@map("messages")
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  schoolId    String
+  classId     String?
+  class       Class?   @relation(fields: [classId], references: [id])
+  createdById String
+  title       String
+  description String?
+  category    String
+  startDate   DateTime
+  endDate     DateTime
+  isAllDay    Boolean  @default(false)
+  rsvpEnabled Boolean  @default(false)
+  isCancelled Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("calendar_events")
+}
+
+model Notification {
+  id             String    @id @default(uuid())
+  schoolId       String
+  recipientId    String
+  title          String
+  body           String
+  type           String
+  referenceId    String?
+  referenceType  String?
+  isRead         Boolean   @default(false)
+  sentAt         DateTime  @default(now())
+  readAt         DateTime?
+  deliveryStatus String    @default("PENDING")
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  schoolId     String?
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  eventType    String
+  resourceType String?
+  resourceId   String?
+  description  String
+  ipAddress    String?
+  occurredAt   DateTime @default(now())
+
+  @@map("audit_logs")
+}
