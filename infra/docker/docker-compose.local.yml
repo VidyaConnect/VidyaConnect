@@ -78,6 +78,12 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+      - ../localstack/init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - vidyaconnect-network
 
@@ -220,7 +226,7 @@ services:
       postgres:
         condition: service_healthy
       localstack:
-        condition: service_started
+        condition: service_healthy    # ← change from service_started
 
     networks:
       - vidyaconnect-network
