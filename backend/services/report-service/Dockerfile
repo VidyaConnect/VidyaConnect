@@ -1,20 +1,15 @@
-# Use Node.js 22 LTS Alpine image
 FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+COPY shared ./shared
 
-# Install dependencies
+COPY report-service ./report-service
+
+WORKDIR /app/report-service
+
 RUN npm install
 
-# Copy application source
-COPY . .
-
-# Expose application port
 EXPOSE 3008
 
-# Start the application
 CMD ["npm", "start"]
