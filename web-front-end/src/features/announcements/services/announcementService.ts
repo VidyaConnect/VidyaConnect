@@ -10,6 +10,7 @@ type ApiEnvelope<T> = {
 
 type BackendAnnouncement = {
   id: string;
+  
   title: string;
   content: string;
   type: 'SYSTEM' | 'SCHOOL';
