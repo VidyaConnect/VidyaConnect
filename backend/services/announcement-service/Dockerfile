@@ -1,15 +1,12 @@
 FROM node:22-alpine
 
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy the shared package
 COPY shared ./shared
 
-# Copy the announcement service
 COPY announcement-service ./announcement-service
 
-# Install dependencies from inside the service folder
-WORKDIR /workspace/announcement-service
+WORKDIR /app/announcement-service
 
 RUN npm install
 

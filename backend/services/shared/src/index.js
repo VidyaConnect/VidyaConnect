@@ -1,5 +1,7 @@
 export { logger } from "./utils/logger.js";
 
+export { getSigningKey } from "./config/keycloak.js";
+
 export {
   successResponse,
   errorResponse,
