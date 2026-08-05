@@ -1,20 +1,19 @@
-# Use Node.js 22 LTS Alpine image
 FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy shared package first (dependency)
+COPY shared /app/shared
 
-# Install dependencies
+# Copy file-service package files
+COPY file-service/package*.json ./
+
+# Install dependencies (this will resolve file:../shared correctly)
 RUN npm install
 
-# Copy application source
-COPY . .
+# Copy file-service source code
+COPY file-service/. .
 
-# Expose application port
 EXPOSE 3006
 
-# Start the application
 CMD ["npm", "start"]
