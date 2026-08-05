@@ -119,7 +119,12 @@ services:
       NODE_ENV: development
       PORT: 3002
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
-    
+
+    volumes:
+      - ../../backend/services/announcement-service/src:/workspace/announcement-service/src
+
+    command: npm run dev
+
     depends_on:
       postgres:
         condition: service_healthy
