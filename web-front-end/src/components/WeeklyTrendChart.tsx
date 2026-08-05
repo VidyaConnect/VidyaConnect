@@ -1,10 +1,22 @@
-export default function WeeklyTrendChart() {
-  const rows = [
-    { grade: 'Grade 1A', value: 98, color: 'bg-[#007c6d]' },
-    { grade: 'Grade 3B', value: 92, color: 'bg-[#2f8d83]' },
-    { grade: 'Grade 5C', value: 85, color: 'bg-[#86a4df]' },
-    { grade: 'Grade 8A', value: 68, color: 'bg-[#cd5a5d]' },
-  ]
+interface ClassTrendRow {
+  className: string
+  progress: number
+}
+
+interface WeeklyTrendChartProps {
+  classes?: ClassTrendRow[]
+  loading?: boolean
+}
+
+function getBarColor(value: number): string {
+  if (value >= 90) return 'bg-[#007c6d]'
+  if (value >= 80) return 'bg-[#2f8d83]'
+  if (value >= 70) return 'bg-[#86a4df]'
+  return 'bg-[#cd5a5d]'
+}
+
+export default function WeeklyTrendChart({ classes = [], loading = false }: WeeklyTrendChartProps) {
+  const hasData = classes.length > 0
 
   return (
     <section className="max-w-[720px] rounded-lg border border-[#cfd4dd] bg-white px-5 py-5 shadow-sm">
@@ -28,21 +40,37 @@ export default function WeeklyTrendChart() {
         <div className="h-px bg-[#cfd4dd]" />
       </div>
 
-      <div className="space-y-4">
-        {rows.map((row) => (
-          <div key={row.grade} className="grid grid-cols-[110px_1fr] items-center gap-5">
-            <p className="text-sm font-bold text-[#555962]">{row.grade}</p>
-            <div className="h-6 rounded-full bg-[#e6e8eb]">
-              <div
-                className={`flex h-6 items-center justify-end rounded-full pr-2.5 text-xs font-bold text-[#073247] ${row.color}`}
-                style={{ width: `${row.value}%` }}
-              >
-                {row.value}%
-              </div>
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="grid grid-cols-[110px_1fr] items-center gap-5">
+              <div className="h-4 w-20 animate-pulse rounded bg-[#e6e8eb]" />
+              <div className="h-6 animate-pulse rounded-full bg-[#e6e8eb]" />
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : !hasData ? (
+        <p className="py-6 text-center text-sm text-[#888]">No attendance data yet. Mark attendance to see trends here.</p>
+      ) : (
+        <div className="space-y-4">
+          {classes.map((row) => {
+            const color = getBarColor(row.progress)
+            return (
+              <div key={row.className} className="grid grid-cols-[110px_1fr] items-center gap-5">
+                <p className="text-sm font-bold text-[#555962]">{row.className}</p>
+                <div className="relative h-6 rounded-full bg-[#e6e8eb]">
+                  <div
+                    className={`flex h-6 items-center justify-end rounded-full pr-2.5 text-xs font-bold text-white transition-all duration-700 ${color}`}
+                    style={{ width: `${Math.max(row.progress, 4)}%` }}
+                  >
+                    {row.progress}%
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }

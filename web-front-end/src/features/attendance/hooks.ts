@@ -1,131 +1,116 @@
-import { useState, useCallback } from 'react'
-import type { StudentAttendance, AttendanceRecord, AbsenceFollowUp, ClassInfo } from './types'
+import { useState, useCallback, useEffect } from 'react'
+import type { StudentAttendance, AttendanceRecord, AbsenceFollowUp, ClassInfo, AttendanceSummary } from './types'
+import { attendanceService } from '@/services/attendanceService'
 
-// Mock data for demo
-const mockStudents: StudentAttendance[] = [
-  {
-    student: {
-      id: '1',
-      name: 'Alex Rivera',
-      rollNo: '#BA001',
-      gender: 'Male',
-      age: 14,
-    },
-    records: [
-      { date: '2024-10-18', status: 'P' },
-      { date: '2024-10-19', status: 'P' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'P' },
-      { date: '2024-10-23', status: 'P' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'P' },
-    ],
-    presentCount: 24,
-    absentCount: 0,
-    lateCount: 0,
-    exemptedCount: 0,
-  },
-  {
-    student: {
-      id: '2',
-      name: 'Elena Rodriguez',
-      rollNo: '#BA002',
-      gender: 'Female',
-      age: 13,
-    },
-    records: [
-      { date: '2024-10-18', status: 'A' },
-      { date: '2024-10-19', status: 'P' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'L' },
-      { date: '2024-10-23', status: 'P' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'A' },
-    ],
-    presentCount: 20,
-    absentCount: 2,
-    lateCount: 1,
-    exemptedCount: 0,
-  },
-  {
-    student: {
-      id: '3',
-      name: 'Marcus Chen',
-      rollNo: '#BA003',
-      gender: 'Male',
-      age: 14,
-    },
-    records: [
-      { date: '2024-10-18', status: 'P' },
-      { date: '2024-10-19', status: 'L' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'P' },
-      { date: '2024-10-23', status: 'L' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'P' },
-    ],
-    presentCount: 22,
-    absentCount: 0,
-    lateCount: 2,
-    exemptedCount: 0,
-  },
-]
-
-// Custom hook for managing attendance state
 export const useAttendance = () => {
-  const [students, setStudents] = useState<StudentAttendance[]>(mockStudents)
+  const [students, setStudents] = useState<StudentAttendance[]>([])
   const [selectedClass, setSelectedClass] = useState<ClassInfo>({
-    id: '1',
+    id: '8A',
     name: 'Grade 8A',
     grade: '8',
     section: 'A',
-    totalStudents: 34,
+    totalStudents: 0,
   })
+  const [summary, setSummary] = useState<AttendanceSummary>({
+    presentToday: 0,
+    absentToday: 0,
+    lateToday: 0,
+    notMarkedToday: 0,
+    totalEnrollment: 0,
+    percentage: 0,
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const refreshRoster = useCallback(async (classId?: string) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [studentsData, summaryData] = await Promise.all([
+        attendanceService.getStudentsByClass(classId),
+        attendanceService.getDailySummary(classId),
+      ])
+      setStudents(studentsData)
+      setSummary(summaryData)
+      setSelectedClass((prev) => ({
+        ...prev,
+        id: classId || prev.id,
+        totalStudents: summaryData.totalEnrollment,
+      }))
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to load attendance data'
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshRoster(selectedClass.id)
+  }, [refreshRoster, selectedClass.id])
 
   const updateAttendanceStatus = useCallback(
-    (studentId: string, date: string, status: 'P' | 'A' | 'L' | 'E') => {
-      setStudents((prev) =>
-        prev.map((student) =>
-          student.student.id === studentId
-            ? {
-                ...student,
-                records: student.records.map((record) =>
-                  record.date === date ? { ...record, status } : record
-                ),
-              }
-            : student
+    async (studentId: string, date: string, status: 'P' | 'A' | 'L' | 'E') => {
+      try {
+        await attendanceService.updateAttendance(studentId, date, status)
+        setStudents((prev) =>
+          prev.map((student) =>
+            student.student.id === studentId
+              ? {
+                  ...student,
+                  records: student.records.map((record) =>
+                    record.date === date ? { ...record, status } : record
+                  ),
+                }
+              : student
+          )
         )
-      )
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Failed to update attendance'
+        setError(message)
+        throw e
+      }
     },
     []
   )
 
-  const getSummary = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const presentCount = students.filter(
-      (s) => s.records.find((r) => r.date === today)?.status === 'P'
-    ).length
-    const absentCount = students.filter(
-      (s) => s.records.find((r) => r.date === today)?.status === 'A'
-    ).length
-    const lateCount = students.filter(
-      (s) => s.records.find((r) => r.date === today)?.status === 'L'
-    ).length
-    const notMarkedCount = students.filter(
-      (s) => !s.records.find((r) => r.date === today)
-    ).length
-
-    return {
-      presentToday: presentCount,
-      absentToday: absentCount,
-      lateToday: lateCount,
-      notMarkedToday: notMarkedCount,
-      totalEnrollment: selectedClass.totalStudents,
-      percentage: Math.round(
-        ((presentCount + lateCount) / selectedClass.totalStudents) * 100
-      ),
+  const markAllPresent = useCallback(async () => {
+    setLoading(true)
+    try {
+      await attendanceService.markAllPresent(selectedClass.id)
+      await refreshRoster(selectedClass.id)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to mark all present'
+      setError(message)
+    } finally {
+      setLoading(false)
     }
-  }, [students, selectedClass])
+  }, [refreshRoster, selectedClass.id])
+
+  const saveAttendance = useCallback(async () => {
+    setLoading(true)
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const records = students
+        .map((s) => {
+          const todayRec = s.records.find((r) => r.date === today)
+          if (!todayRec) return null
+          return { studentId: s.student.id, status: todayRec.status as 'P' | 'A' | 'L' | 'E' }
+        })
+        .filter(Boolean) as Array<{ studentId: string; status: 'P' | 'A' | 'L' | 'E' }>
+
+      await attendanceService.saveAttendance(selectedClass.id, today, records)
+      await refreshRoster(selectedClass.id)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to save attendance'
+      setError(message)
+      throw e
+    } finally {
+      setLoading(false)
+    }
+  }, [refreshRoster, selectedClass.id, students])
+
+  const getSummary = useCallback(() => summary, [summary])
 
   return {
     students,
@@ -133,33 +118,67 @@ export const useAttendance = () => {
     setSelectedClass,
     updateAttendanceStatus,
     getSummary,
+    refreshRoster,
+    markAllPresent,
+    saveAttendance,
+    loading,
+    error,
+    summary,
   }
 }
 
-// Hook for absence follow-up
 export const useAbsenceFollowUp = () => {
-  const [followUps, setFollowUps] = useState<AbsenceFollowUp[]>([
-    {
-      studentId: '2',
-      studentName: 'Elena Rodriguez',
-      date: '2024-10-24',
-      parentContact: '+1 (555) 0123-456',
-      email: 'm.rodriguez@email.com',
-      reason: undefined,
-      reasonProvided: false,
-      action: 'pending',
-    },
-  ])
+  const [followUps, setFollowUps] = useState<AbsenceFollowUp[]>([])
 
-  const updateFollowUp = useCallback((studentId: string, action: string) => {
+  const fetchAbsences = useCallback(async () => {
+    try {
+      const data = await attendanceService.getAbsences()
+      // Map raw API data into AbsenceFollowUp shape
+      const today = new Date().toISOString().split('T')[0]
+      setFollowUps(
+        data.map((d) => ({
+          studentId: d.studentId,
+          studentName: d.studentName,
+          date: today,
+          parentContact: d.phone || d.parentContact,
+          email: d.email,
+          reason: d.reason,
+          reasonDetails: d.reasonDetails,
+          reasonProvided: d.reason === 'Informed',
+          action: d.reason === 'Informed' ? 'informed' : 'pending',
+        }))
+      )
+    } catch (err) {
+      console.error(err)
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchAbsences()
+  }, [fetchAbsences])
+
+  const updateFollowUp = useCallback(async (studentId: string, action: string, reason?: string) => {
+    const status = action === 'informed' ? 'Informed' : 'Uninformed'
+    try {
+      await attendanceService.updateAbsenceReason(studentId, status, reason)
+    } catch (err) {
+      console.error('Failed to save reason:', err)
+    }
     setFollowUps((prev) =>
       prev.map((followUp) =>
         followUp.studentId === studentId
-          ? { ...followUp, action: action as any }
+          ? {
+              ...followUp,
+              action: action as AbsenceFollowUp['action'],
+              reason: status,
+              reasonDetails: reason || followUp.reasonDetails,
+              reasonProvided: status === 'Informed',
+            }
           : followUp
       )
     )
   }, [])
 
-  return { followUps, updateFollowUp }
+  return { followUps, updateFollowUp, refreshFollowUps: fetchAbsences }
 }
+

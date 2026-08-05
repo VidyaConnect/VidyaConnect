@@ -6,11 +6,10 @@ interface ClassSelectorProps {
 export default function ClassSelector({ selectedClass, onChange }: ClassSelectorProps) {
   const classes = [
     { id: 'all', name: 'All Classes' },
-    { id: '1a', name: 'Grade 1A' },
-    { id: '2b', name: 'Grade 2B' },
-    { id: '3c', name: 'Grade 3C' },
-    { id: '5a', name: 'Grade 5A' },
-    { id: '8a', name: 'Grade 8A' },
+    { id: '1A', name: 'Grade 1A' },
+    { id: '3B', name: 'Grade 3B' },
+    { id: '5C', name: 'Grade 5C' },
+    { id: '8A', name: 'Grade 8A' },
   ]
 
   return (

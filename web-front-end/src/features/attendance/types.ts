@@ -44,8 +44,9 @@ export interface AbsenceFollowUp {
   parentContact: string
   email?: string
   reason?: string
+  reasonDetails?: string | null
   reasonProvided: boolean
-  action?: 'notify' | 'pending' | 'resolved'
+  action?: 'notify' | 'informed' | 'pending' | 'resolved'
 }
 
 export interface AttendanceSummary {
