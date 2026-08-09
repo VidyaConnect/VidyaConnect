@@ -15,11 +15,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-vidyaconnect_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user} -d ${POSTGRES_DB:-vidyaconnect}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -76,7 +76,6 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
-      - ../localstack/init-aws.sh:/etc/localstack/init.sh
     networks:
       - vidyaconnect-network
 
@@ -144,6 +143,13 @@ services:
       NODE_ENV: development
       PORT: 3003
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_CLASS_ID: "class-8a"
+      DEV_USER_ROLE: "SCHOOL_ADMIN"
+      DEV_USER_ID: "dev-teacher-id"
+      DEV_STUDENT_ID: "student-001"
+      DEV_PARENT_ID: "dev-parent-id"
 
     depends_on:
       postgres:
@@ -220,7 +226,10 @@ services:
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      S3_BUCKET: vidyaconnect-files
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_USER_ROLE: "TEACHER"
+      DEV_USER_ID: "dev-teacher-id"
 
     depends_on:
       postgres:
@@ -302,6 +311,7 @@ services:
 volumes:
   postgres_data:
   localstack_data:
+  keycloak_data:
 
 # ── Network (all containers talk to each other) ──
 networks:
