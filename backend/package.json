@@ -16,6 +16,8 @@
     "typescript": "^7.0.2"
   },
   "devDependencies": {
-    "tsx": "^4.23.8"
+    "tsx": "^4.23.8",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^3.2.2"
   }
 }
