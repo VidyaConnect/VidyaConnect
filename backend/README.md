@@ -1,13 +1,24 @@
 # Backend
 
-This directory contains the backend services for the VidyaConnect platform.
+This directory contains the backend services for the VidyaConnect platform — a mobile-first, role-aware school communication system for Sri Lankan schools.
+
+## Overview
+
+The backend is built as a set of independently deployable **microservices**, each owning a distinct area of the platform's data and business logic. Services communicate over REST, sit behind an API gateway, and share a single Keycloak identity provider for authentication.
 
 ## Planned Technology
-- Node.js
-- Express.js
-- PostgreSQL
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | Express.js |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Auth | Keycloak (OIDC), JWT |
+| Containerization | Docker, Docker Compose |
 
 ## Main Responsibilities
+
 - Authentication
 - User Management
 - School Management
@@ -16,3 +27,253 @@ This directory contains the backend services for the VidyaConnect platform.
 - Assignments
 - Consent Forms
 - Notifications
+
+  ## Architecture
+
+Each microservice lives in its own folder under `backend/services/`:
+
+```
+backend/
+└── services/
+    ├── school-user-service/
+    ├── announcement-service/
+    ├── attendance-service/
+    ├── assignment-service/
+    ├── consent-form-service/
+    ├── file-service/
+    └── notification-service/
+```
+
+All services share one PostgreSQL instance but are isolated by **schema** — never by separate databases — so each service owns its own tables without owning its own database server:
+
+| Service | Schema |
+|---|---|
+| School/User Service | `school_user` |
+| Assignment Service | `assignment` |
+| Attendance Service | `attendance` |
+| Notification Service | `notification` |
+| File Service | `file` |
+| Report/Insights Service | `report` |
+
+This keeps services independently deployable and testable, while still allowing simple local development with a single Postgres container.
+
+## Standard Setup Steps for a New Microservice
+
+Follow these steps, in order, whenever a new microservice is added to the platform. This keeps every service consistent and easy for the team to maintain.
+
+### 1. Create the service folder
+
+```
+backend/
+└── services/
+    └── <service-name>/
+```
+
+### 2. Initialize Node.js
+
+```bash
+npm init -y
+```
+
+### 3. Install dependencies
+
+```bash
+npm install express cors dotenv prisma @prisma/client
+```
+
+Development dependencies:
+
+```bash
+npm install -D nodemon
+```
+
+If the service needs authentication:
+
+```bash
+npm install jose jwks-rsa
+```
+
+### 4. Create the project structure
+
+```
+<service-name>/
+│
+├── prisma/
+│   └── schema.prisma
+│
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── routes/
+│   ├── services/
+│   ├── repositories/
+│   ├── middleware/
+│   ├── generated/
+│   ├── app.js
+│   └── server.js
+│
+├── package.json
+├── package-lock.json
+├── prisma.config.ts
+├── Dockerfile
+├── .dockerignore
+├── .gitignore
+└── .env
+```
+
+### 5. Configure package.json
+
+```json
+{
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  }
+}
+```
+
+### 6. Create .env
+
+```env
+PORT=3002
+
+DATABASE_URL=postgresql://username:password@postgres:5432/vidyaconnect?schema=<service_schema>
+
+NODE_ENV=development
+```
+
+Each service should use its own schema — see the schema table above.
+
+### 7. Configure Prisma
+
+```bash
+npx prisma init
+```
+
+Edit `prisma/schema.prisma`:
+
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+### 8. Create initial models
+
+Only include the entities owned by that service. For example, the Assignment Service owns:
+
+- `Subject`
+- `Assignment`
+- `Submission`
+- `TeacherSubjectMapping`
+
+### 9. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 10. Create migration
+
+```bash
+npx prisma migrate dev --name init_<service-name>
+```
+
+### 11. Create Express app
+
+In `src/app.js`, set up:
+
+- Express instance
+- JSON body-parsing middleware
+- Route mounting
+- Centralized error handler
+
+### 12. Create server.js
+
+In `src/server.js`, start the Express server on the configured `PORT`.
+
+### 13. Add health check
+
+```
+GET /health
+```
+
+```json
+{
+  "status": "UP",
+  "service": "assignment-service"
+}
+```
+
+### 14. Connect shared package
+
+Every service should install and use the shared package so behavior stays consistent platform-wide:
+
+- JWT middleware
+- RBAC middleware
+- Logger
+- Response utilities
+- Error handler
+
+### 15. Docker
+
+Create:
+
+- `Dockerfile`
+- `.dockerignore`
+
+### 16. Add to Docker Compose
+
+Add the new service to `docker-compose.local.yml`:
+
+```yaml
+assignment-service:
+  build:
+    context: ../../backend/services
+    dockerfile: assignment-service/Dockerfile
+  ports:
+    - "3002:3002"
+  env_file:
+    - ../../backend/services/assignment-service/.env
+```
+
+### 17. Test
+
+Verify:
+
+- `GET /health` responds correctly
+- Prisma migration succeeds
+- Service starts locally
+- Docker container starts and stays healthy
+
+---
+
+## New Service Checklist
+
+Use this checklist for every new microservice added to the platform:
+
+- [ ] Create service folder
+- [ ] Initialize Node project (`package.json`)
+- [ ] Install dependencies
+- [ ] Create folder structure
+- [ ] Configure `.env`
+- [ ] Configure Prisma
+- [ ] Create service-specific schema
+- [ ] Generate Prisma client
+- [ ] Create initial migration
+- [ ] Create Express app and server
+- [ ] Add health endpoint
+- [ ] Integrate shared middleware
+- [ ] Create Dockerfile
+- [ ] Add service to Docker Compose
+- [ ] Test locally and in Docker
+
+Following these steps for every new service keeps the architecture consistent and makes it easier for the whole team to develop and maintain all services the same way.

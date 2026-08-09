@@ -199,8 +199,3 @@ Additional endpoint specifications will be added during future iterations, inclu
 
                                                  ---
 
-Prepared by: Kavindi
-
-Document Version: v1 Draft
-
-Last Updated: July 2026
