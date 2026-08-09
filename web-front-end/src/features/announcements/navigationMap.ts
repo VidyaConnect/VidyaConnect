@@ -32,3 +32,14 @@ export const SUPER_ADMIN_PAGE_ROUTES: Record<string, string> = {
   'system-settings': '/super-admin/system-settings',
   'audit-logs': '/super-admin/audit-logs',
 };
+
+export const STUDENT_PAGE_ROUTES: Record<string, string> = {
+  dashboard: '/student/dashboard',
+  'my-class': '/student/my-class',
+  announcements: '/announcements/student-feed',
+  messages: '/student/community',
+  assignments: '/student/assignments',
+  calendar: '/student/calendar',
+  reports: '/student/reports',
+  settings: '/student/settings',
+};

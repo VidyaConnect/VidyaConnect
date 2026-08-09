@@ -8,7 +8,7 @@
     "platforms": ["ios", "android", "web"],
     "plugins": ["expo-router"],
     "extra": {
-      "apiBaseUrl": "http://localhost:3000"
+      "apiBaseUrl": "http://172.20.10.4:3002"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -17,10 +17,12 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
-      }
+      },
+      "usesCleartextTraffic": true
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static"
     }
   }
 }

@@ -7,10 +7,11 @@ import {
   TEACHER_PAGE_ROUTES,
   ADMIN_PAGE_ROUTES,
   SUPER_ADMIN_PAGE_ROUTES,
+  STUDENT_PAGE_ROUTES,
 } from '../navigationMap';
 
 interface RolePortalChromeProps {
-  userRole: 'teacher' | 'admin' | 'super-admin';
+  userRole: 'teacher' | 'admin' | 'super-admin' | 'student';
 }
 
 export default function RolePortalChrome({ userRole }: RolePortalChromeProps) {
@@ -22,6 +23,8 @@ export default function RolePortalChrome({ userRole }: RolePortalChromeProps) {
       ? TEACHER_PAGE_ROUTES
       : userRole === 'super-admin'
       ? SUPER_ADMIN_PAGE_ROUTES
+      : userRole === 'student'
+      ? STUDENT_PAGE_ROUTES
       : ADMIN_PAGE_ROUTES;
 
   // Figure out which page ID matches the current URL

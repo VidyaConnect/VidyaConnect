@@ -1,5 +1,31 @@
+import { apiClient } from '../../../services/api';
 import { UserRole } from '../../../types';
 import { Announcement, AnnouncementViewRecord, CreateAnnouncementInput } from '../types/announcement';
+
+function mapBackendAnnouncement(a: any): Announcement {
+  return {
+    id: a.id,
+    title: a.title,
+    content: a.content,
+    priority: (a.priority || 'normal').toLowerCase(),
+    tag: a.type === 'SYSTEM' ? 'important' : 'general',
+    targetAudience: a.type === 'SYSTEM' ? 'all-schools' : 'school-wide',
+    postedBy: {
+      id: a.createdByUserId,
+      name: a.type === 'SYSTEM' ? 'System Admin' : 'School Admin',
+      role: a.type === 'SYSTEM' ? 'super-admin' : 'school-admin',
+    },
+    source: a.type === 'SYSTEM' ? 'System Core' : 'School Admin',
+    publishDate: a.publishedAt,
+    createdAt: a.createdAt,
+    updatedAt: a.updatedAt,
+    attachments: [],
+    totalViews: 0,
+    requireParentConfirmation: a.requiresConfirmation,
+    status: (a.status || 'published').toLowerCase(),
+    viewRecords: [],
+  };
+}
 
 // ---- MOCK DATA ----
 // Remove this once the real backend endpoint is ready
@@ -127,9 +153,20 @@ function buildAnnouncement(
  * Role-based visibility rules:
  * - Super Admin: sees only announcements THEY posted (including drafts)
  * - School Admin: sees announcements from Super Admin (incoming published only)
- * - Teacher / Parent / Student: sees published announcements from Super Admin AND School Admin
+ * - Teacher / Student: sees published announcements from Super Admin AND School Admin
+ * - Parent: fetched live from the real backend (announcement-service)
  */
 export async function getAnnouncements(role: UserRole): Promise<Announcement[]> {
+  if (role === 'parent') {
+    try {
+      const response = await apiClient.get('/api/announcements');
+      return response.data.data.map(mapBackendAnnouncement);
+    } catch (error) {
+      console.error('Failed to fetch real backend announcements:', error);
+      return [];
+    }
+  }
+
   await delay(400);
 
   if (role === 'super-admin') {
@@ -142,7 +179,7 @@ export async function getAnnouncements(role: UserRole): Promise<Announcement[]> 
     );
   }
 
-  // teacher, parent, student — published only
+  // teacher, student — published only
   return mockAnnouncements.filter(
     (a) =>
       isPublished(a) &&

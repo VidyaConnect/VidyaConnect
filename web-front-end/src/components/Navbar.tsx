@@ -23,7 +23,7 @@ interface NavItem {
 }
 
 interface NavbarProps {
-  userRole: 'teacher' | 'admin' | 'super-admin'
+  userRole: 'teacher' | 'admin' | 'super-admin' | 'student'
   currentPage: string
   onNavigate: (page: string) => void
 }
@@ -63,11 +63,24 @@ export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProp
     { id: 'audit-logs', label: 'Audit Logs', icon: <ReportsIcon size={18} /> },
   ]
 
+  const studentMenuItems: NavItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon size={18} /> },
+    { id: 'my-class', label: 'My Class', icon: <ClassesIcon size={18} /> },
+    { id: 'announcements', label: 'Announcements', icon: <AnnouncementsIcon size={18} /> },
+    { id: 'messages', label: 'Community & Messages', icon: <CommunityIcon size={18} /> },
+    { id: 'assignments', label: 'My Assignments', icon: <AssignmentsIcon size={18} /> },
+    { id: 'calendar', label: 'Calendar', icon: <CalendarIcon size={18} /> },
+    { id: 'reports', label: 'Reports', icon: <ReportsIcon size={18} /> },
+    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
+  ]
+
   const menuItems =
     userRole === 'teacher'
       ? teacherMenuItems
       : userRole === 'super-admin'
       ? superAdminMenuItems
+      : userRole === 'student'
+      ? studentMenuItems
       : adminMenuItems
 
   return (
@@ -77,7 +90,13 @@ export default function Navbar({ userRole, currentPage, onNavigate }: NavbarProp
           VidyaConnect
         </h1>
         <p className="mt-1.5 text-sm text-[#b9cbe2]">
-          {userRole === 'teacher' ? 'Teacher Portal' : userRole === 'super-admin' ? 'Super Admin Portal' : 'Admin Portal'}
+          {userRole === 'teacher'
+            ? 'Teacher Portal'
+            : userRole === 'super-admin'
+            ? 'Super Admin Portal'
+            : userRole === 'student'
+            ? 'Student Portal'
+            : 'Admin Portal'}
         </p>
       </div>
 

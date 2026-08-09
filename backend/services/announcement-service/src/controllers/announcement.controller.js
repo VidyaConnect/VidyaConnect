@@ -33,7 +33,8 @@ export const createAnnouncement = async (req, res) => {
 
 export const getParentAnnouncements = async (req, res) => {
   try {
-    const announcements = await getAnnouncementsForParent(req.user);
+    const fakeUser = { userId: "demo-parent", schoolId: null }; // TEMP DEMO ONLY
+    const announcements = await getAnnouncementsForParent(fakeUser);
     res.status(200).json({
       success: true,
       message: "Announcements fetched successfully.",
@@ -63,6 +64,48 @@ export const getParentAnnouncementById = async (req, res) => {
 export const markAnnouncementAsViewed = async (req, res) => {
   try {
     await recordAnnouncementView(req.params.id, req.user);
+    res.status(200).json({ success: true, message: "Announcement marked as viewed." });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getStudentAnnouncements = async (req, res) => {
+  try {
+    const fakeUser = { userId: "demo-student", schoolId: null }; // TEMP DEMO ONLY
+    const announcements = await getAnnouncementsForParent(fakeUser);
+
+    res.status(200).json({
+      success: true,
+      message: "Announcements fetched successfully.",
+      data: announcements,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getStudentAnnouncementById = async (req, res) => {
+  try {
+    const fakeUser = { userId: "demo-student", schoolId: null }; // TEMP DEMO ONLY
+    const announcement = await getAnnouncementByIdForParent(req.params.id, fakeUser);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: "Announcement not found." });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Announcement fetched successfully.",
+      data: announcement,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const markStudentAnnouncementAsViewed = async (req, res) => {
+  try {
+    const fakeUser = { userId: "demo-student", role: "STUDENT" }; // TEMP DEMO ONLY
+    await recordAnnouncementView(req.params.id, fakeUser);
     res.status(200).json({ success: true, message: "Announcement marked as viewed." });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

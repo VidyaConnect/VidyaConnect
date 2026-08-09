@@ -6,7 +6,7 @@ import { NotificationIcon } from './Icons'
 interface TopbarProps {
   title?: string
   subtitle?: string
-  userRole: 'teacher' | 'admin' | 'super-admin'
+  userRole: 'teacher' | 'admin' | 'super-admin' | 'student'
   userName?: string
   userAvatar?: string
   searchValue?: string
@@ -17,7 +17,13 @@ interface TopbarProps {
 
 export default function Topbar({
   userRole,
-  userName = userRole === 'teacher' ? 'Mrs. Thompson' : userRole === 'super-admin' ? 'Super Admin' : 'Admin User',
+  userName = userRole === 'teacher'
+    ? 'Mrs. Thompson'
+    : userRole === 'super-admin'
+    ? 'Super Admin'
+    : userRole === 'student'
+    ? 'Kavindu Silva'
+    : 'Admin User',
   searchValue = '',
   onSearch,
   searchPlaceholder = 'Search student...',
@@ -54,7 +60,13 @@ export default function Topbar({
           <div>
             <p className="text-sm font-bold leading-tight text-[#242629]">{userName}</p>
             <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[#4b4f58]">
-              {userRole === 'teacher' ? 'TEACHER' : userRole === 'super-admin' ? 'SUPER ADMIN' : 'ADMIN'}
+              {userRole === 'teacher'
+                ? 'TEACHER'
+                : userRole === 'super-admin'
+                ? 'SUPER ADMIN'
+                : userRole === 'student'
+                ? 'STUDENT'
+                : 'ADMIN'}
             </p>
           </div>
         </div>

@@ -31,7 +31,9 @@ services:
     image: quay.io/keycloak/keycloak:24.0
     container_name: vidyaconnect-keycloak
     restart: unless-stopped
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ../keycloak/export:/opt/keycloak/data/import
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
