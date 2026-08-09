@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+mobile-front-end/.expo/
+mobile-front-end/.expo-shared/
