@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["file"]
+}
+
+enum FileStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  DELETED
+
+  @@schema("file")
+}
+
+model FileMetadata {
+  id          String     @id @default(uuid())
+  schoolId    String
+  uploadedBy  String
+  fileName    String
+  originalName String
+  contentType String
+  fileSize    Int
+  s3Key       String     @unique
+  s3Bucket    String
+  status      FileStatus @default(PENDING)
+  purpose     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([schoolId])
+  @@index([uploadedBy])
+  @@index([schoolId, purpose])
+  @@map("file_metadata")
+  @@schema("file")
+}
