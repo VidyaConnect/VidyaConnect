@@ -55,7 +55,7 @@ export default function LoginPage() {
         <div className="flex justify-center">
           <div className="relative h-100 w-100">
             <Image
-              src="/logo_VidyaConnect.png"
+              src="/images/logo_VidyaConnect.png"
               alt="VidyaConnect logo"
               fill
               className="object-contain"
@@ -87,7 +87,7 @@ export default function LoginPage() {
       <aside className="hidden lg:flex lg:w-[55%] relative overflow-hidden flex-col justify-center p-20 text-white">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-login.jpg"
+            src="/images/hero-login.jpg"
             alt="Team collaborating"
             fill
             className="object-cover"
