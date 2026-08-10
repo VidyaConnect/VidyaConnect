@@ -302,4 +302,3 @@ This confirms the production Docker Compose file works before touching the real 
  # Clean up old images
  docker image prune -f
 
-
