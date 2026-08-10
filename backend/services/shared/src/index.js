@@ -3,11 +3,12 @@ export { logger } from "./utils/logger.js";
 export { getSigningKey } from "./config/keycloak.js";
 
 export {
-    successResponse,
-    errorResponse
+  successResponse,
+  errorResponse,
+  error,
 } from "./utils/response.js";
 
-export {errorHandler} from "./middleware/errorHandler.js";
+export { errorHandler } from "./middleware/errorHandler.js";
 
 export { default as auth } from "./middleware/auth.js";
 

@@ -117,7 +117,12 @@ services:
 
     volumes:
       - localstack_data:/var/lib/localstack
-
+      - ../localstack/init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - vidyaconnect-network
 
@@ -253,34 +258,29 @@ services:
 
   # ── File Service ─────────────────────────
   file-service:
-    image: node:20-alpine
+    build:
+      context: ../../backend/services
+      dockerfile: file-service/Dockerfile
     container_name: vidyaconnect-file-service
     restart: unless-stopped
-
-    command: sh -c "echo 'File Service placeholder' && sleep infinity"
-
     ports:
       - "3006:3006"
-
     environment:
       NODE_ENV: development
       PORT: 3006
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=file"
-
-      AWS_ENDPOINT: "http://localstack:4566"
-      AWS_REGION: "ap-southeast-1"
-      AWS_ACCESS_KEY_ID: "test"
-      AWS_SECRET_ACCESS_KEY: "test"
-
+      AWS_ENDPOINT: http://localstack:4566
+      AWS_REGION: ap-southeast-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      S3_BUCKET_NAME: vidyaconnect-files-local
     depends_on:
       postgres:
         condition: service_healthy
       localstack:
-        condition: service_started
-
+        condition: service_healthy
     networks:
       - vidyaconnect-network
-
 
   # ── Notification Service ─────────────────
   notification-service:
