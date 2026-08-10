@@ -1,42 +1,53 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { UserProfile, UserRole } from "../types";
+import { loginUser } from "../features/auth/services/authApi";
+import { saveTokens, clearTokens } from "../features/auth/services/tokenStorage";
+import type { User, School } from "../features/auth/types/auth.types";
 
 interface AuthContextProps {
-  user: UserProfile | null;
-  loginAs: (role: UserRole) => Promise<void>;
-  logout: () => void;
+  user: User | null;
+  school: School | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-const initialUser: UserProfile | null = null;
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(initialUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [school, setSchool] = useState<School | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loginAs = async (role: UserRole) => {
-    const nameByRole: Record<UserRole, string> = {
-      "super-admin": "System Admin",
-      "school-admin": "School Admin",
-      teacher: "Ms. Perera",
-      parent: "Nithi Fernando",
-      student: "Kavindu Silva",
-    };
-    const profile: UserProfile = {
-      id: "user-1",
-      name: nameByRole[role],
-      role,
-    };
-    setUser(profile);
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await loginUser({ email, password });
+      await saveTokens(data.accessToken, data.refreshToken);
+      setUser(data.user);
+      setSchool(data.school);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Login failed. Please try again.";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await clearTokens();
     setUser(null);
+    setSchool(null);
   };
 
   const value = useMemo(
-    () => ({ user, loginAs, logout }),
-    [user]
+    () => ({ user, school, isLoading, error, login, logout }),
+    [user, school, isLoading, error]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

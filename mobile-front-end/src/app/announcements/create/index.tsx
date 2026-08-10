@@ -9,19 +9,30 @@ import { colors } from "../../../constants/colors";
  * Legacy /announcements/create entry — redirects to the role-specific compose screen.
  * Only Super Admin and School Admin can post; other roles see an access message.
  */
+
+// TODO: confirm with Sehajinie that "ADMIN" is the correct backend value for Super Admin.
+// Maps the real backend role (e.g. "ADMIN", "SCHOOL_ADMIN") to the local
+// super-admin/school-admin convention already used across the announcement feature.
+function toLocalRole(backendRole: string | undefined): "super-admin" | "school-admin" | null {
+  if (backendRole === "ADMIN") return "super-admin";
+  if (backendRole === "SCHOOL_ADMIN") return "school-admin";
+  return null;
+}
+
 export default function CreateAnnouncementRedirect() {
   const router = useRouter();
   const { user } = useAuth();
+  const localRole = toLocalRole(user?.role);
 
   useEffect(() => {
     if (!user) return;
 
-    if (user.role === "super-admin") {
+    if (localRole === "super-admin") {
       router.replace("/announcements/create/super-admin");
-    } else if (user.role === "school-admin") {
+    } else if (localRole === "school-admin") {
       router.replace("/announcements/create/school-admin");
     }
-  }, [user, router]);
+  }, [user, localRole, router]);
 
   if (!user) {
     return (
@@ -32,7 +43,7 @@ export default function CreateAnnouncementRedirect() {
     );
   }
 
-  if (!CAN_POST_ANNOUNCEMENTS.includes(user.role)) {
+  if (!localRole || !CAN_POST_ANNOUNCEMENTS.includes(localRole)) {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>Access restricted</Text>

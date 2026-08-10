@@ -101,7 +101,7 @@ export function PostAnnouncementForm({ role }: PostAnnouncementFormProps) {
 
   const getPostedBy = () => ({
     id: user?.id ?? "user-1",
-    name: user?.name ?? (role === "super-admin" ? "System Admin" : "School Admin"),
+    name: user?.fullName ?? (role === "super-admin" ? "System Admin" : "School Admin"),
     role: role as UserRole,
   });
 
