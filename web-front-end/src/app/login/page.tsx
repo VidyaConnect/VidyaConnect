@@ -73,9 +73,12 @@ export default function LoginPage() {
 
             <footer className="mt-12 text-left">
               <p className="text-sm text-on-surface-variant">
-                Need technical assistance?{" "}
-                <a href="#" className="text-primary font-semibold hover:underline">
-                  Contact Support
+                Don&apos;t have an account?{" "}
+    
+                <a href="/register-school/step-1"
+                  className="text-primary font-semibold hover:underline"
+                >
+                Sign up
                 </a>
               </p>
             </footer>

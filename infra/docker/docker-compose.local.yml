@@ -1,6 +1,7 @@
 # ─────────────────────────────────────────
 # VidyaConnect - Local Development Environment
-# Run with: docker compose -f infra/docker/docker-compose.local.yml up
+# Run with:
+# docker compose -f infra/docker/docker-compose.local.yml up
 # ─────────────────────────────────────────
 
 services:
@@ -10,107 +11,157 @@ services:
     image: postgres:15-alpine
     container_name: vidyaconnect-postgres
     restart: unless-stopped
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-vidyaconnect}
       POSTGRES_USER: ${POSTGRES_USER:-vidyaconnect_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user} -d ${POSTGRES_DB:-vidyaconnect}"]
-
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user} -d ${POSTGRES_DB:-vidyaconnect}"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
+
     networks:
       - vidyaconnect-network
 
-  # ── Keycloak (Authentication) ────────────
+
+  # ── Keycloak Authentication ──────────────
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     container_name: vidyaconnect-keycloak
     restart: unless-stopped
+
     command: start-dev
+
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-vidyaconnect}
       KC_DB_USERNAME: ${POSTGRES_USER:-vidyaconnect_user}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
-      KC_HOSTNAME_STRICT: false
-      KC_HTTP_ENABLED: true
+
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+
     ports:
       - "8080:8080"
+
     depends_on:
       postgres:
         condition: service_healthy
+
     networks:
       - vidyaconnect-network
 
-  # ── Nginx (Reverse Proxy) ────────────────
+
+  # ── MailHog ──────────────────────────────
+  mailhog:
+    image: mailhog/mailhog
+    container_name: vidyaconnect-mailhog
+    restart: unless-stopped
+
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+    networks:
+      - vidyaconnect-network
+
+
+  # ── Nginx Reverse Proxy ─────────────────
   nginx:
     image: nginx:alpine
     container_name: vidyaconnect-nginx
     restart: unless-stopped
+
     ports:
       - "80:80"
+
     volumes:
       - ../nginx/local.conf:/etc/nginx/conf.d/default.conf:ro
+
     depends_on:
       - keycloak
+
     networks:
       - vidyaconnect-network
 
-  # ── LocalStack (Fake AWS S3 locally) ─────
+
+  # ── LocalStack (Fake AWS S3) ─────────────
   localstack:
     image: localstack/localstack:3.4
     container_name: vidyaconnect-localstack
     restart: unless-stopped
+
     environment:
       SERVICES: s3
       DEFAULT_REGION: ap-southeast-1
       LOCALSTACK_HOST: localstack
+
     ports:
       - "4566:4566"
+
     volumes:
       - localstack_data:/var/lib/localstack
+
     networks:
       - vidyaconnect-network
+
 
   # ── School User Service ──────────────────
   school-user-service:
-    image: node:20-alpine
-    command: sh -c "echo 'school-user-service placeholder' && sleep infinity"
+    build:
+      context: ../../backend/services
+      dockerfile: school-user-service/Dockerfile
     container_name: vidyaconnect-school-user-service
     restart: unless-stopped
-
     ports:
       - "3001:3001"
-
     environment:
       NODE_ENV: development
       PORT: 3001
-
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=school_user"
-      KEYCLOAK_URL: http://keycloak:8080
-
+      KEYCLOAK_TOKEN_URL: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/token"
+      KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      KEYCLOAK_CLIENT_ID: "school-user-service"
+      KEYCLOAK_CLIENT_SECRET: "s8RnWCyGe1WjGXpCovcvrBVTAQlFD6X7"
+      AWS_ENDPOINT: "http://localstack:4566"
+      AWS_REGION: "ap-southeast-1"
+      AWS_ACCESS_KEY_ID: "test"
+      AWS_SECRET_ACCESS_KEY: "test"
+      S3_BUCKET_NAME: "vidyaconnect-files-local"
     depends_on:
       postgres:
         condition: service_healthy
-
+      keycloak:
+        condition: service_started
+      localstack:
+        condition: service_started
     networks:
       - vidyaconnect-network
+
 
   # ── Announcement Service ─────────────────
   announcement-service:
     image: node:20-alpine
-    command: sh -c "echo 'Announcement Service placeholder' && sleep infinity"
     container_name: vidyaconnect-announcement-service
     restart: unless-stopped
+
+    command: sh -c "echo 'Announcement Service placeholder' && sleep infinity"
 
     ports:
       - "3002:3002"
@@ -119,7 +170,7 @@ services:
       NODE_ENV: development
       PORT: 3002
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
-    
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -131,9 +182,10 @@ services:
   # ── Attendance Service ───────────────────
   attendance-service:
     image: node:20-alpine
-    command: sh -c "echo 'Attendance Service placeholder' && sleep infinity"
     container_name: vidyaconnect-attendance-service
     restart: unless-stopped
+
+    command: sh -c "echo 'Attendance Service placeholder' && sleep infinity"
 
     ports:
       - "3003:3003"
@@ -154,9 +206,10 @@ services:
   # ── Assignment Service ───────────────────
   assignment-service:
     image: node:20-alpine
-    command: sh -c "echo 'Assignment Service placeholder' && sleep infinity"
     container_name: vidyaconnect-assignment-service
     restart: unless-stopped
+
+    command: sh -c "echo 'Assignment Service placeholder' && sleep infinity"
 
     ports:
       - "3004:3004"
@@ -174,12 +227,13 @@ services:
       - vidyaconnect-network
 
 
-  # ── Consent Form Service ─────────────────
+  # ── Consent Form Service ────────────────
   consent-form-service:
     image: node:20-alpine
-    command: sh -c "echo 'Consent Form Service placeholder' && sleep infinity"
     container_name: vidyaconnect-consent-form-service
     restart: unless-stopped
+
+    command: sh -c "echo 'Consent Form Service placeholder' && sleep infinity"
 
     ports:
       - "3005:3005"
@@ -200,9 +254,10 @@ services:
   # ── File Service ─────────────────────────
   file-service:
     image: node:20-alpine
-    command: sh -c "echo 'File Service placeholder' && sleep infinity"
     container_name: vidyaconnect-file-service
     restart: unless-stopped
+
+    command: sh -c "echo 'File Service placeholder' && sleep infinity"
 
     ports:
       - "3006:3006"
@@ -211,10 +266,11 @@ services:
       NODE_ENV: development
       PORT: 3006
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=file"
-      AWS_ENDPOINT: http://localstack:4566
-      AWS_REGION: ap-southeast-1
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
+
+      AWS_ENDPOINT: "http://localstack:4566"
+      AWS_REGION: "ap-southeast-1"
+      AWS_ACCESS_KEY_ID: "test"
+      AWS_SECRET_ACCESS_KEY: "test"
 
     depends_on:
       postgres:
@@ -229,13 +285,13 @@ services:
   # ── Notification Service ─────────────────
   notification-service:
     image: node:20-alpine
-    command: sh -c "echo 'Notification Service placeholder' && sleep infinity"
     container_name: vidyaconnect-notification-service
     restart: unless-stopped
 
+    command: sh -c "echo 'Notification Service placeholder' && sleep infinity"
+
     ports:
       - "3007:3007"
-
 
     environment:
       NODE_ENV: development
@@ -248,14 +304,15 @@ services:
 
     networks:
       - vidyaconnect-network
-    
+
 
   # ── Report Service ───────────────────────
   report-service:
     image: node:20-alpine
-    command: sh -c "echo 'Report Service placeholder' && sleep infinity"
     container_name: vidyaconnect-report-service
     restart: unless-stopped
+
+    command: sh -c "echo 'Report Service placeholder' && sleep infinity"
 
     ports:
       - "3008:3008"
@@ -264,7 +321,7 @@ services:
       NODE_ENV: development
       PORT: 3008
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=report"
-    
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -272,30 +329,53 @@ services:
     networks:
       - vidyaconnect-network
 
-  # ── Web Admin Portal (Placeholder) ───────
+
+  # ── Web Admin / Next.js Frontend ─────────
   web-admin:
     image: node:20-alpine
     container_name: vidyaconnect-web-admin
     restart: unless-stopped
+
     working_dir: /app
-    command: sh -c "echo 'Web admin placeholder running' && sleep infinity"
+
+    volumes:
+      - ../../web-front-end:/app
+      - web_admin_node_modules:/app/node_modules
+      - web_admin_next:/app/.next
+
+    command: sh -c "npm install && npm run dev -- -H 0.0.0.0"
+
     ports:
       - "3000:3000"
+
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-      NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:3001/api"
+      NEXT_PUBLIC_KEYCLOAK_URL: "http://localhost:8080"
+
     depends_on:
       - keycloak
+      - school-user-service
+
     networks:
       - vidyaconnect-network
 
-# ── Volumes (persistent data storage) ───────
+
+# ─────────────────────────────────────────
+# Volumes
+# ─────────────────────────────────────────
+
 volumes:
   postgres_data:
   localstack_data:
+  web_admin_node_modules:
+  web_admin_next:
 
-# ── Network (all containers talk to each other) ──
+
+# ─────────────────────────────────────────
+# Network
+# ─────────────────────────────────────────
+
 networks:
   vidyaconnect-network:
     driver: bridge
