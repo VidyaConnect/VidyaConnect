@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "VidyaConnect Mobile",
+    "slug": "vidyaconnect-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "vidyaconnect",
+    "platforms": ["ios", "android", "web"],
+    "plugins": ["expo-router"],
+    "extra": {
+      "apiBaseUrl": "http://172.20.10.4:3002"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "usesCleartextTraffic": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    }
+  }
+}
