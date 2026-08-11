@@ -6,3 +6,7 @@ node_modules
 
 # Prisma generated clients
 services/**/src/generated/
+
+/services/file-service/Dockerfile
+package-lock.json
+package.json
