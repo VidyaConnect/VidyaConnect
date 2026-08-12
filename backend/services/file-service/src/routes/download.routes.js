@@ -1,9 +1,9 @@
-const express = require("express");
+import express  from "express";
 
-const { getDownloadUrl } = require("../controllers/download.controller");
+import { getDownloadUrl } from "../controllers/download.controller.js";
 
 const router = express.Router();
 
 router.get("/download-url", getDownloadUrl);
 
-module.exports = router;
+export default router;

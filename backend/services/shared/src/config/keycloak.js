@@ -3,6 +3,15 @@ import jwksClient from "jwks-rsa";
 
 console.log('DEBUG shared/keycloak.js - JWKS_URI:', process.env.KEYCLOAK_JWKS_URI);
 
+try{
+
+  if(process.env.KEYCLOAK_JWKS_URI === undefined) {
+    throw new Error('KEYCLOAK_JWKS_URI environment variable is not defined');
+  }
+}catch (error) {
+  console.error('Error in shared/keycloak.js:', error.message);
+}
+
 const client = jwksClient({
   jwksUri: process.env.KEYCLOAK_JWKS_URI,
   cache: true,

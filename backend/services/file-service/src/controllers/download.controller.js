@@ -1,9 +1,9 @@
-const { GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const { s3Client, S3_BUCKET } = require("../config/s3");
+import { s3Client, S3_BUCKET } from "../config/s3.js";
 
-const getDownloadUrl = async (req, res) => {
+export const getDownloadUrl = async (req, res) => {
   try {
     const { key } = req.query;
 
@@ -38,6 +38,5 @@ const getDownloadUrl = async (req, res) => {
   }
 };
 
-module.exports = {
-  getDownloadUrl,
-};
+
+
