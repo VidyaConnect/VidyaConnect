@@ -1,5 +1,5 @@
 interface SidebarProps {
-  userRole: 'teacher' | 'admin'
+  userRole: 'teacher' | 'admin' | 'super-admin'
   currentPage: string
   onNavigate: (page: string) => void
 }
@@ -27,14 +27,35 @@ export default function Sidebar({ userRole, currentPage, onNavigate }: SidebarPr
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ]
 
-  const menuItems = userRole === 'teacher' ? teacherMenuItems : adminMenuItems
+  const superAdminMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'school-registry', label: 'School Registry', icon: '🏛️' },
+    { id: 'schools', label: 'Schools', icon: '🏫' },
+    { id: 'admin-management', label: 'Admin Management', icon: '👤' },
+    { id: 'school-requests', label: 'School Requests', icon: '📝' },
+    { id: 'announcements', label: 'Announcements', icon: '📢' },
+    { id: 'system-reports', label: 'System Reports', icon: '📈' },
+    { id: 'system-settings', label: 'System Settings', icon: '⚙️' },
+    { id: 'audit-logs', label: 'Audit Logs', icon: '🕒' },
+  ]
+
+  const menuItems =
+    userRole === 'teacher'
+      ? teacherMenuItems
+      : userRole === 'super-admin'
+      ? superAdminMenuItems
+      : adminMenuItems
 
   return (
     <aside className="fixed left-0 top-0 min-h-screen w-56 bg-blue-900 p-4 text-white">
       <h1 className="mb-6 text-xl font-bold">
         <span className="block">VidyaConnect</span>
         <span className="text-xs font-normal text-blue-200">
-          {userRole === 'teacher' ? 'Teacher Portal' : 'Admin Portal'}
+          {userRole === 'teacher'
+            ? 'Teacher Portal'
+            : userRole === 'super-admin'
+            ? 'Super Admin Portal'
+            : 'Admin Portal'}
         </span>
       </h1>
 
