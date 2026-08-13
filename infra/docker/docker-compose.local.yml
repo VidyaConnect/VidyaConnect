@@ -105,10 +105,11 @@ services:
     networks:
       - vidyaconnect-network
 
-  # ── Announcement Service ─────────────────
+    # ── Announcement Service ─────────────────
   announcement-service:
-    image: node:20-alpine
-    command: sh -c "echo 'Announcement Service placeholder' && sleep infinity"
+    build:
+      context: ../../backend/services
+      dockerfile: announcement-service/Dockerfile
     container_name: vidyaconnect-announcement-service
     restart: unless-stopped
 
@@ -121,9 +122,32 @@ services:
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
 
     volumes:
-      - ../../backend/services/announcement-service/src:/workspace/announcement-service/src
+      - ../../backend/services/announcement-service/src:/app/announcement-service/src
 
-    command: npm run dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - vidyaconnect-network
+
+  # ── Prisma Studio ─────────────────────────
+  announcement-prisma-studio:
+    build:
+      context: ../../backend/services
+      dockerfile: announcement-service/Dockerfile
+    container_name: vidyaconnect-announcement-prisma-studio
+    restart: unless-stopped
+
+    command: sh -lc "cd /app/announcement-service && npx prisma studio --port 5555 --hostname 0.0.0.0 --browser none"
+
+    ports:
+      - "5555:5555"
+
+    environment:
+      NODE_ENV: development
+      PORT: 5555
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
 
     depends_on:
       postgres:
