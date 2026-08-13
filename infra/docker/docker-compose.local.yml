@@ -199,6 +199,13 @@ services:
       NODE_ENV: development
       PORT: 3003
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_CLASS_ID: "class-8a"
+      DEV_USER_ROLE: "SCHOOL_ADMIN"
+      DEV_USER_ID: "dev-teacher-id"
+      DEV_STUDENT_ID: "student-001"
+      DEV_PARENT_ID: "dev-parent-id"
 
     depends_on:
       postgres:
@@ -368,6 +375,7 @@ services:
 volumes:
   postgres_data:
   localstack_data:
+  keycloak_data:
   web_admin_node_modules:
   web_admin_next:
 

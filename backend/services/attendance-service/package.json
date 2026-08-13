@@ -6,15 +6,21 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "prisma:generate": "node scripts/prisma-local-engine.mjs generate",
+    "prisma:migrate": "node scripts/prisma-local-engine.mjs migrate deploy",
+    "prisma:migrate:dev": "node scripts/prisma-local-engine.mjs migrate dev",
+    "prisma:studio": "node scripts/prisma-local-engine.mjs studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "@vidyaconnect/shared": "file:../shared",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "prisma": "^6.19.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

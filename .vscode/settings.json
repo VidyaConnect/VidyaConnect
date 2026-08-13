@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd c:\\\\Users\\\\damsi\\\\VidyaConnect\\\\web-front-end ; npm run build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
