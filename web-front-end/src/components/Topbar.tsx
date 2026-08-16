@@ -26,7 +26,7 @@ export default function Topbar({
   searchClassName = '',
 }: TopbarProps) {
   return (
-    <header className="sticky top-0 z-20 ml-56 flex h-16 items-center justify-between border-b border-[#cfd4dd] bg-white px-6 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#cfd4dd] bg-white px-6 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
       <SearchBar
         value={searchValue}
         onSearch={onSearch ?? (() => {})}
