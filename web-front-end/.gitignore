@@ -42,5 +42,4 @@ next-env.d.ts
 
 /src/app/login/page.tsx
 package-lock.json
-postcss.config.mjs
 tsconfig.json
