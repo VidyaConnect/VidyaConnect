@@ -92,26 +92,51 @@ export default function RegisterSchoolStep3Page() {
 
     setIsSubmitting(true);
     try {
-      // TODO: replace with your actual submission endpoint.
-      // Typically this posts step1 + step2 as JSON plus the file via FormData.
       const payload = new FormData();
-      payload.append("schoolDetails", JSON.stringify(data.step1));
-      payload.append("adminAccount", JSON.stringify(data.step2));
-      payload.append("verificationDocument", form.verificationDocument);
 
-      const res = await fetch("/api/school-registration", {
+      // School details (step 1)
+      payload.append("name", data.step1.schoolName);
+      payload.append("email", data.step1.officialEmail);
+      payload.append("phone", data.step1.contactNumber);
+      payload.append("schoolType", data.step1.schoolType);
+      payload.append("principalName", data.step1.principalName);
+      payload.append("region", data.step1.region);
+      payload.append("district", data.step1.district);
+      payload.append("studentCount", String(data.step1.studentCount));
+      payload.append("teacherCount", String(data.step1.teacherCount));
+      payload.append("address", data.step1.address ?? "");
+
+      // Admin account (step 2)
+      payload.append("adminEmail", data.step2.adminEmail);
+      payload.append("adminFirstName", data.step2.adminFirstName);
+      payload.append("adminLastName", data.step2.adminLastName);
+      
+
+      // Verification file
+      payload.append("verificationDoc", form.verificationDocument);
+
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
+
+      const res = await fetch(`${apiBase}/schools/register`, {
         method: "POST",
         body: payload,
       });
 
-      if (!res.ok) throw new Error("Submission failed");
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => null);
+        throw new Error(errorBody?.message || "Submission failed");
+      }
 
       const result: ApiSuccessResponse<RegistrationSubmissionResponse> = await res.json();
       setSubmissionResult(result.data);
       router.push("/register-school/success");
     } catch (err) {
       console.error("Registration submission error:", err);
-      setSubmitError("Something went wrong submitting your registration. Please try again.");
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong submitting your registration. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -230,6 +255,7 @@ export default function RegisterSchoolStep3Page() {
           {openSection === "school" && (
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 text-sm text-slate-700 space-y-1.5">
               <p><span className="text-slate-500">School Name:</span> {data.step1.schoolName || "—"}</p>
+              <p><span className="text-slate-500">Address:</span> {data.step1.address || "—"}</p>
               <p><span className="text-slate-500">Type:</span> {data.step1.schoolType || "—"}</p>
               <p><span className="text-slate-500">Email:</span> {data.step1.officialEmail || "—"}</p>
               <p><span className="text-slate-500">Principal:</span> {data.step1.principalName || "—"}</p>
