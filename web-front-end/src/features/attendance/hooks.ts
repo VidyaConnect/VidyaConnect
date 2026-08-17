@@ -1,101 +1,107 @@
-import { useState, useCallback } from 'react'
-import type { StudentAttendance, AttendanceRecord, AbsenceFollowUp, ClassInfo } from './types'
+import { useState, useCallback, useEffect } from 'react'
+import type { StudentAttendance, AbsenceFollowUp, ClassInfo } from './types'
 
-// Mock data for demo
-const mockStudents: StudentAttendance[] = [
-  {
+const API_BASE_URL = 'http://localhost:3003'
+
+const mapApiStatus = (status?: string): 'P' | 'A' | 'L' | 'E' => {
+  switch (status) {
+    case 'present':
+    case 'PRESENT':
+      return 'P'
+    case 'absent':
+    case 'ABSENT':
+      return 'A'
+    case 'late':
+    case 'LATE':
+      return 'L'
+    case 'exempted':
+    case 'EXEMPTED':
+      return 'E'
+    default:
+      return 'A'
+  }
+}
+
+const normalizeRoster = (records: Array<{ id?: string; name?: string; studentName?: string; rollNumber?: string; rollNo?: string; studentId?: string; status?: string }> = []) => {
+  const today = new Date().toISOString().slice(0, 10)
+
+  return records.map((item) => ({
     student: {
-      id: '1',
-      name: 'Alex Rivera',
-      rollNo: '#BA001',
-      gender: 'Male',
-      age: 14,
+      id: item.studentId ?? item.id ?? 'unknown',
+      name: item.name ?? item.studentName ?? 'Student',
+      rollNo: item.rollNumber ?? item.rollNo ?? '#000',
+      gender: 'Student',
+      age: undefined,
     },
-    records: [
-      { date: '2024-10-18', status: 'P' },
-      { date: '2024-10-19', status: 'P' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'P' },
-      { date: '2024-10-23', status: 'P' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'P' },
-    ],
-    presentCount: 24,
+    records: [{ date: today, status: mapApiStatus(item.status) }],
+    presentCount: 0,
     absentCount: 0,
     lateCount: 0,
     exemptedCount: 0,
-  },
-  {
-    student: {
-      id: '2',
-      name: 'Elena Rodriguez',
-      rollNo: '#BA002',
-      gender: 'Female',
-      age: 13,
-    },
-    records: [
-      { date: '2024-10-18', status: 'A' },
-      { date: '2024-10-19', status: 'P' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'L' },
-      { date: '2024-10-23', status: 'P' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'A' },
-    ],
-    presentCount: 20,
-    absentCount: 2,
-    lateCount: 1,
-    exemptedCount: 0,
-  },
-  {
-    student: {
-      id: '3',
-      name: 'Marcus Chen',
-      rollNo: '#BA003',
-      gender: 'Male',
-      age: 14,
-    },
-    records: [
-      { date: '2024-10-18', status: 'P' },
-      { date: '2024-10-19', status: 'L' },
-      { date: '2024-10-21', status: 'P' },
-      { date: '2024-10-22', status: 'P' },
-      { date: '2024-10-23', status: 'L' },
-      { date: '2024-10-24', status: 'P' },
-      { date: '2024-10-25', status: 'P' },
-    ],
-    presentCount: 22,
-    absentCount: 0,
-    lateCount: 2,
-    exemptedCount: 0,
-  },
-]
+  }))
+}
 
 // Custom hook for managing attendance state
 export const useAttendance = () => {
-  const [students, setStudents] = useState<StudentAttendance[]>(mockStudents)
+  const [students, setStudents] = useState<StudentAttendance[]>([])
   const [selectedClass, setSelectedClass] = useState<ClassInfo>({
-    id: '1',
+    id: 'class-8a',
     name: 'Grade 8A',
     grade: '8',
     section: 'A',
-    totalStudents: 34,
+    totalStudents: 0,
   })
 
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/attendance/roster?classId=${selectedClass.id}`)
+
+        if (!response.ok) {
+          throw new Error(`Roster request failed: ${response.status}`)
+        }
+
+        const payload = await response.json()
+        const roster = Array.isArray(payload) ? payload : payload.records ?? []
+        setStudents(normalizeRoster(roster))
+      } catch (error) {
+        console.error('Failed to load attendance roster:', error)
+        setStudents([])
+      }
+    }
+
+    loadStudents()
+  }, [selectedClass.id])
+
   const updateAttendanceStatus = useCallback(
-    (studentId: string, date: string, status: 'P' | 'A' | 'L' | 'E') => {
-      setStudents((prev) =>
-        prev.map((student) =>
-          student.student.id === studentId
-            ? {
-                ...student,
-                records: student.records.map((record) =>
-                  record.date === date ? { ...record, status } : record
-                ),
-              }
-            : student
+    async (studentId: string, date: string, status: 'P' | 'A' | 'L' | 'E') => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/attendance/roster/${studentId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Attendance update failed: ${response.status}`)
+        }
+
+        const result = await response.json()
+        const updatedStatus = mapApiStatus(result?.data?.status ?? status)
+
+        setStudents((prev) =>
+          prev.map((student) =>
+            student.student.id === studentId
+              ? {
+                  ...student,
+                  records: [{ ...student.records[0], date, status: updatedStatus }],
+                }
+              : student
+          )
         )
-      )
+      } catch (error) {
+        console.error('Failed to update attendance:', error)
+      }
     },
     []
   )
@@ -120,9 +126,9 @@ export const useAttendance = () => {
       absentToday: absentCount,
       lateToday: lateCount,
       notMarkedToday: notMarkedCount,
-      totalEnrollment: selectedClass.totalStudents,
+      totalEnrollment: selectedClass.totalStudents || students.length,
       percentage: Math.round(
-        ((presentCount + lateCount) / selectedClass.totalStudents) * 100
+        ((presentCount + lateCount) / Math.max(selectedClass.totalStudents || students.length, 1)) * 100
       ),
     }
   }, [students, selectedClass])
@@ -138,18 +144,7 @@ export const useAttendance = () => {
 
 // Hook for absence follow-up
 export const useAbsenceFollowUp = () => {
-  const [followUps, setFollowUps] = useState<AbsenceFollowUp[]>([
-    {
-      studentId: '2',
-      studentName: 'Elena Rodriguez',
-      date: '2024-10-24',
-      parentContact: '+1 (555) 0123-456',
-      email: 'm.rodriguez@email.com',
-      reason: undefined,
-      reasonProvided: false,
-      action: 'pending',
-    },
-  ])
+  const [followUps, setFollowUps] = useState<AbsenceFollowUp[]>([])
 
   const updateFollowUp = useCallback((studentId: string, action: string) => {
     setFollowUps((prev) =>

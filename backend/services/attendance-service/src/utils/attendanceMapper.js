@@ -1,13 +1,22 @@
 const STATUS_MAP = {
   present: "PRESENT",
+  PRESENT: "PRESENT",
   absent: "ABSENT",
+  ABSENT: "ABSENT",
   late: "LATE",
+  LATE: "LATE",
   exempted: "EXEMPTED",
+  EXEMPTED: "EXEMPTED",
   notMarked: "NOT_MARKED",
+  NOT_MARKED: "NOT_MARKED",
   P: "PRESENT",
+  p: "PRESENT",
   A: "ABSENT",
+  a: "ABSENT",
   L: "LATE",
+  l: "LATE",
   E: "EXEMPTED",
+  e: "EXEMPTED",
 };
 
 const RESPONSE_STATUS_MAP = {
@@ -19,7 +28,7 @@ const RESPONSE_STATUS_MAP = {
 };
 
 export function toDbStatus(status) {
-  const normalized = STATUS_MAP[status];
+  const normalized = STATUS_MAP[status] ?? STATUS_MAP[String(status ?? '').trim()];
 
   if (!normalized) {
     throw new Error(`Invalid attendance status: ${status}`);

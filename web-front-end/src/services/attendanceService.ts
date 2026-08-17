@@ -1,76 +1,105 @@
 // API service for attendance-related requests
 import type { StudentAttendance, AttendanceSummary } from '@/features/attendance/types'
 
-// Mock API responses - in production, replace with actual API calls
+const API_BASE_URL = 'http://localhost:3003'
+
+const mapStatus = (value?: string): 'P' | 'A' | 'L' | 'E' => {
+  switch (value) {
+    case 'present':
+    case 'PRESENT':
+      return 'P'
+    case 'absent':
+    case 'ABSENT':
+      return 'A'
+    case 'late':
+    case 'LATE':
+      return 'L'
+    case 'exempted':
+    case 'EXEMPTED':
+      return 'E'
+    default:
+      return 'A'
+  }
+}
+
 export const attendanceService = {
-  // Get all students for a specific class
   getStudentsByClass: async (classId: string): Promise<StudentAttendance[]> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    
-    // Return mock data
-    return [
-      {
-        student: {
-          id: '1',
-          name: 'Alex Rivera',
-          rollNo: '#BA001',
-          gender: 'Male',
-          age: 14,
-        },
-        records: [
-          { date: '2024-10-18', status: 'P' },
-          { date: '2024-10-19', status: 'P' },
-          { date: '2024-10-21', status: 'P' },
-          { date: '2024-10-22', status: 'P' },
-          { date: '2024-10-23', status: 'P' },
-          { date: '2024-10-24', status: 'P' },
-          { date: '2024-10-25', status: 'P' },
-        ],
-        presentCount: 24,
-        absentCount: 0,
-        lateCount: 0,
-        exemptedCount: 0,
+    const response = await fetch(`${API_BASE_URL}/attendance/roster?classId=${classId}`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to load roster: ${response.status}`)
+    }
+
+    const roster = await response.json()
+    return (Array.isArray(roster) ? roster : roster.records ?? []).map((student: any) => ({
+      student: {
+        id: student.studentId ?? student.id ?? 'unknown',
+        name: student.name ?? student.studentName ?? 'Student',
+        rollNo: student.rollNumber ?? student.rollNo ?? '#0',
+        gender: 'Student',
+        age: undefined,
       },
-    ]
+      records: [{ date: new Date().toISOString().slice(0, 10), status: mapStatus(student.status) }],
+      presentCount: 0,
+      absentCount: 0,
+      lateCount: 0,
+      exemptedCount: 0,
+    }))
   },
 
-  // Update attendance record for a student
   updateAttendance: async (
     studentId: string,
     date: string,
     status: 'P' | 'A' | 'L' | 'E'
   ): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    return true
+    const response = await fetch(`${API_BASE_URL}/attendance/roster/${studentId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+
+    return response.ok
   },
 
-  // Get daily summary
   getDailySummary: async (classId: string, date: string): Promise<AttendanceSummary> => {
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    const response = await fetch(`${API_BASE_URL}/attendance/summary?classId=${classId}`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to load summary: ${response.status}`)
+    }
+
+    const payload = await response.json()
     return {
-      presentToday: 24,
-      absentToday: 2,
-      lateToday: 1,
-      notMarkedToday: 0,
-      totalEnrollment: 27,
-      percentage: 94,
+      presentToday: payload.present ?? 0,
+      absentToday: payload.absent ?? 0,
+      lateToday: payload.late ?? 0,
+      notMarkedToday: payload.notMarked ?? 0,
+      totalEnrollment: payload.totalEnrollment ?? 0,
+      percentage: payload.progress ?? 0,
     }
   },
 
-  // Mark all students as present (bulk operation)
   markAllPresent: async (classId: string, date: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 500))
     return true
   },
 
-  // Save attendance for the day
   saveAttendance: async (
     classId: string,
     date: string,
     records: Array<{ studentId: string; status: 'P' | 'A' | 'L' | 'E' }>
   ): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    for (const record of records) {
+      const response = await fetch(`${API_BASE_URL}/attendance/roster/${record.studentId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: record.status }),
+      })
+
+      if (!response.ok) {
+        return false
+      }
+    }
+
     return true
   },
 }

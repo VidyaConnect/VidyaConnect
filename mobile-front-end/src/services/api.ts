@@ -4,7 +4,7 @@ import Constants from "expo-constants";
 const baseUrl =
   Constants.manifest?.extra?.apiBaseUrl ||
   process.env.API_BASE_URL ||
-  "http://localhost:3000";
+  "http://localhost:3003";
 
 export const apiClient = axios.create({
   baseURL: baseUrl,
