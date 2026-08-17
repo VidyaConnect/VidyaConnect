@@ -11,8 +11,6 @@ import { useAttendance, useAbsenceFollowUp } from '@/features/attendance/hooks'
 import {
   CheckCircleIcon,
   XCircleIcon,
-  ClockIcon,
-  MoreIcon,
   SaveIcon,
   CalendarIcon,
   HelpIcon,
@@ -194,7 +192,7 @@ export default function TeacherAttendancePage() {
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <AttendanceCard
             icon={<CheckCircleIcon size={20} />}
             label="Present"
@@ -208,21 +206,6 @@ export default function TeacherAttendancePage() {
             count={String(summary.absentToday).padStart(2, '0')}
             valueClassName="text-[#c3161c]"
             iconBgClassName="bg-[#fde9e8] text-[#c3161c]"
-          />
-          <AttendanceCard
-            icon={<ClockIcon size={20} />}
-            label="Late"
-            count={String(summary.lateToday).padStart(2, '0')}
-            valueClassName="text-[#003b78]"
-            iconBgClassName="bg-[#e8eef8] text-[#003b78]"
-          />
-          <AttendanceCard
-            icon={<MoreIcon size={20} />}
-            label="Unmarked"
-            count={String(summary.notMarkedToday).padStart(2, '0')}
-            valueClassName="text-[#555962]"
-            iconBgClassName="bg-[#e2e2e2] text-[#777b84]"
-            borderClassName="border-dashed border-[#cfd4dd]"
           />
         </div>
 

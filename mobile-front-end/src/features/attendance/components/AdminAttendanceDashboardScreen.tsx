@@ -153,8 +153,6 @@ export function AdminAttendanceDashboardScreen() {
         <View style={styles.statsGrid}>
           <StatCard label="Present" value={overview.present} accent={colors.success} />
           <StatCard label="Absent" value={overview.absent} accent={colors.danger} />
-          <StatCard label="Late" value={overview.late} accent={colors.warning} />
-          <StatCard label="Not Marked" value={overview.notMarked} accent={colors.muted} />
         </View>
 
         <SearchField
