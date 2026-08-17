@@ -39,9 +39,11 @@ const DEFAULT_ROSTER = [
 ];
 
 export async function ensureSeedRoster(schoolId) {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
   const existingCount = await prisma.classRosterEntry.count({
-    where: { schoolId },
-  });
 
   if (existingCount > 0) {
     return;

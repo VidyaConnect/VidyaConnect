@@ -1,105 +1,29 @@
-// API service for attendance-related requests
 import type { StudentAttendance, AttendanceSummary } from '@/features/attendance/types'
 
-const API_BASE_URL = 'http://localhost:3003'
-
-const mapStatus = (value?: string): 'P' | 'A' | 'L' | 'E' => {
-  switch (value) {
-    case 'present':
-    case 'PRESENT':
-      return 'P'
-    case 'absent':
-    case 'ABSENT':
-      return 'A'
-    case 'late':
-    case 'LATE':
-      return 'L'
-    case 'exempted':
-    case 'EXEMPTED':
-      return 'E'
-    default:
-      return 'A'
-  }
+const API_BASE = process.env.NEXT_PUBLIC_ATTENDANCE_API_URL || 'http://localhost:3003'
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, cache: 'no-store' })
+  if (!res.ok) throw new Error(`Attendance request failed (${res.status})`)
+  return res.json() as Promise<T>
 }
-
+const backendStatus: Record<'P' | 'A' | 'L' | 'E', string> = { P: 'PRESENT', A: 'ABSENT', L: 'LATE', E: 'EXEMPTED' }
+const shortStatus: Record<string, 'P' | 'A' | 'L' | 'E' | 'N'> = { PRESENT: 'P', ABSENT: 'A', LATE: 'L', EXEMPTED: 'E', NOT_MARKED: 'N' }
+type RosterRecord = { studentId: string; studentName: string; rollNumber: string; status: string }
+type SummaryResponse = { present: number; absent: number; late: number; notMarked: number }
+function mapRoster(records: RosterRecord[]): StudentAttendance[] {
+  const date = new Date().toISOString().slice(0, 10)
+  return records.map((record) => {
+    const status = shortStatus[record.status] || 'N'
+    return { student: { id: record.studentId, name: record.studentName, rollNo: record.rollNumber }, records: [{ date, status: status === 'N' ? 'P' : status }], presentCount: status === 'P' ? 1 : 0, absentCount: status === 'A' ? 1 : 0, lateCount: status === 'L' ? 1 : 0, exemptedCount: status === 'E' ? 1 : 0 }
+  })
+}
 export const attendanceService = {
-  getStudentsByClass: async (classId: string): Promise<StudentAttendance[]> => {
-    const response = await fetch(`${API_BASE_URL}/attendance/roster?classId=${classId}`)
-
-    if (!response.ok) {
-      throw new Error(`Failed to load roster: ${response.status}`)
-    }
-
-    const roster = await response.json()
-    return (Array.isArray(roster) ? roster : roster.records ?? []).map((student: any) => ({
-      student: {
-        id: student.studentId ?? student.id ?? 'unknown',
-        name: student.name ?? student.studentName ?? 'Student',
-        rollNo: student.rollNumber ?? student.rollNo ?? '#0',
-        gender: 'Student',
-        age: undefined,
-      },
-      records: [{ date: new Date().toISOString().slice(0, 10), status: mapStatus(student.status) }],
-      presentCount: 0,
-      absentCount: 0,
-      lateCount: 0,
-      exemptedCount: 0,
-    }))
-  },
-
-  updateAttendance: async (
-    studentId: string,
-    date: string,
-    status: 'P' | 'A' | 'L' | 'E'
-  ): Promise<boolean> => {
-    const response = await fetch(`${API_BASE_URL}/attendance/roster/${studentId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-
-    return response.ok
-  },
-
-  getDailySummary: async (classId: string, date: string): Promise<AttendanceSummary> => {
-    const response = await fetch(`${API_BASE_URL}/attendance/summary?classId=${classId}`)
-
-    if (!response.ok) {
-      throw new Error(`Failed to load summary: ${response.status}`)
-    }
-
-    const payload = await response.json()
-    return {
-      presentToday: payload.present ?? 0,
-      absentToday: payload.absent ?? 0,
-      lateToday: payload.late ?? 0,
-      notMarkedToday: payload.notMarked ?? 0,
-      totalEnrollment: payload.totalEnrollment ?? 0,
-      percentage: payload.progress ?? 0,
-    }
-  },
-
-  markAllPresent: async (classId: string, date: string): Promise<boolean> => {
-    return true
-  },
-
-  saveAttendance: async (
-    classId: string,
-    date: string,
-    records: Array<{ studentId: string; status: 'P' | 'A' | 'L' | 'E' }>
-  ): Promise<boolean> => {
-    for (const record of records) {
-      const response = await fetch(`${API_BASE_URL}/attendance/roster/${record.studentId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: record.status }),
-      })
-
-      if (!response.ok) {
-        return false
-      }
-    }
-
-    return true
-  },
+  async getStudentsByClass(classId?: string): Promise<StudentAttendance[]> { const suffix = classId ? `?classId=${encodeURIComponent(classId)}` : ''; return mapRoster(await request<RosterRecord[]>(`/attendance/roster${suffix}`)) },
+  async updateAttendance(studentId: string, _date: string, status: 'P' | 'A' | 'L' | 'E') { await request(`/attendance/roster/${encodeURIComponent(studentId)}`, { method: 'POST', body: JSON.stringify({ status: backendStatus[status] }) }) },
+  async getDailySummary(classId?: string): Promise<AttendanceSummary> { const suffix = classId ? `?classId=${encodeURIComponent(classId)}` : ''; const data = await request<SummaryResponse>(`/attendance/summary${suffix}`); const total = data.present + data.absent + data.late + data.notMarked; return { presentToday: data.present, absentToday: data.absent, lateToday: data.late, notMarkedToday: data.notMarked, totalEnrollment: total, percentage: total ? Math.round(((data.present + data.late) / total) * 100) : 0 } },
+  async markAllPresent(classId?: string) { const students = await this.getStudentsByClass(classId); await Promise.all(students.map((student) => this.updateAttendance(student.student.id, '', 'P'))) },
+  async saveAttendance(_classId: string | undefined, date: string, records: Array<{ studentId: string; status: 'P' | 'A' | 'L' | 'E' }>) { await Promise.all(records.map((record) => this.updateAttendance(record.studentId, date, record.status))) },
+  getAdminOverview: () => request<{ present: number; absent: number; late: number; notMarked: number; classes: Array<{ id: string; className: string; teacherName: string; status: string; progress: number; students: unknown[] }> }>('/attendance/admin/overview'),
+  getAbsences: () => request<any[]>('/attendance/absences'),
+  async updateAbsenceReason() { throw new Error('Absence reasons are submitted by the parent mobile application.') },
 }

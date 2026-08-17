@@ -12,6 +12,13 @@ router.get(
 );
 
 router.get(
+  "/absences",
+  auth,
+  rbac(["SCHOOL_ADMIN", "SUPER_ADMIN", "TEACHER"]),
+  attendanceController.getAbsences
+);
+
+router.get(
   "/roster",
   auth,
   rbac(["TEACHER", "SCHOOL_ADMIN"]),

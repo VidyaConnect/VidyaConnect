@@ -1,0 +1,217 @@
+# ─────────────────────────────────────────────────────────────
+# VidyaConnect - Production Docker Compose
+
+services:
+
+  # ── PostgreSQL Database ──────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: vidyaconnect-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vidyaconnect-network
+    # No ports exposed — only accessible inside the network
+
+  # ── Keycloak Authentication ──────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: vidyaconnect-keycloak
+    restart: always
+    command: start --import-realm
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HTTP_ENABLED: "false"
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/tls.key
+      KC_PROXY: edge
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+      - ./certs:/opt/keycloak/conf
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Nginx Reverse Proxy ──────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: vidyaconnect-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - keycloak
+    networks:
+      - vidyaconnect-network
+
+  # ── School User Service ──────────────────────────────────────
+  school-user-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-school-user-service:${IMAGE_TAG}
+    container_name: vidyaconnect-school-user-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: ${SCHOOL_USER_DB_URL}
+      KEYCLOAK_URL: http://keycloak:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Announcement Service ─────────────────────────────────────
+  announcement-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-announcement-service:${IMAGE_TAG}
+    container_name: vidyaconnect-announcement-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: ${ANNOUNCEMENT_DB_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Attendance Service ───────────────────────────────────────
+  attendance-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-attendance-service:${IMAGE_TAG}
+    container_name: vidyaconnect-attendance-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: ${ATTENDANCE_DB_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Assignment Service ───────────────────────────────────────
+  assignment-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-assignment-service:${IMAGE_TAG}
+    container_name: vidyaconnect-assignment-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: ${ASSIGNMENT_DB_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Consent Form Service ─────────────────────────────────────
+  consent-form-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-consent-form-service:${IMAGE_TAG}
+    container_name: vidyaconnect-consent-form-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      DATABASE_URL: ${CONSENT_FORM_DB_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── File Service ─────────────────────────────────────────────
+  file-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-file-service:${IMAGE_TAG}
+    container_name: vidyaconnect-file-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      DATABASE_URL: ${FILE_DB_URL}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Notification Service ─────────────────────────────────────
+  notification-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-notification-service:${IMAGE_TAG}
+    container_name: vidyaconnect-notification-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3007
+      DATABASE_URL: ${NOTIFICATION_DB_URL}
+      FCM_SERVER_KEY: ${FCM_SERVER_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Report Service ───────────────────────────────────────────
+  report-service:
+    image: ${ECR_REGISTRY}/vidyaconnect-report-service:${IMAGE_TAG}
+    container_name: vidyaconnect-report-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3008
+      DATABASE_URL: ${REPORT_DB_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidyaconnect-network
+
+  # ── Web Admin Portal ─────────────────────────────────────────
+  web-admin:
+    image: ${ECR_REGISTRY}/vidyaconnect-web-admin:${IMAGE_TAG}
+    container_name: vidyaconnect-web-admin
+    restart: always
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_KEYCLOAK_URL: ${NEXT_PUBLIC_KEYCLOAK_URL}
+    depends_on:
+      - keycloak
+    networks:
+      - vidyaconnect-network
+
+# ── Volumes ───────────────────────────────────────────────────
+volumes:
+  postgres_data:
+
+# ── Network ───────────────────────────────────────────────────
+networks:
+  vidyaconnect-network:
+    driver: bridge

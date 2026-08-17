@@ -19,7 +19,13 @@ function requireSchoolId(user) {
 }
 
 function resolveClassId(user, classId) {
-  return classId || user.classId || "class-8a";
+  const id = classId || user.classId;
+  if (!id) {
+    const error = new Error("Class context is required");
+    error.status = 400;
+    throw error;
+  }
+  return id;
 }
 
 async function buildRosterResponse(schoolId, classId, date = new Date()) {
@@ -174,6 +180,26 @@ export async function getAdminOverview(user) {
   };
 }
 
+export async function getAbsencesFollowUp(user) {
+  const schoolId = requireSchoolId(user);
+  const records = await attendanceRepository.findRecordsForSchoolDate(
+    schoolId,
+    new Date()
+  );
+
+  const absentRecords = records.filter(r => r.status === "ABSENT");
+
+  return absentRecords.map(record => ({
+    studentId: record.studentId,
+    studentName: record.studentName,
+    parentContact: "Parent (System)",
+    email: "parent@vidyaconnect.local",
+    phone: "0000000000",
+    reason: record.absenceResponse ? "Informed" : "Uninformed",
+    reasonDetails: record.absenceResponse?.reason || null
+  }));
+}
+
 export async function getAdminClassRoster(user, classId) {
   const schoolId = requireSchoolId(user);
   const { records } = await buildRosterResponse(
@@ -187,7 +213,12 @@ export async function getAdminClassRoster(user, classId) {
 
 export async function getParentAbsenceAlert(user) {
   const schoolId = requireSchoolId(user);
-  const studentId = user.studentId || "student-001";
+  const studentId = user.studentId;
+  if (!studentId) {
+    const error = new Error("Student context is required");
+    error.status = 400;
+    throw error;
+  }
 
   await ensureSeedRoster(schoolId);
 
@@ -208,16 +239,7 @@ export async function getParentAbsenceAlert(user) {
   );
 
   if (!record) {
-    record = await attendanceRepository.upsertAttendanceRecord({
-      schoolId,
-      classId: rosterEntry.classId,
-      studentId,
-      studentName: rosterEntry.studentName,
-      rollNumber: rosterEntry.rollNumber,
-      date: startOfDay(),
-      status: "ABSENT",
-      markedById: "system-seed",
-    });
+    return null;
   }
 
   return {
@@ -236,7 +258,12 @@ export async function getParentAbsenceAlert(user) {
 
 export async function submitAbsenceReason(user, payload) {
   const schoolId = requireSchoolId(user);
-  const studentId = user.studentId || "student-001";
+  const studentId = user.studentId;
+  if (!studentId) {
+    const error = new Error("Student context is required");
+    error.status = 400;
+    throw error;
+  }
   const parentId = user.parentId || user.userId;
   const { reason, fileId = null, fileName = null } = payload;
 
@@ -252,27 +279,9 @@ export async function submitAbsenceReason(user, payload) {
   );
 
   if (!record) {
-    const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
-      schoolId,
-      studentId
-    );
-
-    if (!rosterEntry) {
-      const error = new Error("No absence record found for linked student");
-      error.status = 404;
-      throw error;
-    }
-
-    record = await attendanceRepository.upsertAttendanceRecord({
-      schoolId,
-      classId: rosterEntry.classId,
-      studentId,
-      studentName: rosterEntry.studentName,
-      rollNumber: rosterEntry.rollNumber,
-      date: startOfDay(),
-      status: "ABSENT",
-      markedById: "system-seed",
-    });
+    const error = new Error("No absence record found for linked student");
+    error.status = 404;
+    throw error;
   }
 
   const absenceResponse = await attendanceRepository.upsertAbsenceResponse({

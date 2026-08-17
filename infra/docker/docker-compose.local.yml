@@ -76,14 +76,19 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+      - ../localstack/init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - vidyaconnect-network
 
- # ── School User Service ──────────────────
+  # ── School User Service ──────────────────
   school-user-service:
-    build:
-      context: ../../backend/services
-      dockerfile: school-user-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'school-user-service placeholder' && sleep infinity"
     container_name: vidyaconnect-school-user-service
     restart: unless-stopped
 
@@ -104,11 +109,10 @@ services:
     networks:
       - vidyaconnect-network
 
- # ── Announcement Service ─────────────────
+  # ── Announcement Service ─────────────────
   announcement-service:
-    build:
-      context: ../../backend/services
-      dockerfile: announcement-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Announcement Service placeholder' && sleep infinity"
     container_name: vidyaconnect-announcement-service
     restart: unless-stopped
 
@@ -130,9 +134,8 @@ services:
 
   # ── Attendance Service ───────────────────
   attendance-service:
-    build:
-      context: ../../backend/services
-      dockerfile: attendance-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Attendance Service placeholder' && sleep infinity"
     container_name: vidyaconnect-attendance-service
     restart: unless-stopped
 
@@ -161,9 +164,8 @@ services:
 
   # ── Assignment Service ───────────────────
   assignment-service:
-    build:
-      context: ../../backend/services
-      dockerfile: assignment-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Assignment Service placeholder' && sleep infinity"
     container_name: vidyaconnect-assignment-service
     restart: unless-stopped
 
@@ -185,9 +187,8 @@ services:
 
   # ── Consent Form Service ─────────────────
   consent-form-service:
-    build:
-      context: ../../backend/services
-      dockerfile: consent-form-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Consent Form Service placeholder' && sleep infinity"
     container_name: vidyaconnect-consent-form-service
     restart: unless-stopped
 
@@ -214,10 +215,8 @@ services:
       dockerfile: file-service/Dockerfile
     container_name: vidyaconnect-file-service
     restart: unless-stopped
-
     ports:
       - "3006:3006"
-
     environment:
       NODE_ENV: development
       PORT: 3006
@@ -226,26 +225,19 @@ services:
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AUTH_DISABLED: "true"
-      DEV_SCHOOL_ID: "dev-school-id"
-      DEV_USER_ROLE: "TEACHER"
-      DEV_USER_ID: "dev-teacher-id"
-
+      S3_BUCKET_NAME: vidyaconnect-files-local
     depends_on:
       postgres:
         condition: service_healthy
       localstack:
-        condition: service_started
-
+        condition: service_healthy
     networks:
       - vidyaconnect-network
 
-
   # ── Notification Service ─────────────────
   notification-service:
-    build:
-      context: ../../backend/services
-      dockerfile: notification-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Notification Service placeholder' && sleep infinity"
     container_name: vidyaconnect-notification-service
     restart: unless-stopped
 
@@ -268,9 +260,8 @@ services:
 
   # ── Report Service ───────────────────────
   report-service:
-    build:
-      context: ../../backend/services
-      dockerfile: report-service/Dockerfile
+    image: node:20-alpine
+    command: sh -c "echo 'Report Service placeholder' && sleep infinity"
     container_name: vidyaconnect-report-service
     restart: unless-stopped
 

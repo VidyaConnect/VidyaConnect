@@ -11,9 +11,9 @@ const auth = (req, res, next) => {
       fullName: "Dev User",
       role: process.env.DEV_USER_ROLE || "TEACHER",
       schoolId: process.env.DEV_SCHOOL_ID || "dev-school-id",
-      classId: process.env.DEV_CLASS_ID || "class-8a",
-      studentId: process.env.DEV_STUDENT_ID || "student-001",
-      parentId: process.env.DEV_PARENT_ID || "dev-parent-id",
+      classId: process.env.DEV_CLASS_ID || null,
+      studentId: process.env.DEV_STUDENT_ID || null,
+      parentId: process.env.DEV_PARENT_ID || null,
     };
     return next();
   }
@@ -97,11 +97,11 @@ function extractRole(decoded) {
   // Default Keycloak realm roles
   if (decoded.realm_access?.roles) {
     const appRoles = [
-      "SUPER_ADMIN",
-      "SCHOOL_ADMIN",
-      "TEACHER",
-      "PARENT",
-      "STUDENT",
+      "admin",
+      "school-admin",
+      "teacher",
+      "parent",
+      "student",
     ];
 
     const role = decoded.realm_access.roles.find((r) =>

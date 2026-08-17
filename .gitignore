@@ -149,3 +149,5 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+/infra/docker/docker-compose.local.yml

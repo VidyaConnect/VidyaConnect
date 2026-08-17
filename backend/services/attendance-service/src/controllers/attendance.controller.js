@@ -19,6 +19,15 @@ export async function getSummary(req, res) {
   }
 }
 
+export async function getAbsences(req, res) {
+  try {
+    const data = await attendanceService.getAbsencesFollowUp(req.user);
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 export async function getRoster(req, res) {
   try {
     const data = await attendanceService.getTeacherRoster(

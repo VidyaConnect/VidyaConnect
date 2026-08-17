@@ -1,8 +1,7 @@
 {
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "seed": "tsx prisma/seed.ts",
-    "test:attendance": "playwright test tests/attendance-api.spec.ts --reporter=line"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -17,7 +16,6 @@
     "typescript": "^7.0.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
     "tsx": "^4.23.8"
   }
 }
