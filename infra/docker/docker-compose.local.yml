@@ -72,10 +72,13 @@ services:
       SERVICES: s3
       DEFAULT_REGION: ap-southeast-1
       LOCALSTACK_HOST: localstack
+      DOCKER_HOST: unix:///var/run/docker.sock
     ports:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+      - ../../localstack/init-aws.sh:/etc/localstack/init-aws.sh
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - vidyaconnect-network
 
