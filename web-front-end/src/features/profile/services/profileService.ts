@@ -58,8 +58,69 @@ const mockProfiles: Record<ProfileRole, UserProfile> = {
     lastUpdated: 'July 21, 2026 • 2:15 PM',
   },
 
-  // Placeholder — filled in when we build School Admin's page
-  admin: {} as UserProfile,
+  admin: {
+    id: 'ADM-2026-001',
+    fullName: 'Admin User',
+    roleTitle: 'School Administrator',
+    roleBadge: 'School Admin',
+    summaryLine: 'Managing Excellence International School',
+    avatarInitial: 'A',
+    quickStats: [
+      { label: 'Admin ID', value: 'ADM-2026-001' },
+      { label: 'Email', value: 'admin@excellence.edu.lk' },
+      { label: 'Phone', value: '+94 71 234 5678' },
+      { label: 'Status', value: 'Active', isStatus: true },
+    ],
+    sections: [
+      {
+        title: 'Personal Information',
+        icon: 'personal',
+        fields: [
+          { label: 'Full Name', value: 'Admin User' },
+          { label: 'Role', value: 'School Administrator' },
+          { label: 'Email Address', value: 'admin@excellence.edu.lk' },
+          { label: 'Department', value: 'Administration' },
+          { label: 'Phone Number', value: '+94 71 234 5678' },
+          { label: 'Joined Date', value: 'January 15, 2026 • 9:00 AM' },
+        ],
+      },
+      {
+        title: 'School Information',
+        icon: 'school',
+        fields: [
+          { label: 'School Name', value: 'Excellence International School' },
+          { label: 'School Type', value: 'International School' },
+          { label: 'School Code', value: 'EIS-2026-001' },
+          { label: 'Address', value: 'Colombo 07, Sri Lanka' },
+        ],
+      },
+      {
+        title: 'Account Information',
+        icon: 'account',
+        fields: [
+          { label: 'Admin ID', value: 'ADM-2026-001' },
+          { label: 'Last Login', value: 'July 22, 2026 • 9:45 AM' },
+          { label: 'Account Type', value: 'School Admin' },
+          { label: 'Account Status', value: 'Active' },
+        ],
+      },
+      {
+        title: 'Permissions & Access',
+        icon: 'access',
+        fields: [
+          { label: 'Access Level', value: 'School Level Access' },
+          { label: 'Modules Access', value: 'School Modules' },
+          { label: 'Students Access', value: 'All Students in School' },
+          { label: 'Data Access', value: 'School Data Only' },
+        ],
+      },
+    ],
+    security: {
+      passwordMasked: '••••••••',
+      twoFactorEnabled: true,
+    },
+    lastUpdated: 'July 20, 2026 • 4:30 PM',
+  },
 
   teacher: {
     id: 'TCH-2026-047',
