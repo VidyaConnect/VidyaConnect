@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -14,19 +15,46 @@ import { SearchField } from "../../../components/ui/SearchField";
 import { Badge, classStatusToBadge } from "../../../components/ui/Badge";
 import { PrimaryButton } from "../../../components/ui/PrimaryButton";
 import { colors } from "../../../constants/colors";
-import { adminOverviewMock } from "../data/mockAttendance";
-import { AdminClassAttendance } from "../types/attendance";
+import {
+  fetchAdminAttendanceOverview,
+  fetchAdminClassRoster
+} from "../services/attendanceApi";
+import { AdminAttendanceOverview, StudentAttendance } from "../types/attendance";
 import { StudentRosterModal } from "./StudentRosterModal";
 
 type FilterKey = "all" | "marked" | "pending";
 
 export function AdminAttendanceDashboardScreen() {
-  const overview = adminOverviewMock;
+  const [overview, setOverview] = useState<AdminAttendanceOverview | null>(null);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
-  const [selectedClass, setSelectedClass] = useState<AdminClassAttendance | null>(null);
+  const [selectedClassName, setSelectedClassName] = useState<string | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [selectedTeacherName, setSelectedTeacherName] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<"marked" | "pending">("marked");
+  const [selectedProgress, setSelectedProgress] = useState(0);
+  const [rosterStudents, setRosterStudents] = useState<StudentAttendance[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+
+  const loadOverview = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAdminAttendanceOverview();
+      setOverview(data);
+    } catch {
+      Alert.alert("Error", "Failed to load attendance overview.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOverview();
+  }, [loadOverview]);
 
   const classes = useMemo(() => {
+    if (!overview) return [];
     const q = query.trim().toLowerCase();
     return overview.classes.filter((item) => {
       const matchesFilter =
@@ -39,7 +67,65 @@ export function AdminAttendanceDashboardScreen() {
         item.teacherName.toLowerCase().includes(q);
       return matchesFilter && matchesQuery;
     });
-  }, [filter, overview.classes, query]);
+  }, [filter, overview, query]);
+
+  const openClassRoster = async (classId: string, className: string, teacherName: string, status: "marked" | "pending", progress: number) => {
+    setSelectedClassId(classId);
+    setSelectedClassName(className);
+    setSelectedTeacherName(teacherName);
+    setSelectedStatus(status);
+    setSelectedProgress(progress);
+    setRosterLoading(true);
+    try {
+      const students = await fetchAdminClassRoster(classId);
+      setRosterStudents(students);
+    } catch {
+      Alert.alert("Error", "Failed to load class roster.");
+      setRosterStudents([]);
+    } finally {
+      setRosterLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenShell
+        header={
+          <AppHeader
+            title="Attendance — Today"
+            leftIcon="university"
+            align="left"
+          />
+        }
+        tabBar={<BottomTabBar active="classes" />}
+      >
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading attendance data...</Text>
+        </View>
+      </ScreenShell>
+    );
+  }
+
+  if (!overview) {
+    return (
+      <ScreenShell
+        header={
+          <AppHeader
+            title="Attendance — Today"
+            leftIcon="university"
+            align="left"
+          />
+        }
+        tabBar={<BottomTabBar active="classes" />}
+      >
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>No data available.</Text>
+          <PrimaryButton label="Retry" onPress={loadOverview} />
+        </View>
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell
@@ -128,7 +214,7 @@ export function AdminAttendanceDashboardScreen() {
 
                 <Pressable
                   style={styles.viewLink}
-                  onPress={() => setSelectedClass(item)}
+                  onPress={() => openClassRoster(item.id, item.className, item.teacherName, item.status as "marked" | "pending", item.progress)}
                 >
                   <Text style={styles.viewLinkText}>View Students</Text>
                   <FontAwesome name="chevron-right" size={14} color={colors.primary} />
@@ -140,12 +226,28 @@ export function AdminAttendanceDashboardScreen() {
       </ScrollView>
 
       <StudentRosterModal
-        visible={!!selectedClass}
-        classItem={selectedClass}
-        onClose={() => setSelectedClass(null)}
+        visible={!!selectedClassId}
+        classItem={
+          selectedClassId
+            ? {
+                id: selectedClassId,
+                className: selectedClassName ?? "",
+                teacherName: selectedTeacherName,
+                status: selectedStatus,
+                progress: selectedProgress,
+                students: rosterStudents
+              }
+            : null
+        }
+        loading={rosterLoading}
+        onClose={() => {
+          setSelectedClassId(null);
+          setRosterStudents([]);
+        }}
         onEditRoster={() => {
-          Alert.alert("Edit Roster", `Editing ${selectedClass?.className ?? "class"}`);
-          setSelectedClass(null);
+          Alert.alert("Edit Roster", `Editing ${selectedClassName ?? "class"}`);
+          setSelectedClassId(null);
+          setRosterStudents([]);
         }}
       />
     </ScreenShell>
@@ -173,6 +275,21 @@ function StatCard({
 }
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12
+  },
+  loadingText: {
+    fontSize: 14,
+    color: colors.textSecondary
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.danger,
+    textAlign: "center"
+  },
   content: {
     padding: 16,
     gap: 14,

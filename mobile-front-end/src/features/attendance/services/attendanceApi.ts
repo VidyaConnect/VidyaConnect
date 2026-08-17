@@ -37,6 +37,7 @@ export async function submitAttendanceUpdate(studentId: string, status: string) 
 
 export async function submitAbsenceReason(payload: {
   reason: string;
+  fileId?: string | null;
   fileName?: string | null;
 }) {
   return apiClient.post("/attendance/absence/reason", payload);

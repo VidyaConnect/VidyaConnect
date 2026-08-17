@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -15,29 +15,46 @@ import { BottomTabBar } from "../../../components/layout/BottomTabBar";
 import { InitialsAvatar } from "../../../components/ui/InitialsAvatar";
 import { PrimaryButton } from "../../../components/ui/PrimaryButton";
 import { colors } from "../../../constants/colors";
-import { parentAbsenceMock } from "../data/mockAttendance";
+import { fetchParentAbsenceAlert, submitAbsenceReason } from "../services/attendanceApi";
+import { ParentAbsenceAlert } from "../types/attendance";
 
 export function ParentAbsenceResponseScreen() {
   const router = useRouter();
-  const alert = parentAbsenceMock;
+  const [alert, setAlert] = useState<ParentAbsenceAlert | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [reason, setReason] = useState("");
   const [showAlert, setShowAlert] = useState(true);
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
 
-  const firstName = alert.studentName.split(" ")[0];
+  useEffect(() => {
+    fetchParentAbsenceAlert()
+      .then((response) => setAlert(response))
+      .catch(() => Alert.alert("Attendance unavailable", "Could not load the latest attendance alert."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const submit = () => {
+  const firstName = alert?.studentName.split(" ")[0] || "your child";
+
+  const submit = async () => {
     if (!reason.trim()) {
       Alert.alert("Reason required", "Please provide a reason for the absence.");
       return;
     }
-    Alert.alert(
-      "Reason submitted",
-      attachedFile
-        ? `Submitted with document: ${attachedFile}`
-        : "Absence reason submitted successfully."
-    );
+    setSubmitting(true);
+    try {
+      await submitAbsenceReason({ reason });
+      Alert.alert("Reason submitted", "Absence reason saved successfully.");
+      setShowAlert(false);
+    } catch {
+      Alert.alert("Submission failed", "Could not save the absence reason. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) return <ScreenShell><View style={styles.empty}><Text>Loading attendance…</Text></View></ScreenShell>;
+  if (!alert) return <ScreenShell><View style={styles.empty}><Text>No absence alert for today.</Text></View></ScreenShell>;
 
   return (
     <ScreenShell
@@ -91,7 +108,7 @@ export function ParentAbsenceResponseScreen() {
 
           <Pressable
             style={styles.uploadBox}
-            onPress={() => setAttachedFile("medical-certificate.pdf")}
+            onPress={() => Alert.alert("Document upload", "Document upload can be added after file-service is enabled.")}
           >
             <FontAwesome name="paperclip" size={20} color={colors.textSecondary} />
             <Text style={styles.uploadText}>
@@ -130,6 +147,11 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
     paddingBottom: 28
+  },
+  empty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
   },
   alertCard: {
     backgroundColor: colors.surface,

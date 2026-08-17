@@ -1,4 +1,4 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Badge, statusToBadge } from "../../../components/ui/Badge";
 import { InitialsAvatar } from "../../../components/ui/InitialsAvatar";
@@ -9,6 +9,7 @@ import { AdminClassAttendance } from "../types/attendance";
 interface StudentRosterModalProps {
   visible: boolean;
   classItem: AdminClassAttendance | null;
+  loading?: boolean;
   onClose: () => void;
   onEditRoster?: () => void;
 }
@@ -16,6 +17,7 @@ interface StudentRosterModalProps {
 export function StudentRosterModal({
   visible,
   classItem,
+  loading = false,
   onClose,
   onEditRoster
 }: StudentRosterModalProps) {
@@ -41,7 +43,12 @@ export function StudentRosterModal({
           <View style={styles.divider} />
 
           <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-            {classItem.students.map((student, index) => {
+            {loading ? (
+              <View style={styles.loadingWrap}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={styles.loadingText}>Loading roster...</Text>
+              </View>
+            ) : classItem.students.map((student, index) => {
               const badge = statusToBadge(student.status);
               return (
                 <View key={student.id} style={styles.row}>
@@ -123,6 +130,15 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20
+  },
+  loadingWrap: {
+    paddingVertical: 40,
+    alignItems: "center",
+    gap: 10
+  },
+  loadingText: {
+    fontSize: 13,
+    color: colors.textSecondary
   },
   row: {
     flexDirection: "row",

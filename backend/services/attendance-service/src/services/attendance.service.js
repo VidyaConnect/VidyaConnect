@@ -6,7 +6,6 @@ import {
   toDbStatus,
 } from "../utils/attendanceMapper.js";
 import * as attendanceRepository from "../repositories/attendance.repository.js";
-import { ensureSeedRoster } from "../seed/devRoster.seed.js";
 
 function requireSchoolId(user) {
   if (!user.schoolId) {
@@ -29,8 +28,6 @@ function resolveClassId(user, classId) {
 }
 
 async function buildRosterResponse(schoolId, classId, date = new Date()) {
-  await ensureSeedRoster(schoolId);
-
   const rosterEntries = await attendanceRepository.findRosterEntries(
     schoolId,
     classId
@@ -137,8 +134,6 @@ export async function markStudentAttendance(user, studentId, status) {
 
 export async function getAdminOverview(user) {
   const schoolId = requireSchoolId(user);
-  await ensureSeedRoster(schoolId);
-
   const classes = await attendanceRepository.listDistinctClasses(schoolId);
   const date = startOfDay();
   const classSummaries = [];
@@ -219,8 +214,6 @@ export async function getParentAbsenceAlert(user) {
     error.status = 400;
     throw error;
   }
-
-  await ensureSeedRoster(schoolId);
 
   const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
     schoolId,

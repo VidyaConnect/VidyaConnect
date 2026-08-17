@@ -134,8 +134,9 @@ services:
 
   # ── Attendance Service ───────────────────
   attendance-service:
-    image: node:20-alpine
-    command: sh -c "echo 'Attendance Service placeholder' && sleep infinity"
+    build:
+      context: ../../backend/services
+      dockerfile: attendance-service/Dockerfile
     container_name: vidyaconnect-attendance-service
     restart: unless-stopped
 
@@ -282,19 +283,20 @@ services:
 
   # ── Web Admin Portal (Placeholder) ───────
   web-admin:
-    image: node:20-alpine
+    build:
+      context: ../../web-front-end
+      dockerfile: Dockerfile
     container_name: vidyaconnect-web-admin
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "echo 'Web admin placeholder running' && sleep infinity"
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_ATTENDANCE_API_URL: http://localhost:3003
       NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
     depends_on:
-      - keycloak
+      - attendance-service
     networks:
       - vidyaconnect-network
 

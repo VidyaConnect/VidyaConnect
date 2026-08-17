@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -14,8 +15,8 @@ import { SearchField } from "../../../components/ui/SearchField";
 import { InitialsAvatar } from "../../../components/ui/InitialsAvatar";
 import { PrimaryButton } from "../../../components/ui/PrimaryButton";
 import { colors } from "../../../constants/colors";
-import { teacherRosterMock } from "../data/mockAttendance";
-import { AttendanceStatus, StudentAttendance } from "../types/attendance";
+import { useAttendance } from "../hooks/useAttendance";
+import { AttendanceStatus } from "../types/attendance";
 
 const STATUS_OPTIONS: { key: AttendanceStatus; label: string }[] = [
   { key: "present", label: "P" },
@@ -38,7 +39,7 @@ function statusColors(status: AttendanceStatus) {
 export function TeacherMarkAttendanceScreen() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [roster, setRoster] = useState<StudentAttendance[]>(teacherRosterMock);
+  const { summary, roster, loading, error, setLocalStatus, submitAll } = useAttendance();
 
   const counts = useMemo(() => {
     return {
@@ -58,16 +59,59 @@ export function TeacherMarkAttendanceScreen() {
     );
   }, [query, roster]);
 
-  const setStatus = (id: string, status: AttendanceStatus) => {
-    setRoster((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
+  const handleSubmit = async () => {
+    const success = await submitAll();
+    if (success) {
+      Alert.alert("Attendance submitted", "Marks saved successfully.");
+    } else {
+      Alert.alert("Save failed", "Could not save attendance. Please try again.");
+    }
   };
+
+  if (loading) {
+    return (
+      <ScreenShell
+        header={
+          <AppHeader
+            title="Mark Attendance"
+            subtitle="Loading..."
+            showBack
+            onBack={() => router.back()}
+          />
+        }
+      >
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading roster...</Text>
+        </View>
+      </ScreenShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenShell
+        header={
+          <AppHeader
+            title="Mark Attendance"
+            showBack
+            onBack={() => router.back()}
+          />
+        }
+      >
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell
       header={
         <AppHeader
-          title="Mark Attendance — Grade 8A"
-          subtitle="— Period 5"
+          title={`Mark Attendance — ${summary.className}`}
+          subtitle={summary.date}
           showBack
           onBack={() => router.back()}
         />
@@ -78,9 +122,7 @@ export function TeacherMarkAttendanceScreen() {
             label="Submit Attendance"
             color={colors.primary}
             icon={<FontAwesome name="check-circle" size={20} color="#fff" />}
-            onPress={() =>
-              Alert.alert("Attendance submitted", "Marks saved for Grade 8A.")
-            }
+            onPress={handleSubmit}
           />
         </View>
       }
@@ -118,7 +160,7 @@ export function TeacherMarkAttendanceScreen() {
                   return (
                     <Pressable
                       key={option.key}
-                      onPress={() => setStatus(student.id, option.key)}
+                      onPress={() => setLocalStatus(student.id, option.key)}
                       style={[
                         styles.toggleBtn,
                         selected
@@ -147,6 +189,21 @@ export function TeacherMarkAttendanceScreen() {
 }
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12
+  },
+  loadingText: {
+    fontSize: 14,
+    color: colors.textSecondary
+  },
+  errorText: {
+    fontSize: 14,
+    color: colors.danger,
+    textAlign: "center"
+  },
   content: {
     padding: 16,
     gap: 14,

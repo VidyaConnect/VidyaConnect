@@ -43,6 +43,10 @@ export async function ensureSeedRoster(schoolId) {
     return;
   }
 
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
   const existingCount = await prisma.classRosterEntry.count({
 
   if (existingCount > 0) {
