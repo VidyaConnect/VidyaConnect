@@ -1,8 +1,26 @@
 {
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "seed": "tsx prisma/seed.ts",
+    "test": "npx playwright test",
+    "test:api": "npx playwright test --grep @api",
+    "test:ui": "npx playwright test --grep @ui",
+    "test:report": "npx playwright show-report"
+  },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
     "prisma": "^6.19.3",
-    "jsonwebtoken": "^9.0.3",
-    "jwks-rsa": "^3.2.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "tsx": "^4.23.8"
   }
 }

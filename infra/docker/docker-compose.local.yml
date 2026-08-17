@@ -15,13 +15,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-vidyaconnect_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vidyaconnect_user} -d ${POSTGRES_DB:-vidyaconnect}"]
-
       interval: 10s
       timeout: 5s
       retries: 5
@@ -136,8 +134,9 @@ services:
 
   # ── Attendance Service ───────────────────
   attendance-service:
-    image: node:20-alpine
-    command: sh -c "echo 'Attendance Service placeholder' && sleep infinity"
+    build:
+      context: ../../backend/services
+      dockerfile: attendance-service/Dockerfile
     container_name: vidyaconnect-attendance-service
     restart: unless-stopped
 
@@ -148,6 +147,13 @@ services:
       NODE_ENV: development
       PORT: 3003
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
+      AUTH_DISABLED: "true"
+      DEV_SCHOOL_ID: "dev-school-id"
+      DEV_CLASS_ID: "class-8a"
+      DEV_USER_ROLE: "SCHOOL_ADMIN"
+      DEV_USER_ID: "dev-teacher-id"
+      DEV_STUDENT_ID: "student-001"
+      DEV_PARENT_ID: "dev-parent-id"
 
     depends_on:
       postgres:
@@ -277,19 +283,20 @@ services:
 
   # ── Web Admin Portal (Placeholder) ───────
   web-admin:
-    image: node:20-alpine
+    build:
+      context: ../../web-front-end
+      dockerfile: Dockerfile
     container_name: vidyaconnect-web-admin
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "echo 'Web admin placeholder running' && sleep infinity"
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_ATTENDANCE_API_URL: http://localhost:3003
       NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
     depends_on:
-      - keycloak
+      - attendance-service
     networks:
       - vidyaconnect-network
 
@@ -297,6 +304,7 @@ services:
 volumes:
   postgres_data:
   localstack_data:
+  keycloak_data:
 
 # ── Network (all containers talk to each other) ──
 networks:

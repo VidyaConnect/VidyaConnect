@@ -6,10 +6,9 @@ export const successResponse = (
   return res.status(200).json({
     success: true,
     message,
-    data
+    data,
   });
 };
-
 
 export const errorResponse = (
   res,
@@ -18,10 +17,17 @@ export const errorResponse = (
 ) => {
   return res.status(status).json({
     success: false,
-    message
+    message,
   });
 };
 
-
-// Alias for older middleware compatibility
 export const error = errorResponse;
+
+const response = {
+  successResponse,
+  errorResponse,
+  error,
+};
+
+export { response };
+export default response;
