@@ -22,11 +22,11 @@ const mockProfiles: Record<ProfileRole, UserProfile> = {
         title: 'Personal Information',
         icon: 'personal',
         fields: [
-          { label: 'Full Name', value: 'Super Admin' },
+          { label: 'Full Name', value: 'Super Admin', editable: true },
           { label: 'Role', value: 'Super Administrator' },
-          { label: 'Email Address', value: 'superadmin@vdyaconnect.lk' },
+          { label: 'Email Address', value: 'superadmin@vdyaconnect.lk', editable: true },
           { label: 'Department', value: 'System Administration' },
-          { label: 'Phone Number', value: '+94 77 123 4567' },
+          { label: 'Phone Number', value: '+94 77 123 4567', editable: true },
           { label: 'Joined Date', value: 'January 1, 2024 • 1:00 PM' },
         ],
       },
@@ -76,11 +76,11 @@ const mockProfiles: Record<ProfileRole, UserProfile> = {
         title: 'Personal Information',
         icon: 'personal',
         fields: [
-          { label: 'Full Name', value: 'Admin User' },
+          { label: 'Full Name', value: 'Admin User', editable: true },
           { label: 'Role', value: 'School Administrator' },
-          { label: 'Email Address', value: 'admin@excellence.edu.lk' },
+          { label: 'Email Address', value: 'admin@excellence.edu.lk', editable: true },
           { label: 'Department', value: 'Administration' },
-          { label: 'Phone Number', value: '+94 71 234 5678' },
+          { label: 'Phone Number', value: '+94 71 234 5678', editable: true },
           { label: 'Joined Date', value: 'January 15, 2026 • 9:00 AM' },
         ],
       },
@@ -140,11 +140,11 @@ const mockProfiles: Record<ProfileRole, UserProfile> = {
         title: 'Personal Information',
         icon: 'personal',
         fields: [
-          { label: 'Full Name', value: 'Mrs. Thompson' },
+          { label: 'Full Name', value: 'Mrs. Thompson', editable: true },
           { label: 'Role', value: 'Teacher' },
-          { label: 'Email Address', value: 'm.thompson@excellence.edu.lk' },
+          { label: 'Email Address', value: 'm.thompson@excellence.edu.lk', editable: true },
           { label: 'Department', value: 'Mathematics' },
-          { label: 'Phone Number', value: '+94 76 345 6789' },
+          { label: 'Phone Number', value: '+94 76 345 6789', editable: true },
           { label: 'Joined Date', value: 'February 1, 2026 • 8:30 AM' },
         ],
       },
@@ -193,5 +193,64 @@ export async function getMyProfile(role: ProfileRole): Promise<UserProfile> {
   } catch (error) {
     console.warn('Profile API not available, using mock data:', error)
     return mockProfiles[role]
+  }
+}
+
+export async function updateMyProfile(
+  role: ProfileRole,
+  updatedFields: Record<string, string>
+): Promise<UserProfile> {
+  try {
+    const response = await apiClient.put<UserProfile>(`/api/profile/me?role=${role}`, updatedFields)
+    return response.data
+  } catch (error) {
+    console.warn('Profile update API not available, updating mock data:', error)
+
+    const profile = mockProfiles[role]
+
+    // Update the matching fields inside Personal Information
+    profile.sections = profile.sections.map((section) => {
+      if (section.title !== 'Personal Information') return section
+      return {
+        ...section,
+        fields: section.fields.map((field) =>
+          updatedFields[field.label] !== undefined
+            ? { ...field, value: updatedFields[field.label] }
+            : field
+        ),
+      }
+    })
+
+    // Keep the Quick Stats row in sync with the new Email/Phone
+    profile.quickStats = profile.quickStats.map((stat) => {
+      if (stat.label === 'Email' && updatedFields['Email Address'] !== undefined) {
+        return { ...stat, value: updatedFields['Email Address'] }
+      }
+      if (stat.label === 'Phone' && updatedFields['Phone Number'] !== undefined) {
+        return { ...stat, value: updatedFields['Phone Number'] }
+      }
+      return stat
+    })
+
+    // Keep the header card name/avatar in sync with the new Full Name
+    if (updatedFields['Full Name'] !== undefined) {
+      profile.fullName = updatedFields['Full Name']
+      profile.avatarInitial = updatedFields['Full Name'].charAt(0).toUpperCase()
+    }
+
+    return profile
+  }
+}
+
+export async function changeMyPassword(
+  role: ProfileRole,
+  payload: { currentPassword: string; newPassword: string }
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await apiClient.put(`/api/profile/change-password?role=${role}`, payload)
+    return response.data
+  } catch (error) {
+    console.warn('Change password API not available, simulating success:', error)
+    return { success: true, message: 'Password changed successfully (mock)' }
   }
 }

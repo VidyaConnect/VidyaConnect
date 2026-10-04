@@ -11,6 +11,7 @@ export interface ProfileStat {
 export interface ProfileInfoField {
   label: string
   value: string
+  editable?: boolean
 }
 
 export type ProfileSectionIcon =
