@@ -93,7 +93,7 @@ export default function LoginPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 to-primary/60" />
+          <div className="absolute inset-0 bg-linear-to-r from-primary/95 to-primary/60" />
         </div>
 
         <div className="relative z-10 max-w-xl">

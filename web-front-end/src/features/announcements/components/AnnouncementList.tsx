@@ -179,7 +179,19 @@ function getViews(announcement: Announcement) {
   return announcement.reachAnalytics?.totalViews ?? 0;
 }
 
-export default function AnnouncementList() {
+interface AnnouncementListProps {
+  scope?: 'all' | 'platform';
+  createHref?: string;
+  title?: string;
+  description?: string;
+}
+
+export default function AnnouncementList({
+  scope = 'all',
+  createHref = '/announcements/create',
+  title = 'Announcements',
+  description = 'Manage school updates, important alerts, and platform communications from one place.',
+}: AnnouncementListProps) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,7 +203,10 @@ export default function AnnouncementList() {
       setErrorMessage('');
       try {
         const data = await getAnnouncements();
-        setAnnouncements(data);
+        const scopedData = scope === 'platform'
+          ? data.filter((announcement) => announcement.postedBy?.role === 'super-admin')
+          : data;
+        setAnnouncements(scopedData);
         if (data.length > 0) {
           setSelectedId(data[0].id);
         }
@@ -203,7 +218,7 @@ export default function AnnouncementList() {
     }
 
     loadData();
-  }, []);
+  }, [scope]);
 
   const selected = announcements.find((announcement) => announcement.id === selectedId) || announcements[0];
 
@@ -248,15 +263,15 @@ export default function AnnouncementList() {
               Communication Center
             </div>
 
-            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Announcements</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              Manage school updates, important alerts, and platform communications from one place.
+              {description}
             </p>
           </div>
 
           <Link
-            href="/announcements/create"
+            href={createHref}
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-black/20 transition hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-[#0F172A] active:scale-[0.98]"
           >
             <Icon name="plus" size={15} />
@@ -277,7 +292,7 @@ export default function AnnouncementList() {
               Create the first announcement to share important information with your school community.
             </p>
             <Link
-              href="/announcements/create"
+              href={createHref}
               className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1d4ed8]"
             >
               <Icon name="plus" size={14} />
