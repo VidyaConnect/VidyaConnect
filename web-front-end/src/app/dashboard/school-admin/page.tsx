@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import SubNav from '@/components/SubNav'
 import Topbar from '@/components/Topbar'
+import { schoolAdminMenu } from '@/components/portalMenus'
+
+const menuItems = schoolAdminMenu;
+
 
 // Metrics Icons
 const UsersIcon = () => (
@@ -38,28 +41,22 @@ const AlertExclamationIcon = () => (
 )
 
 export default function SchoolAdminDashboard() {
-  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [trendType, setTrendType] = useState<'daily' | 'weekly'>('weekly')
 
-  const handleNavigate = (page: string) => {
-    if (page === 'attendance') {
-      router.push('/attendance/school-admin')
-    } else {
-      router.push(`/dashboard/${page}`)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="admin" currentPage="dashboard" onNavigate={handleNavigate} />
-      <Topbar
-        userRole="admin"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-      />
+      <header className="sticky top-0 z-30">
+        <Topbar
+          userRole="school-admin"
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          searchPlaceholder="Search students, teachers, or classes..."
+        />
+        <SubNav items={schoolAdminMenu} />
+      </header>
 
-      <main className="ml-64 px-8 pb-8 pt-6">
+      <main className="mx-auto w-full max-w-[1480px] px-6 pb-8 pt-8">
         {/* Dashboard Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>

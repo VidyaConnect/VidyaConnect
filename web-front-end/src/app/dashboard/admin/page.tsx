@@ -46,12 +46,14 @@ export default function SuperAdminDashboard() {
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
       <Navbar userRole="super-admin" currentPage="dashboard" onNavigate={handleNavigate} />
-      <Topbar
-        userRole="super-admin"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search schools, users, or logs..."
-      />
+      <div className="ml-64">
+        <Topbar
+          userRole="admin"
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          searchPlaceholder="Search schools, users, or logs..."
+        />
+      </div>
 
       <main className="ml-64 px-8 pb-8 pt-6">
         {/* Header Section */}

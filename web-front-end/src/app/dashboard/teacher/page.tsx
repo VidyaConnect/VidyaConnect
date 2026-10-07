@@ -55,13 +55,15 @@ export default function TeacherDashboard() {
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
       <Navbar userRole="teacher" currentPage="dashboard" onNavigate={handleNavigate} />
-      <Topbar
-        userRole="teacher"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search students, classes, or records..."
-        searchClassName="max-w-[500px]"
-      />
+      <div>
+        <Topbar
+          userRole="teacher"
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          searchPlaceholder="Search students, classes, or records..."
+          searchClassName="max-w-[500px]"
+        />
+      </div>
 
       <main className="ml-64 px-8 pb-8 pt-6">
         {/* Welcome message */}

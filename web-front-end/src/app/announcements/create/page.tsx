@@ -4,7 +4,7 @@ import RolePortalChrome from '@/features/announcements/components/RolePortalChro
 export default function CreateAnnouncementPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <RolePortalChrome userRole="admin" />
+      <RolePortalChrome userRole="school-admin" />
       <main className="ml-56 p-6">
         <nav className="text-sm text-gray-500 mb-4">
           <span>Announcements</span>

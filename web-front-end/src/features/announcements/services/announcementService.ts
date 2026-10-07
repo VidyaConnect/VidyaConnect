@@ -1,6 +1,6 @@
 import { Announcement, AnnouncementPriority, CreateAnnouncementInput } from '../types/announcement';
 
-const API_URL = 'http://localhost:3002/api/announcements';
+const API_URL = '/api/announcements';
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -50,7 +50,7 @@ function mapToFrontend(item: BackendAnnouncement): Announcement {
     postedBy: {
       id: item.createdByUserId,
       name: item.createdByUserId,
-      role: item.type === 'SYSTEM' ? 'super-admin' : 'school-admin'
+      role: item.type === 'SYSTEM' ? 'admin' : 'school-admin'
     },
     source: item.type === 'SYSTEM' ? 'Platform Broadcast' : undefined,
     publishDate: item.publishedAt || item.createdAt,

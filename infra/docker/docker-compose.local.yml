@@ -160,13 +160,19 @@ services:
       - vidyaconnect-network
 
 
-  # ── Announcement Service ─────────────────
+   # ── Announcement Service ─────────────────
   announcement-service:
     image: node:20-alpine
     container_name: vidyaconnect-announcement-service
     restart: unless-stopped
 
-    command: sh -c "echo 'Announcement Service placeholder' && sleep infinity"
+    working_dir: /app
+
+    volumes:
+      - ../../backend/services/announcement-service:/app
+      - announcement_node_modules:/app/node_modules
+
+    command: sh -c "npm install && npm run dev"
 
     ports:
       - "3002:3002"
@@ -175,11 +181,6 @@ services:
       NODE_ENV: development
       PORT: 3002
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
-
-    volumes:
-      - ../../backend/services/announcement-service/src:/workspace/announcement-service/src
-
-    command: npm run dev
 
     depends_on:
       postgres:
@@ -383,6 +384,7 @@ volumes:
   keycloak_data:
   web_admin_node_modules:
   web_admin_next:
+  announcement_node_modules:
 
 
 # ─────────────────────────────────────────

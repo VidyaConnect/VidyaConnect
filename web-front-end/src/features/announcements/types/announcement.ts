@@ -34,7 +34,7 @@ export interface Announcement {
   postedBy: {
     id: string;
     name: string;
-    role: 'super-admin' | 'school-admin' | 'teacher';
+    role: 'admin' | 'school-admin' | 'teacher';
     department?: string; // e.g. "INFRASTRUCTURE DEPT." from image 5
   };
   source?: string;           // e.g. "Regional Cluster A", "System Core" — image 1's platform alerts

@@ -600,7 +600,7 @@ export default function SuperAdminAnnouncementForm() {
 
                       <p className="text-sm font-medium text-blue-900">
 
-                        Super Admin Broadcast
+                        Admin Broadcast
 
                       </p>
 

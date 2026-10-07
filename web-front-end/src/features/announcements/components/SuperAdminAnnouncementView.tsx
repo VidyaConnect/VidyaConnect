@@ -137,7 +137,7 @@ await getAnnouncements();
 const platformOnly =
 data.filter(
 (a)=>
-a.postedBy.role==='super-admin'
+a.postedBy.role==='admin'
 );
 
 
@@ -279,7 +279,7 @@ Real-time platform communication
 
 <Link
 
-href="/announcements/super-admin-compose"
+href="/announcements/admin-compose"
 
 className="bg-blue-950 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-900"
 

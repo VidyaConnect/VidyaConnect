@@ -51,15 +51,18 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Side: Login Form */}
-      <main className="w-full lg:w-[45%] bg-surface-container-lowest flex flex-col px-8 md:px-16 lg:px-20 py-12 relative z-10">
+      <main className="w-full md:w-[45%] md:shrink-0 bg-surface-container-lowest flex flex-col px-8 md:px-16 lg:px-20 py-12 relative z-10">
         <div className="flex justify-center">
           <div className="relative h-100 w-100">
-            <Image
-              src="/images/logo_VidyaConnect.png"
-              alt="VidyaConnect logo"
-              fill
-              className="object-contain"
-            />
+            <div className="flex justify-center">
+              <Image
+                src="/images/logo_VidyaConnect.png"
+                alt="VidyaConnect logo"
+                width={240}
+                height={240}
+                priority
+              />
+            </div>
           </div>
         </div>
 
@@ -87,17 +90,18 @@ export default function LoginPage() {
       </main>
 
       {/* Right Side: Visual Panel */}
-      <aside className="hidden lg:flex lg:w-[55%] relative overflow-hidden flex-col justify-center p-20 text-white">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/hero-login.jpg"
-            alt="Team collaborating"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 to-primary/60" />
-        </div>
+      <aside className="hidden md:flex md:flex-1 relative overflow-hidden flex-col justify-center p-10 lg:p-20 text-white bg-primary">
+      <div className="absolute inset-0 z-0">
+    <Image
+      src="/images/hero-login.jpg"
+      alt="Team collaborating"
+      fill
+      sizes="55vw"
+      className="object-cover"
+      priority
+    />
+    <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-primary/40" />
+  </div>
 
         <div className="relative z-10 max-w-xl">
           <h3 className="font-display-lg text-3xl md:text-4xl leading-tight mb-16 tracking-tight">
