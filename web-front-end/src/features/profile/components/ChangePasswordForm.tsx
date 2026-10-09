@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface ChangePasswordFormProps {
   onSave: (payload: { currentPassword: string; newPassword: string }) => void
@@ -13,6 +13,15 @@ export default function ChangePasswordForm({ onSave, onCancel, saving = false }:
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  
+  // Close the modal when the Esc key is pressed (unless a save is in progress)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving) onCancel()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel, saving])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,8 +31,12 @@ export default function ChangePasswordForm({ onSave, onCancel, saving = false }:
       setError('Please fill in all fields.')
       return
     }
-    if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters.')
+    if (newPassword.trim().length < 8) {
+      setError('New password must be at least 8 characters (spaces alone do not count).')
+      return
+    }
+    if (newPassword === currentPassword) {
+      setError('New password must be different from your current password.')
       return
     }
     if (newPassword !== confirmPassword) {
