@@ -86,8 +86,8 @@ export default function ProfileView({ profile, onEditProfile, onChangePassword }
             </div>
             <div>
               <p className="text-xs font-semibold text-[#8a8f98]">Two-Factor Authentication</p>
-              <p className="mt-1 text-sm font-semibold text-[#16a34a]">
-                {profile.security.twoFactorEnabled ? 'Enabled ✓' : 'Disabled'}
+              <p className={`mt-1 text-sm font-semibold ${profile.security.twoFactorEnabled ? 'text-[#16a34a]' : 'text-[#6b7280]'}`}>
+                 {profile.security.twoFactorEnabled ? 'Enabled ✓' : 'Disabled'}
               </p>
             </div>
           </div>
