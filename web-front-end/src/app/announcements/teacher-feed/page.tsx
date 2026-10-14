@@ -1,5 +1,5 @@
+import RolePortalChrome from '@/components/RolePortalChrome';
 import TeacherAnnouncementFeed from '@/features/announcements/components/TeacherAnnouncementFeed';
-import RolePortalChrome from '@/features/announcements/components/RolePortalChrome';
 
 export default function TeacherFeedPage() {
   return (

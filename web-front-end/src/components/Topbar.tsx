@@ -51,7 +51,7 @@ export default function Topbar({
         VidyaConnect
       </span>
 
-      <div className="min-w-0 flex-1 [&_input]:h-12 [&_input]:w-full [&_input]:rounded-full [&_input]:border [&_input]:border-[#6a6f73] [&_input]:bg-[#f7f9fa] [&_input]:pl-12 [&_input]:pr-4 [&_input]:text-sm">
+      <div className="min-w-0 flex-1 [&_input]:h-10 [&_input]:w-full [&_input]:rounded-full [&_input]:border [&_input]:border-[#6a6f73] [&_input]:bg-[#f7f9fa] [&_input]:pl-12 [&_input]:pr-4 [&_input]:text-sm">
         <SearchBar
           value={searchValue}
           onSearch={onSearch ?? (() => {})}

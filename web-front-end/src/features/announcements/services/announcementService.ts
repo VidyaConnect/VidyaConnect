@@ -1,4 +1,5 @@
 import { Announcement, AnnouncementPriority, CreateAnnouncementInput } from '../types/announcement';
+   import { fetchWithAuth } from '@/services/fetchWithAuth';
 
 const API_URL = '/api/announcements';
 
@@ -73,11 +74,25 @@ function mapToFrontend(item: BackendAnnouncement): Announcement {
   };
 }
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+function getAuthHeaders(): Record<string, string> {
+  // Read the token saved at login (browser only)
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+
+async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   let response: Response;
 
   try {
-    response = await fetch(url, init);
+    response = await fetchWithAuth(url, {
+      ...init,
+      headers: {
+        ...getAuthHeaders(),
+        ...((init.headers as Record<string, string>) || {}),
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown network error';
     throw new Error('Network error: Could not reach announcement service. ' + message);
@@ -168,3 +183,4 @@ export async function deleteAnnouncement(id: string): Promise<Announcement> {
   });
   return mapToFrontend(data);
 }
+

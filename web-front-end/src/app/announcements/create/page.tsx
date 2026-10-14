@@ -1,6 +1,5 @@
 import AnnouncementForm from '@/features/announcements/components/AnnouncementForm';
-import RolePortalChrome from '@/features/announcements/components/RolePortalChrome';
-
+import RolePortalChrome from '@/components/RolePortalChrome';
 export default function CreateAnnouncementPage() {
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import RolePortalChrome from '@/features/announcements/components/RolePortalChrome';
+import RolePortalChrome from '@/components/RolePortalChrome';
 import SuperAdminAnnouncementView from '@/features/announcements/components/SuperAdminAnnouncementView';
 import AnnouncementList from '@/features/announcements/components/AnnouncementList';
 import TeacherAnnouncementFeed from '@/features/announcements/components/TeacherAnnouncementFeed';

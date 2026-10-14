@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
-import DashboardLayout from '@/components/DashboardLayout'
+import DashboardLayout from '@/features/attendance/components/DashboardLayout'
 import {
   CheckCircleIcon as LegendCheckIcon,
   XCircleIcon as LegendXIcon,

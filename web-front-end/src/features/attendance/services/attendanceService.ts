@@ -1,20 +1,24 @@
 import type { StudentAttendance, AttendanceSummary } from '@/features/attendance/types'
+import { fetchWithAuth } from '@/services/fetchWithAuth'
 
 const API_BASE = process.env.NEXT_PUBLIC_ATTENDANCE_API_URL || 'http://localhost:3003'
-const AUTH_TOKEN = process.env.NEXT_PUBLIC_AUTH_TOKEN || ''
+
 
 function getAuthHeaders(): HeadersInit {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  if (AUTH_TOKEN) {
-    headers['Authorization'] = `Bearer ${AUTH_TOKEN}`
+  // Read the token saved at login (browser only)
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
   }
   return headers
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetchWithAuth(`${API_BASE}${path}`, {
     ...options,
     headers: {
       ...getAuthHeaders(),
@@ -49,10 +53,10 @@ const STATUS_TO_SHORT: Record<string, 'P' | 'A' | 'L' | 'E' | 'N'> = {
 }
 
 const SHORT_TO_BACKEND: Record<'P' | 'A' | 'L' | 'E', string> = {
-  P: 'PRESENT',
-  A: 'ABSENT',
-  L: 'LATE',
-  E: 'EXEMPTED',
+  P: 'present',
+  A: 'absent',
+  L: 'late',
+  E: 'exempted',
 }
 
 interface RosterStudentResponse {
@@ -187,6 +191,16 @@ export const attendanceService = {
     return request<AdminOverviewResponse>('/attendance/admin/overview')
   },
 
+  getAdminClassRoster: async (classId: string): Promise<RosterStudentResponse[]> => {
+    return request<RosterStudentResponse[]>(
+      `/attendance/admin/classes/${encodeURIComponent(classId)}/roster`
+    )
+  },
+
+  getHistory: async (studentId: string): Promise<unknown> => {
+    return request<unknown>(`/attendance/history/${encodeURIComponent(studentId)}`)
+  },
+
   getAbsences: async (): Promise<AbsenceApiResponse[]> => {
     return request<AbsenceApiResponse[]>('/attendance/absences')
   },
@@ -203,4 +217,3 @@ export const attendanceService = {
     return true
   },
 }
-

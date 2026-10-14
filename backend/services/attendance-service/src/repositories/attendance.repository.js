@@ -108,7 +108,7 @@ export async function findLatestAbsentRecordForStudent(schoolId, studentId) {
   });
 }
 
-export async function findStudentHistory(schoolId, studentId, limit = 30) {
+export async function findStudentHistory(schoolId, studentId, limit = 365) {
   return prisma.attendanceRecord.findMany({
     where: {
       schoolId,

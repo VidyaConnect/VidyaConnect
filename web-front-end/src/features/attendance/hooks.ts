@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { StudentAttendance, AttendanceRecord, AbsenceFollowUp, ClassInfo, AttendanceSummary } from './types'
-import { attendanceService } from '@/services/attendanceService'
+import { attendanceService } from '@/features/attendance/services/attendanceService'
 
 export const useAttendance = () => {
   const [students, setStudents] = useState<StudentAttendance[]>([])

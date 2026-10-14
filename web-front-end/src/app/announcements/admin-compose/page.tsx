@@ -1,6 +1,5 @@
 import SuperAdminAnnouncementForm from '@/features/announcements/components/SuperAdminAnnouncementForm';
-import RolePortalChrome from '@/features/announcements/components/RolePortalChrome';
-
+import RolePortalChrome from '@/components/RolePortalChrome';
 export default function AdminComposePage() {
   return (
     <div className="min-h-screen bg-gray-50">

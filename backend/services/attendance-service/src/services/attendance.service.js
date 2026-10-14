@@ -6,7 +6,7 @@ import {
   toDbStatus,
 } from "../utils/attendanceMapper.js";
 import * as attendanceRepository from "../repositories/attendance.repository.js";
-import { ensureSeedRoster } from "../seed/devRoster.seed.js";
+
 
 function requireSchoolId(user) {
   if (!user.schoolId) {
@@ -29,8 +29,6 @@ function resolveClassId(user, classId) {
 }
 
 async function buildRosterResponse(schoolId, classId, date = new Date()) {
-  await ensureSeedRoster(schoolId);
-
   const rosterEntries = await attendanceRepository.findRosterEntries(
     schoolId,
     classId
@@ -103,7 +101,7 @@ export async function getTeacherRoster(user, classId) {
 
 export async function markStudentAttendance(user, studentId, status) {
   const schoolId = requireSchoolId(user);
-  const classId = resolveClassId(user);
+  rosterEntry.classId !== classId
   const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
     schoolId,
     studentId
@@ -115,7 +113,7 @@ export async function markStudentAttendance(user, studentId, status) {
     throw error;
   }
 
-  if (rosterEntry.classId !== classId) {
+  if (user.classId && rosterEntry.classId !== user.classId) {
     const error = new Error("Student is not in your assigned class");
     error.status = 403;
     throw error;
@@ -137,7 +135,7 @@ export async function markStudentAttendance(user, studentId, status) {
 
 export async function getAdminOverview(user) {
   const schoolId = requireSchoolId(user);
-  await ensureSeedRoster(schoolId);
+  
 
   const classes = await attendanceRepository.listDistinctClasses(schoolId);
   const date = startOfDay();
@@ -220,7 +218,7 @@ export async function getParentAbsenceAlert(user) {
     throw error;
   }
 
-  await ensureSeedRoster(schoolId);
+  
 
   const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
     schoolId,
