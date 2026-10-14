@@ -4,6 +4,7 @@
 
 import SearchBar from './SearchBar'
 import { NotificationIcon } from './Icons'
+import Link from 'next/link'
 
 interface TopbarProps {
   title?: string
@@ -25,6 +26,14 @@ export default function Topbar({
   searchPlaceholder = 'Search student...',
   searchClassName = '',
 }: TopbarProps) {
+
+  const profileHref =
+    userRole === 'teacher'
+      ? '/profile/teacher'
+      : userRole === 'super-admin'
+      ? '/profile/super-admin'
+      : '/profile/school-admin'
+
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#cfd4dd] bg-white px-6 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
       <SearchBar
@@ -44,7 +53,11 @@ export default function Topbar({
 
         <div className="h-8 w-px bg-[#cfd4dd]" />
 
-        <div className="flex items-center gap-3">
+        <Link
+          href={profileHref}
+          aria-label="View my profile"
+          className="flex items-center gap-3 rounded-md px-2 py-1 transition-colors hover:bg-[#f1f4f8]"
+        >
           <div className="h-9 w-9 overflow-hidden rounded-full bg-[linear-gradient(135deg,#d9e5f7,#f4d8c8)] shadow-sm">
             <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[#07356b]">
               {userName.charAt(0)}
@@ -56,7 +69,7 @@ export default function Topbar({
               {userRole === 'teacher' ? 'TEACHER' : userRole === 'super-admin' ? 'SUPER ADMIN' : 'ADMIN'}
             </p>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   )
