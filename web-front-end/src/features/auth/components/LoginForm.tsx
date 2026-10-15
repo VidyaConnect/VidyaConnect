@@ -35,7 +35,7 @@ export default function LoginForm() {
       }
 
       router.push(destination);
-    } catch (err) {
+    } catch {
       setError("Invalid email or password. Please try again.");
     }
   }
@@ -76,7 +76,7 @@ export default function LoginForm() {
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
             required
             className="w-full h-12 pl-10 pr-10 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
