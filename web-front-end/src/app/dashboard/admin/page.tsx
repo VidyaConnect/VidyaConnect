@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
+import SubNav from '@/components/SubNav'
 import Topbar from '@/components/Topbar'
+import { adminMenu } from '@/components/portalMenus'
 
 // Metrics Icons
 const SchoolRegistryIcon = () => (
@@ -45,17 +46,17 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="super-admin" currentPage="dashboard" onNavigate={handleNavigate} />
-      <div className="ml-64">
+      <header className="sticky top-0 z-30">
         <Topbar
           userRole="admin"
           searchValue={searchTerm}
           onSearch={setSearchTerm}
           searchPlaceholder="Search schools, users, or logs..."
         />
-      </div>
+        <SubNav items={adminMenu} />
+      </header>
 
-      <main className="ml-64 px-8 pb-8 pt-6">
+      <main className="mx-auto w-full max-w-[1480px] px-6 pb-8 pt-8">
         {/* Header Section */}
         <div className="mb-6 flex items-center justify-between">
           <div>

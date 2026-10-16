@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import RolePortalChrome from '@/components/RolePortalChrome';
-import SuperAdminAnnouncementView from '@/features/announcements/components/SuperAdminAnnouncementView';
 import AnnouncementList from '@/features/announcements/components/AnnouncementList';
 import TeacherAnnouncementFeed from '@/features/announcements/components/TeacherAnnouncementFeed';
 
@@ -33,8 +32,9 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen bg-gray-50">
       <RolePortalChrome userRole={role ?? 'school-admin'} />
       <main className="mx-auto w-full max-w-6xl p-6">
-        {role === 'admin' && <SuperAdminAnnouncementView />}
-        {role === 'school-admin' && <AnnouncementList />}
+        {(role === 'admin' || role === 'school-admin') && (
+          <AnnouncementList role={role} />
+        )}
         {role === 'teacher' && <TeacherAnnouncementFeed />}
         {role === null && (
           <p className="text-sm text-red-600">

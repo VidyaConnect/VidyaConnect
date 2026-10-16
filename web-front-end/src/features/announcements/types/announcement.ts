@@ -1,11 +1,18 @@
 // Who can receive/target an announcement
-export type TargetAudience = 'all-schools' | 'school-wide' | 'class-level' | 'specific-entities';
+export type TargetAudience =
+  | 'all-schools'
+  | 'selected-schools'
+  | 'school-wide'
+  | 'class-level'
+  | 'specific-entities';
 
 // Priority/urgency shown as colored badges in your Figma designs
 export type AnnouncementPriority = 'info' | 'normal' | 'update' | 'urgent' | 'warning' | 'critical' | 'emergency' | 'feature';
 
 // Draft / Published / Archived — matches Compose/Sent/Archive tabs in image 2
 export type AnnouncementStatus = 'draft' | 'published' | 'archived';
+
+
 
 // A file attached to an announcement (e.g. gala_itinerary_v2.pdf from image 3)
 export interface AnnouncementAttachment {
@@ -55,5 +62,5 @@ export interface CreateAnnouncementInput {
   publishDate?: string;
   attachments?: File[];
   requireReadConfirmation: boolean;
-  distributionTags?: string[];    //"Global Network" for Super Admin broadcasts
+  distributionTags?: string[];    //"Global Network" for Admin broadcasts
 }

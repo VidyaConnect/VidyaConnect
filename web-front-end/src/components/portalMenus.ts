@@ -2,7 +2,7 @@ import type { SubNavItem } from './SubNav'
 
 export const schoolAdminMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/school-admin' },
-  { label: 'Announcements', href: '/announcements' },
+  { label: 'Announcements', href: '/announcements/school-admin' },
   { label: 'Attendance', href: '/attendance/school-admin' },
   { label: 'Consent Forms', href: '#' },
   { label: 'Community', href: '#' },
@@ -24,7 +24,7 @@ export const teacherMenu: SubNavItem[] = [
 
 export const adminMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/admin' },
-  { label: 'Announcements', href: '/announcements' },
+  { label: 'Announcements', href: '/announcements/admin' },
   { label: 'School Requests', href: '#' },
   { label: 'System Reports', href: '#' },
   { label: 'Calendar', href: '#' },

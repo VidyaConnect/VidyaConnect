@@ -15,7 +15,9 @@ export default function SubNav({ items }: { items: SubNavItem[] }) {
     <nav className="w-full bg-[#073b78] shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.08)]">
       <div className="mx-auto flex h-14 w-max max-w-full items-center justify-center overflow-x-auto px-8">
         {items.map((item) => {
-          const active = pathname === item.href
+          const active =
+            pathname === item.href ||
+            (item.href !== '/' && pathname.startsWith(item.href + '/'))
           return (
             <Link
               key={item.label}

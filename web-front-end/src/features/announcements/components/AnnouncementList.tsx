@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Announcement } from '../types/announcement';
 import { getAnnouncements } from '../services/announcementService';
+import { ROLE_CONFIG, type AnnouncementRole } from './roleConfig';
 
 /* ---------- Priority look (colors per level) ---------- */
 type Tone = {
@@ -70,6 +71,10 @@ function isUrgent(priority: string) {
 }
 
 type FilterKey = 'all' | 'emergency' | 'urgent' | 'general';
+type OriginKey = 'all' | 'platform' | 'school';
+
+// Posted by the platform admin (not by a school admin)
+const isPlatform = (a: Announcement) => a.postedBy?.role === 'admin';
 
 function groupOf(priority: string): FilterKey {
   const key = String(priority || '').toLowerCase();
@@ -137,7 +142,13 @@ const AlertIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
 );
 
 /* ---------- Header ---------- */
-function PageHeader({ count }: { count: number }) {
+function PageHeader({
+  subtitle,
+  composeHref,
+}: {
+  subtitle: string;
+  composeHref: string;
+}) {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#073b78] to-[#0a56a8] p-6 text-white shadow-sm sm:p-7">
       <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10" />
@@ -150,16 +161,12 @@ function PageHeader({ count }: { count: number }) {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Announcements</h1>
-            <p className="mt-0.5 text-sm text-white/75">
-              {count > 0
-                ? `${count} announcement${count > 1 ? 's' : ''} shared with your school`
-                : 'Share school updates and urgent notices'}
-            </p>
+            <p className="mt-0.5 text-sm text-white/75">{subtitle}</p>
           </div>
         </div>
 
         <Link
-          href="/announcements/create"
+          href={composeHref}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00a896] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#008f80] active:scale-[0.98]"
         >
           <span className="text-lg leading-none">+</span>
@@ -263,19 +270,16 @@ function LoadingSkeleton() {
 }
 
 /* ---------- Empty state ---------- */
-function EmptyState() {
+function EmptyState({ composeHref, text }: { composeHref: string; text: string }) {
   return (
     <div className="flex flex-col items-center rounded-2xl border border-dashed border-[#cfd4dd] bg-white px-6 py-14 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#e6f6f4] text-[#073b78]">
         <MegaphoneIcon className="h-9 w-9" />
       </div>
       <h3 className="mt-5 text-lg font-bold text-[#003b78]">No announcements yet</h3>
-      <p className="mt-1 max-w-sm text-sm text-[#555962]">
-        Share news, updates or urgent notices with your school community. Your first
-        announcement will show up here.
-      </p>
+      <p className="mt-1 max-w-sm text-sm text-[#555962]">{text}</p>
       <Link
-        href="/announcements/create"
+        href={composeHref}
         className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#00a896] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#008f80]"
       >
         <span className="text-lg leading-none">+</span>
@@ -286,7 +290,14 @@ function EmptyState() {
 }
 
 /* ---------- Main component ---------- */
-export default function AnnouncementList() {
+export default function AnnouncementList({
+  role = 'school-admin',
+}: {
+  role?: AnnouncementRole;
+}) {
+  // Everything that differs between roles lives in roleConfig.ts
+  const config = ROLE_CONFIG[role];
+
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -295,13 +306,15 @@ export default function AnnouncementList() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [newestFirst, setNewestFirst] = useState(true);
+  const [origin, setOrigin] = useState<OriginKey>('all');
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       setErrorMessage('');
       try {
-        const data = await getAnnouncements();
+        const all = await getAnnouncements();
+        const data = all.filter(ROLE_CONFIG[role].filterList);
         setAnnouncements(data);
         if (data.length > 0) setSelectedId(data[0].id);
       } catch (error) {
@@ -313,24 +326,27 @@ export default function AnnouncementList() {
       }
     }
     loadData();
-  }, []);
+  }, [role]);
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     const list = announcements.filter((a) => {
+      const matchesOrigin =
+        origin === 'all' ||
+        (origin === 'platform' ? isPlatform(a) : !isPlatform(a));
       const matchesFilter = filter === 'all' || groupOf(a.priority) === filter;
       const matchesSearch =
         !term ||
         a.title.toLowerCase().includes(term) ||
         a.content.toLowerCase().includes(term);
-      return matchesFilter && matchesSearch;
+      return matchesOrigin && matchesFilter && matchesSearch;
     });
     return list.sort((x, y) => {
       const diff =
         new Date(y.publishDate).getTime() - new Date(x.publishDate).getTime();
       return newestFirst ? diff : -diff;
     });
-  }, [announcements, search, filter, newestFirst]);
+  }, [announcements, search, filter, origin, newestFirst]);
 
   const selected = visible.find((a) => a.id === selectedId) ?? visible[0];
 
@@ -351,6 +367,18 @@ export default function AnnouncementList() {
     { key: 'general', label: 'General' },
   ];
 
+  const platformCount = announcements.filter(isPlatform).length;
+  const originTabs: { key: OriginKey; label: string; count: number }[] = [
+    { key: 'all', label: 'All', count: announcements.length },
+    { key: 'platform', label: 'From platform', count: platformCount },
+    { key: 'school', label: 'My school', count: announcements.length - platformCount },
+  ];
+
+  const subtitle =
+    announcements.length > 0
+      ? config.listSubtitle(announcements.length)
+      : config.listSubtitleEmpty;
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -361,11 +389,30 @@ export default function AnnouncementList() {
         .ann-fade-up { animation: ann-fade-up 0.4s ease both; }
       `}</style>
 
-      <PageHeader count={announcements.length} />
+      <PageHeader subtitle={subtitle} composeHref={config.composeHref} />
       <StatsRow announcements={announcements} />
 
+      {config.showOriginTabs && announcements.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {originTabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setOrigin(t.key)}
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                origin === t.key
+                  ? 'border-[#073b78] bg-[#073b78] text-white'
+                  : 'border-[#cfd4dd] bg-white text-[#073b78] hover:bg-gray-50'
+              }`}
+            >
+              {t.label}
+              <span className="ml-2 text-xs opacity-75">{t.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {announcements.length === 0 ? (
-        <EmptyState />
+        <EmptyState composeHref={config.composeHref} text={config.emptyText} />
       ) : (
         <>
           {/* TOOLBAR */}
@@ -465,6 +512,16 @@ export default function AnnouncementList() {
                             <EyeIcon className="h-3.5 w-3.5" />
                             {a.reachAnalytics?.totalViews ?? 0} views
                           </span>
+                          {config.showSource && (
+                            <span className="inline-flex items-center gap-1">
+                              {a.source || 'Platform'}
+                            </span>
+                          )}
+                          {config.showOriginTabs && isPlatform(a) && (
+                            <span className="rounded-full bg-[#073b78] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                              Platform
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
