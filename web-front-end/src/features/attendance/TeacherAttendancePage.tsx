@@ -169,17 +169,13 @@ export default function TeacherAttendancePage() {
           </div>
 
           <div className="flex items-end gap-4">
-            <div className="w-32">
+            <div className="w-44">
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">
-                Class
+                Your class
               </label>
-              <ClassSelector
-                selectedClass={selectedClass.id}
-                onChange={(value) => {
-                  setSelectedClass((prev) => ({ ...prev, id: value, name: `Grade ${value}` }))
-                  void refreshRoster(value)
-                }}
-              />
+              <div className="flex h-10 items-center rounded-md border border-[#c9ced9] bg-[#f7f9fa] px-3 text-sm font-semibold text-[#003b78]">
+                {selectedClass.name}
+              </div>
             </div>
             <div className="w-44">
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">

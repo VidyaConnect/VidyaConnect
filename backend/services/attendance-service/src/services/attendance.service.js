@@ -6,6 +6,7 @@ import {
   toDbStatus,
 } from "../utils/attendanceMapper.js";
 import * as attendanceRepository from "../repositories/attendance.repository.js";
+import { getTeacherClass } from "../clients/schoolUser.client.js";
 
 
 function requireSchoolId(user) {
@@ -18,7 +19,17 @@ function requireSchoolId(user) {
   return user.schoolId;
 }
 
-function resolveClassId(user, classId) {
+async function resolveClassId(user, classId, authHeader) {
+  if (user.role === "TEACHER") {
+    const info = await getTeacherClass(user, authHeader);
+    if (!info || info.schoolId !== user.schoolId) {
+      const error = new Error("No class is assigned to this teacher");
+      error.status = 403;
+      throw error;
+    }
+    return info.classId;
+  }
+
   const id = classId || user.classId;
   if (!id) {
     const error = new Error("Class context is required");
@@ -65,9 +76,9 @@ async function buildRosterResponse(schoolId, classId, date = new Date()) {
   };
 }
 
-export async function getTeacherSummary(user, classId) {
+export async function getTeacherSummary(user, classId, authHeader) {
   const schoolId = requireSchoolId(user);
-  const resolvedClassId = resolveClassId(user, classId);
+  const resolvedClassId = await resolveClassId(user, classId, authHeader);
   const date = startOfDay();
   const { className, records } = await buildRosterResponse(
     schoolId,
@@ -87,9 +98,9 @@ export async function getTeacherSummary(user, classId) {
   };
 }
 
-export async function getTeacherRoster(user, classId) {
+export async function getTeacherRoster(user, classId, authHeader) {
   const schoolId = requireSchoolId(user);
-  const resolvedClassId = resolveClassId(user, classId);
+  const resolvedClassId = await resolveClassId(user, classId, authHeader);
   const { records } = await buildRosterResponse(
     schoolId,
     resolvedClassId,
@@ -99,9 +110,8 @@ export async function getTeacherRoster(user, classId) {
   return records.map(mapStudentRecord);
 }
 
-export async function markStudentAttendance(user, studentId, status) {
+export async function markStudentAttendance(user, studentId, status, authHeader) {
   const schoolId = requireSchoolId(user);
-  rosterEntry.classId !== classId
   const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
     schoolId,
     studentId
@@ -113,11 +123,16 @@ export async function markStudentAttendance(user, studentId, status) {
     throw error;
   }
 
-  if (user.classId && rosterEntry.classId !== user.classId) {
-    const error = new Error("Student is not in your assigned class");
-    error.status = 403;
-    throw error;
+  if (user.role === "TEACHER") {
+    const info = await getTeacherClass(user, authHeader);
+    if (!info || rosterEntry.classId !== info.classId) {
+      const error = new Error("Student is not in your assigned class");
+      error.status = 403;
+      throw error;
+    }
   }
+
+  // the upsertAttendanceRecord call below stays the same
 
   const record = await attendanceRepository.upsertAttendanceRecord({
     schoolId,

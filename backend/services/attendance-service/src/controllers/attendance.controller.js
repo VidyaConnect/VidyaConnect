@@ -11,7 +11,8 @@ export async function getSummary(req, res) {
   try {
     const data = await attendanceService.getTeacherSummary(
       req.user,
-      req.query.classId
+      req.query.classId,
+      req.headers.authorization
     );
     return res.status(200).json(data);
   } catch (error) {
@@ -32,7 +33,8 @@ export async function getRoster(req, res) {
   try {
     const data = await attendanceService.getTeacherRoster(
       req.user,
-      req.query.classId
+      req.query.classId,
+      req.headers.authorization
     );
     return res.status(200).json(data);
   } catch (error) {
@@ -45,7 +47,8 @@ export async function markStudent(req, res) {
     const data = await attendanceService.markStudentAttendance(
       req.user,
       req.params.studentId,
-      req.body.status
+      req.body.status,
+      req.headers.authorization
     );
     return res.status(200).json({ success: true, data });
   } catch (error) {
