@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import SearchBar from './SearchBar'
 import { NotificationIcon } from './Icons'
 import { useAuth } from '@/features/auth/hooks/userAuth'
+import Link from 'next/link'
 
 interface TopbarProps {
   title?: string
@@ -27,6 +28,12 @@ const defaultNames: Record<TopbarProps['userRole'], string> = {
   'teacher': 'Mrs. Thompson',
   'school-admin': 'Admin User',
   'admin': 'Admin',
+}
+
+const profileHrefs: Record<TopbarProps['userRole'], string> = {
+  'teacher': '/profile/teacher',
+  'school-admin': '/profile/school-admin',
+  'admin': '/profile/super-admin',
 }
 
 export default function Topbar({
@@ -70,6 +77,12 @@ export default function Topbar({
 
         <div className="h-8 w-px bg-[#cfd4dd]" />
 
+      <Link
+          href={profileHrefs[userRole]}
+          aria-label="View my profile"
+          className="flex items-center gap-3 rounded-md px-2 py-1 transition-colors hover:bg-[#f1f4f8]"
+      >
+
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1d1f] text-sm font-bold text-white">
             {userName.charAt(0)}
@@ -81,6 +94,7 @@ export default function Topbar({
             </p>
           </div>
         </div>
+      </Link> 
 
         <div className="h-8 w-px bg-[#cfd4dd]" />
 
