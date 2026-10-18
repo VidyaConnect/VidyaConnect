@@ -10,6 +10,7 @@ const sectionRoles: Record<string, string> = {
   "teacher": "TEACHER",
   "school-admin": "SCHOOL_ADMIN",
   "admin": "ADMIN",
+  "parent": "PARENT",
 };
 
 
