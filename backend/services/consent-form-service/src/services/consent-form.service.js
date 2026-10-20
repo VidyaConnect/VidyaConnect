@@ -26,11 +26,36 @@ function date(value, field) {
   return result;
 }
 
-function visibleWhere(user) {
-  if (!user?.schoolId) throw fail("Authenticated user is not associated with a school", 403);
+async function resolveSchoolId(user) {
+  if (!user?.userId) throw fail("Authenticated user is not associated with a school", 403);
+  if (user.role === "TEACHER") {
+    const [assignedClass] = await prisma.$queryRaw`
+      SELECT c."schoolId"
+      FROM school_user.classes c
+      JOIN school_user.teachers t ON t.id = c."classTeacherId"
+      JOIN school_user.users u ON u.id = t."userId"
+      WHERE u."keycloakId" = ${user.userId}
+        AND c."isActive" = true
+      LIMIT 1
+    `;
+    if (assignedClass?.schoolId) return assignedClass.schoolId;
+  }
+  const [profile] = await prisma.$queryRaw`
+    SELECT "schoolId"
+    FROM school_user.users
+    WHERE "keycloakId" = ${user.userId} AND "isActive" = true
+    LIMIT 1
+  `;
+  if (profile?.schoolId) return profile.schoolId;
+  if (user?.schoolId) return user.schoolId;
+  throw fail("Authenticated user is not associated with a school", 403);
+}
+
+async function visibleWhere(user) {
+  const schoolId = await resolveSchoolId(user);
   return user.role === "TEACHER"
-    ? { schoolId: user.schoolId, createdBy: user.userId }
-    : { schoolId: user.schoolId };
+    ? { schoolId, createdBy: user.userId }
+    : { schoolId };
 }
 
 function mapForm(form) {
@@ -61,42 +86,66 @@ function mapForm(form) {
 
 export async function listForms(user) {
   const forms = await prisma.consentForm.findMany({
-    where: visibleWhere(user),
+    where: await visibleWhere(user),
     include: { recipients: true },
     orderBy: { createdAt: "desc" },
   });
   return forms.map(mapForm);
 }
 
-export async function getForm(id, user) {
+async function getFormRecord(id, user) {
   const form = await prisma.consentForm.findFirst({
-    where: { id, ...visibleWhere(user) },
+    where: { id, ...(await visibleWhere(user)) },
     include: { recipients: true },
   });
   if (!form) throw fail("Consent form not found", 404);
   return form;
 }
 
+export async function getForm(id, user) {
+  return mapForm(await getFormRecord(id, user));
+}
+
 export async function createForm(input, user) {
+  const schoolId = await resolveSchoolId(user);
   const scope = String(input.scope || (user.role === "SCHOOL_ADMIN" ? "SCHOOL" : "CLASS")).toUpperCase();
   if (!SCOPES.has(scope)) throw fail("scope must be CLASS or SCHOOL");
   if (user.role === "TEACHER" && scope !== "CLASS") throw fail("Teachers may only create class-scoped forms", 403);
   if (user.role === "SCHOOL_ADMIN" && scope !== "SCHOOL") throw fail("School admins may only create school-scoped forms", 403);
   const deadline = date(input.deadline, "deadline");
   if (deadline <= new Date()) throw fail("deadline must be in the future");
-  const classId = text(input.classId, "classId", false);
+  let classId = text(input.classId, "classId", false);
   let studentIds;
   if (scope === "CLASS") {
+    if (!classId && user.role === "TEACHER") {
+      const [assignedClass] = await prisma.$queryRaw`
+        SELECT c.id, c."schoolId"
+        FROM school_user.classes c
+        JOIN school_user.teachers t ON t.id = c."classTeacherId"
+        JOIN school_user.users u ON u.id = t."userId"
+        WHERE u."keycloakId" = ${user.userId}
+          AND c."isActive" = true
+        LIMIT 1
+      `;
+      classId = assignedClass?.id || null;
+    }
     if (!classId) throw fail("classId is required for a class-scoped form");
-    const [targetClass] = await prisma.$queryRaw`SELECT id, "schoolId", "classTeacherId" FROM school_user.classes WHERE id = ${classId} AND "schoolId" = ${user.schoolId} LIMIT 1`;
+    const [targetClass] = await prisma.$queryRaw`
+      SELECT c.id, c."schoolId", c."classTeacherId", u."keycloakId" AS "teacherKeycloakId"
+      FROM school_user.classes c
+      LEFT JOIN school_user.teachers t ON t.id = c."classTeacherId"
+      LEFT JOIN school_user.users u ON u.id = t."userId"
+      WHERE c.id = ${classId} AND c."schoolId" = ${schoolId} AND c."isActive" = true
+      LIMIT 1
+    `;
     if (!targetClass) throw fail("Class not found in your school", 404);
-    if (user.role === "TEACHER" && targetClass.classTeacherId !== user.userId) {
+    if (user.role === "TEACHER" && targetClass.teacherKeycloakId !== user.userId) {
       throw fail("Teachers may only create forms for their assigned class", 403);
     }
-    const students = await prisma.$queryRaw`SELECT id FROM school_user.students WHERE "schoolId" = ${user.schoolId} AND "classId" = ${classId} AND "isActive" = true`;
+    const students = await prisma.$queryRaw`SELECT id FROM school_user.students WHERE "schoolId" = ${schoolId} AND "classId" = ${classId} AND "isActive" = true`;
     studentIds = students.map((student) => student.id);
   } else {
-    const students = await prisma.$queryRaw`SELECT id FROM school_user.students WHERE "schoolId" = ${user.schoolId} AND "isActive" = true`;
+    const students = await prisma.$queryRaw`SELECT id FROM school_user.students WHERE "schoolId" = ${schoolId} AND "isActive" = true`;
     studentIds = students.map((student) => student.id);
   }
   if (!studentIds.length) throw fail("The selected audience has no active students", 400);
@@ -109,7 +158,7 @@ export async function createForm(input, user) {
       audience: text(input.audience, "audience"),
       classId,
       scope,
-      schoolId: user.schoolId,
+      schoolId,
       createdBy: user.userId,
       deadline,
       recipients: {
@@ -122,7 +171,7 @@ export async function createForm(input, user) {
 }
 
 export async function updateDraft(id, input, user) {
-  const existing = await getForm(id, user);
+  const existing = await getFormRecord(id, user);
   if (existing.status !== "DRAFT") throw fail("Only draft forms can be edited", 409);
   const data = {};
   if ("title" in input) data.title = text(input.title, "title");
@@ -143,7 +192,7 @@ export async function updateDraft(id, input, user) {
 }
 
 export async function publishForm(id, user) {
-  const existing = await getForm(id, user);
+  const existing = await getFormRecord(id, user);
   if (existing.status !== "DRAFT") throw fail("Only draft forms can be published", 409);
   if (existing.deadline <= new Date()) throw fail("A form with a past deadline cannot be published");
   if (!existing.recipients.length) throw fail("A form must have recipients before it can be published");
@@ -156,7 +205,7 @@ export async function publishForm(id, user) {
 }
 
 export async function closeForm(id, user) {
-  const existing = await getForm(id, user);
+  const existing = await getFormRecord(id, user);
   if (existing.status !== "ACTIVE") throw fail("Only active forms can be closed", 409);
   const form = await prisma.consentForm.update({
     where: { id },
@@ -167,7 +216,7 @@ export async function closeForm(id, user) {
 }
 
 export async function listResponses(id, user) {
-  const form = await getForm(id, user);
+  const form = await getFormRecord(id, user);
   return form.recipients;
 }
 
@@ -176,11 +225,12 @@ export async function respondToForm(id, input, user) {
   const status = String(input.status || "").toUpperCase();
   if (!RESPONSE_STATUSES.has(status)) throw fail("status must be ACCEPTED or DECLINED");
   const studentId = text(input.studentId, "studentId");
-  const form = await prisma.consentForm.findFirst({ where: { id, schoolId: user.schoolId, status: "ACTIVE" } });
+  const schoolId = await resolveSchoolId(user);
+  const form = await prisma.consentForm.findFirst({ where: { id, schoolId, status: "ACTIVE" } });
   if (!form || form.deadline <= new Date()) throw fail("Consent form not found or its deadline has passed", 404);
   const recipient = await prisma.consentRecipient.findUnique({ where: { formId_studentId: { formId: id, studentId } } });
   if (!recipient) throw fail("Student is not a recipient of this consent form", 403);
-  const [student] = await prisma.$queryRaw`SELECT s.id FROM school_user.students s JOIN school_user.parents p ON p.id = s."parentId" WHERE s.id = ${studentId} AND s."schoolId" = ${user.schoolId} AND p."userId" = ${user.userId}`;
+  const [student] = await prisma.$queryRaw`SELECT s.id FROM school_user.students s JOIN school_user.parents p ON p.id = s."parentId" WHERE s.id = ${studentId} AND s."schoolId" = ${schoolId} AND p."userId" = ${user.userId}`;
   if (!student) throw fail("Student is not linked to the authenticated parent", 403);
   if (recipient.status) throw fail("A response has already been submitted for this student", 409);
   return prisma.consentRecipient.update({

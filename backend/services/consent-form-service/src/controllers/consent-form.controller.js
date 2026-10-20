@@ -10,6 +10,7 @@ import {
 } from "../services/consent-form.service.js";
 
 function sendError(res, error) {
+  console.error("Consent form request failed:", error);
   return res.status(error.statusCode || 500).json({ success: false, message: error.message || "Internal server error" });
 }
 

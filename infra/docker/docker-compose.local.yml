@@ -260,7 +260,14 @@ services:
     container_name: vidyaconnect-consent-form-service
     restart: unless-stopped
 
-    command: sh -c "echo 'Consent Form Service placeholder' && sleep infinity"
+    working_dir: /app
+
+    volumes:
+      - ../../backend/services/consent-form-service:/app
+      - ../../backend/services/shared:/shared
+      - consent_form_node_modules:/app/node_modules
+
+    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
 
     ports:
       - "3005:3005"
@@ -268,11 +275,15 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3005
+      AUTH_DISABLED: "false"
+      KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=consent_form"
 
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
     networks:
       - vidyaconnect-network
@@ -391,6 +402,7 @@ volumes:
   web_admin_next:
   announcement_node_modules:
   attendance_node_modules:
+  consent_form_node_modules:
 
 
 # ─────────────────────────────────────────

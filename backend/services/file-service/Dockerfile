@@ -2,19 +2,15 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy shared package first (dependency)
 COPY shared ./shared
-
-# Copy file-service package files
-COPY file-service/package*.json ./
-
-# Install dependencies (this will resolve file:../shared correctly)
+WORKDIR /app/shared
 RUN npm install
 
-# Copy file-service source code
+WORKDIR /app/file-service
+COPY file-service/package*.json ./
+RUN npm install
 COPY file-service/. .
 
 EXPOSE 3006
 
-# Start the application
 CMD ["npm", "start"]
