@@ -149,5 +149,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+.local-postgres/
 
 /infra/docker/docker-compose.local.yml

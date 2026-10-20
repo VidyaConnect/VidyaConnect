@@ -14,3 +14,7 @@ export const findUserByKeycloakId = async (keycloakId, schoolId = undefined) => 
     },
   });
 };
+
+export const findClassByTeacherId = async (teacherId) => {
+  return prisma.class.findUnique({ where: { classTeacherId: teacherId } });
+};

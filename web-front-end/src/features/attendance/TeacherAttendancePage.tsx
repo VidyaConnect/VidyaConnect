@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import DashboardLayout from '@/components/DashboardLayout'
+import DashboardLayout from '@/features/attendance/components/DashboardLayout'
 import ClassSelector from '@/components/ClassSelector'
-import AttendanceCard from '@/components/AttendanceCard'
+import AttendanceCard from '@/features/attendance/components/AttendanceCard'
 import StudentRoster from '@/components/StudentRoster'
 import AbsenceFollowUp from '@/components/AbsenceFollowUp'
 import { useAttendance, useAbsenceFollowUp } from '@/features/attendance/hooks'
@@ -109,7 +109,6 @@ export default function TeacherAttendancePage() {
       searchValue={searchTerm}
       onSearch={setSearchTerm}
       searchPlaceholder="Search student..."
-      searchClassName="max-w-[420px]"
       footer={
         <footer className="sticky bottom-0 z-20 flex h-16 shrink-0 items-center justify-between border-t border-[#cfd4dd] bg-white px-8 shadow-[0_-1px_4px_rgba(15,23,42,0.08)]">
           <div className="flex items-center gap-2.5 text-sm font-bold text-[#25272c]">
@@ -140,7 +139,7 @@ export default function TeacherAttendancePage() {
         </footer>
       }
     >
-      <main className="flex-1 px-8 pb-8 pt-6">
+      <main className="mx-auto w-full max-w-[1480px] flex-1 px-6 pb-8 pt-8">
         {toast && (
           <div
             className={`mb-5 rounded-md border px-4 py-3 text-sm font-medium shadow-sm ${
@@ -168,17 +167,13 @@ export default function TeacherAttendancePage() {
           </div>
 
           <div className="flex items-end gap-4">
-            <div className="w-32">
+            <div className="w-44">
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">
-                Class
+                Your class
               </label>
-              <ClassSelector
-                selectedClass={selectedClass.id}
-                onChange={(value) => {
-                  setSelectedClass((prev) => ({ ...prev, id: value, name: `Grade ${value}` }))
-                  void refreshRoster(value)
-                }}
-              />
+              <div className="flex h-10 items-center rounded-md border border-[#c9ced9] bg-[#f7f9fa] px-3 text-sm font-semibold text-[#003b78]">
+                {selectedClass.name}
+              </div>
             </div>
             <div className="w-44">
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#555962]">

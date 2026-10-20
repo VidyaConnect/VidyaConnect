@@ -14,7 +14,7 @@ router.get(
 router.get(
   "/absences",
   auth,
-  rbac(["SCHOOL_ADMIN", "SUPER_ADMIN", "TEACHER"]),
+  rbac(["SCHOOL_ADMIN", "ADMIN", "TEACHER"]),
   attendanceController.getAbsences
 );
 
@@ -35,14 +35,14 @@ router.post(
 router.get(
   "/admin/overview",
   auth,
-  rbac(["SCHOOL_ADMIN", "SUPER_ADMIN"]),
+  rbac(["SCHOOL_ADMIN", "ADMIN"]),
   attendanceController.getAdminOverview
 );
 
 router.get(
   "/admin/classes/:classId/roster",
   auth,
-  rbac(["SCHOOL_ADMIN", "SUPER_ADMIN"]),
+  rbac(["SCHOOL_ADMIN", "ADMIN"]),
   attendanceController.getAdminClassRoster
 );
 

@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import SubNav from '@/components/SubNav'
 import Topbar from '@/components/Topbar'
+import { teacherMenu } from '@/components/portalMenus'
+import { useAuth } from '@/features/auth/hooks/userAuth'
 
 // Card 1 icon (Graduation cap)
 const CapIcon = () => (
@@ -42,32 +44,24 @@ const CheckCircleIcon = () => (
 
 export default function TeacherDashboard() {
   const router = useRouter()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
-
-  const handleNavigate = (page: string) => {
-    if (page === 'attendance') {
-      router.push('/attendance/teacher')
-    } else {
-      router.push(`/dashboard/${page}`)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
-      <Navbar userRole="teacher" currentPage="dashboard" onNavigate={handleNavigate} />
-      <Topbar
-        userRole="teacher"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        searchPlaceholder="Search students, classes, or records..."
-        searchClassName="max-w-[500px]"
-      />
+      <header className="sticky top-0 z-30">
+        <Topbar
+          userRole="teacher"
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          searchPlaceholder="Search students, classes, or records..."
+        />
+        <SubNav items={teacherMenu} />
+      </header>
 
-      <main className="ml-64 px-8 pb-8 pt-6">
-        {/* Welcome message */}
+      <main className="mx-auto w-full max-w-[1480px] px-6 pb-8 pt-8">        {/* Welcome message */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Good morning, Ms. Sarah Jenkins</h1>
-          <p className="mt-1.5 text-sm text-[#555962]">Here's what's happening in your classes today.</p>
+          <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Good morning, {user?.fullName}</h1>          <p className="mt-1.5 text-sm text-[#555962]">Here's what's happening in your classes today.</p>
         </div>
 
         {/* 4 Cards Grid */}

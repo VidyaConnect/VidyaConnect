@@ -218,6 +218,7 @@ services:
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=attendance"
       AUTH_DISABLED: "false"
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
 
     depends_on:
       postgres:

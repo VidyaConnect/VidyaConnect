@@ -1,129 +1,101 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import SearchBar from './SearchBar'
-import { NotificationIcon, SettingsIcon, HelpIcon } from './Icons'
+import { NotificationIcon } from './Icons'
+import { useAuth } from '@/features/auth/hooks/userAuth'
 
 interface TopbarProps {
-  userRole: 'teacher' | 'admin' | 'super-admin'
+  title?: string
+  subtitle?: string
+  userRole: 'teacher' | 'school-admin' | 'admin'
   userName?: string
+  userAvatar?: string
   searchValue?: string
   onSearch?: (term: string) => void
   searchPlaceholder?: string
   searchClassName?: string
 }
 
+const roleLabels: Record<TopbarProps['userRole'], string> = {
+  'teacher': 'TEACHER',
+  'school-admin': 'SCHOOL ADMIN',
+  'admin': 'ADMIN',
+}
+
+const defaultNames: Record<TopbarProps['userRole'], string> = {
+  'teacher': 'Mrs. Thompson',
+  'school-admin': 'Admin User',
+  'admin': 'Admin',
+}
+
 export default function Topbar({
   userRole,
-  userName,
+  userName = defaultNames[userRole],
   searchValue = '',
   onSearch,
-  searchPlaceholder = 'Search...',
-  searchClassName = 'max-w-[420px]',
+  searchPlaceholder = 'Search student...',
+  searchClassName = '',
 }: TopbarProps) {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const router = useRouter()
+  const { logout } = useAuth()
 
-  // Names from Figma UI
-  const displayUserName = userName ?? (
-    userRole === 'teacher'
-      ? 'Ms. Sarah Jenkins'
-      : userRole === 'admin'
-      ? 'Principal Henderson'
-      : 'Super Admin'
-  )
-
-  const displayUserTitle = userRole === 'teacher'
-    ? 'Lead Educator'
-    : userRole === 'admin'
-    ? 'Principal'
-    : 'Platform Controller'
+  function handleLogout() {
+    logout()
+    router.replace('/login')
+  }
 
   return (
-    <header className="sticky top-0 z-20 flex h-[76px] shrink-0 items-center justify-between border-b border-[#cfd4dd] bg-white px-8 shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
-      
-      {/* Left side: Search or Admin Nav tabs */}
-      <div className="flex min-w-0 flex-1 items-center">
-        {userRole === 'admin' && (
-          <div className="flex items-center gap-8">
-            {['Dashboard', 'Schools', 'Subscriptions', 'Reports'].map((tab) => {
-              const tabId = tab.toLowerCase()
-              const active = activeTab === tabId
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tabId)}
-                  className={`relative text-base font-extrabold transition-colors py-6 ${
-                    active ? 'text-[#007c6d]' : 'text-[#64748b] hover:text-[#0f172a]'
-                  }`}
-                >
-                  {tab}
-                  {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-[#007c6d] rounded-t" />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
+    <div className="relative flex h-[72px] items-center gap-6 border-b border-[#d1d2e0] bg-white px-8">
+      <span className="shrink-0 text-2xl font-extrabold tracking-tight text-[#003b78]">
+        VidyaConnect
+      </span>
 
-        {userRole !== 'admin' && (
-          <SearchBar
-            value={searchValue}
-            onSearch={onSearch ?? (() => {})}
-            placeholder={searchPlaceholder}
-            className={searchClassName}
-          />
-        )}
+      <div className="min-w-0 flex-1 [&_input]:h-10 [&_input]:w-full [&_input]:rounded-full [&_input]:border [&_input]:border-[#6a6f73] [&_input]:bg-[#f7f9fa] [&_input]:pl-12 [&_input]:pr-4 [&_input]:text-sm">
+        <SearchBar
+          value={searchValue}
+          onSearch={onSearch ?? (() => {})}
+          placeholder={searchPlaceholder}
+          className={searchClassName}
+        />
       </div>
 
-      {/* Right side: Search (for admin) and Profile/Icons */}
-      <div className="flex shrink-0 items-center gap-6">
-        {userRole === 'admin' && (
-          <SearchBar
-            value={searchValue}
-            onSearch={onSearch ?? (() => {})}
-            placeholder="Search data..."
-            className="max-w-[280px]"
-          />
-        )}
+      <div className="flex shrink-0 items-center gap-4 whitespace-nowrap">
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-full text-[#2d2f31] transition-colors hover:bg-[#f1f4f8]"
+          aria-label="Notifications"
+        >
+          <NotificationIcon size={20} />
+        </button>
 
-        {/* Action Icons */}
+        <div className="h-8 w-px bg-[#cfd4dd]" />
+
         <div className="flex items-center gap-3">
-          {/* Notification Icon with Badge */}
-          <button className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#475569] transition-colors hover:bg-slate-100">
-            <NotificationIcon size={20} />
-            <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#ef4444] text-[10px] font-bold text-white shadow-sm">
-              5
-            </span>
-          </button>
-
-          {/* Help/Settings Icon based on role */}
-          {userRole === 'teacher' ? (
-            <button className="flex h-10 w-10 items-center justify-center rounded-full text-[#475569] transition-colors hover:bg-slate-100">
-              <HelpIcon size={20} />
-            </button>
-          ) : (
-            <button className="flex h-10 w-10 items-center justify-center rounded-full text-[#475569] transition-colors hover:bg-slate-100">
-              <SettingsIcon size={20} />
-            </button>
-          )}
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1d1f] text-sm font-bold text-white">
+            {userName.charAt(0)}
+          </div>
+          <div>
+            <p className="text-sm font-bold leading-tight text-[#242629]">{userName}</p>
+            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[#6a6f73]">
+              {roleLabels[userRole]}
+            </p>
+          </div>
         </div>
 
         <div className="h-8 w-px bg-[#cfd4dd]" />
 
-        {/* User profile details */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#e2e8f0,#cbd5e1)] font-extrabold text-[#073b78] shadow-sm select-none border border-slate-200">
-            {displayUserName.charAt(0)}
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-black leading-tight text-[#0f172a]">{displayUserName}</p>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748b] mt-0.5">
-              {displayUserTitle}
-            </p>
-          </div>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-sm font-semibold text-[#2d2f31] transition-colors hover:text-[#c2161c]"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Log Out
+        </button>
       </div>
-    </header>
+    </div>
   )
 }
