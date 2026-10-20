@@ -1,14 +1,18 @@
 import express from "express";
-import { auth, rbac } from "@vidyaconnect/shared";
-import { createAnnouncement } from "../controllers/announcement.controller.js";
+import {
+  createAnnouncement,
+  getAllAnnouncements,
+  getAnnouncementById,
+  updateAnnouncement,
+  deleteAnnouncement
+} from "../controllers/announcement.controller.js";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  auth,
-  rbac(["SUPER_ADMIN", "SCHOOL_ADMIN"]),
-  createAnnouncement
-);
+router.post("/", createAnnouncement);
+router.get("/", getAllAnnouncements);
+router.get("/:id", getAnnouncementById);
+router.put("/:id", updateAnnouncement);
+router.delete("/:id", deleteAnnouncement);
 
 export default router;
