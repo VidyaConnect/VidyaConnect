@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 56
   },
-  logo: { width: 260, height: 160 },
+  logo: { width: 400, height: 400 },
   tagline: {
     fontSize: 18,
     fontWeight: "600",

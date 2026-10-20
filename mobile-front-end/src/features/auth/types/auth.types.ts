@@ -37,3 +37,11 @@ export interface ApiErrorResponse {
   success: false;
   message: string;
 }
+
+
+export interface RegisterParentRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+}

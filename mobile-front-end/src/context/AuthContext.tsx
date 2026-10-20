@@ -1,6 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { loginUser } from "../features/auth/services/authApi";
+import { setAuthToken } from "../services/api";
 import { saveTokens, clearTokens } from "../features/auth/services/tokenStorage";
 import type { User, School } from "../features/auth/types/auth.types";
 
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await loginUser({ email, password });
       await saveTokens(data.accessToken, data.refreshToken);
+      setAuthToken(data.accessToken);
       setUser(data.user);
       setSchool(data.school);
     } catch (err: any) {
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     await clearTokens();
+    setAuthToken(null);
     setUser(null);
     setSchool(null);
   };

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +17,7 @@ import { PrimaryButton } from "../../components/ui/PrimaryButton";
 import { ScreenContainer } from "../../components/layout/ScreenContainer";
 import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../constants/colors";
+import { getMyChildren } from "../../features/children/services/childrenApi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       await login(email, password);
-      router.replace("/");
+      router.replace("/children");
     } catch {
       // error is already captured in AuthContext's `error` state
     }
@@ -42,9 +44,13 @@ export default function LoginPage() {
       >
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.brand}>VidyaConnect</Text>
+            <Image
+              source={require("../../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.tagline}>
-              Empowering Education, Connecting Families
+              Empowering Education, Connecting Parents
             </Text>
           </View>
 
@@ -109,7 +115,9 @@ export default function LoginPage() {
 
             <View style={styles.footerTextWrap}>
               <Text style={styles.footerText}>Don&apos;t have an account?</Text>
-              <Text style={styles.footerLink}>Contact your school office.</Text>
+              <Pressable onPress={() => router.push("/signup")}>
+                <Text style={styles.footerLink}>Sign up as a parent</Text>
+              </Pressable>
             </View>
           </View>
         </ScrollView>
@@ -129,10 +137,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  brand: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: colors.navy,
+  logo: {
+    width: 500,
+    height: 200,
   },
   tagline: {
     fontSize: 13,
