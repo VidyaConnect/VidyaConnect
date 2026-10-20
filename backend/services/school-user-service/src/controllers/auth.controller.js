@@ -1,4 +1,4 @@
-import { login, refresh } from '../services/auth.service.js';
+import { login, refresh, registerParent } from '../services/auth.service.js';
 import { successResponse, errorResponse } from '@vidyaconnect/shared';
 
 export const loginController = async (req, res) => {
@@ -26,6 +26,18 @@ export const refreshController = async (req, res) => {
   try {
     const result = await refresh(refreshToken);
     return successResponse(res, result, 'Token refreshed');
+  } catch (err) {
+    return errorResponse(res, err.message, err.status || 500);
+  }
+};
+
+export const registerParentController = async (req, res) => {
+  // Note: any "role" sent in the body is ignored on purpose
+  const { fullName, email, phone, password } = req.body;
+
+  try {
+    const result = await registerParent({ fullName, email, phone, password });
+    return successResponse(res, result, 'Account created successfully');
   } catch (err) {
     return errorResponse(res, err.message, err.status || 500);
   }
