@@ -34,3 +34,25 @@ export function validateProfileUpdate(body) {
   }
   return { data, errors };
 }
+
+export function validatePasswordChange(body) {
+  const errors = {};
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { errors: { body: 'Request body is required.' } };
+  }
+  const { currentPassword, newPassword } = body;
+
+  if (typeof currentPassword !== 'string' || !currentPassword) {
+    errors.currentPassword = 'Current password is required.';
+  }
+  if (typeof newPassword !== 'string' || !newPassword) {
+    errors.newPassword = 'New password is required.';
+  } else if (newPassword.trim().length < 8) {
+    errors.newPassword = 'New password must be at least 8 characters (spaces alone do not count).';
+  } else if (newPassword.length > 128) {
+    errors.newPassword = 'New password must be at most 128 characters.';
+  } else if (newPassword === currentPassword) {
+    errors.newPassword = 'New password must be different from your current password.';
+  }
+  return { errors };
+}

@@ -4,7 +4,9 @@ import {
   updateUserProfile,
 } from "../repositories/profile.repository.js";
 import { buildProfile, SUPPORTED_ROLES } from "../mappers/profile.mapper.js";
-import { validateProfileUpdate } from "../validators/profile.validator.js";
+import { validateProfileUpdate, validatePasswordChange } from "../validators/profile.validator.js";
+import { requestTokenWithPassword } from "./keycloakClient.service.js";
+import { resetUserPassword } from "./keycloakAdmin.service.js";
 
 function httpError(status, message) {
   const err = new Error(message);
@@ -39,4 +41,24 @@ export async function updateMyProfile(keycloakId, body) {
   }
   const updated = await updateUserProfile(keycloakId, data);
   return profileFor(updated);
+}
+
+export async function changeMyPassword(keycloakId, body) {
+  const user = await loadProfileUser(keycloakId);
+
+  const { errors } = validatePasswordChange(body);
+  if (Object.keys(errors).length) {
+    throw httpError(400, Object.values(errors).join(" "));
+  }
+
+  // Step 1: prove the user knows the current password (Keycloak login attempt)
+  try {
+    await requestTokenWithPassword(user.email, body.currentPassword);
+  } catch (err) {
+    if (err.status === 401) throw httpError(400, "Current password is incorrect.");
+    throw err;
+  }
+
+  // Step 2: set the new password in Keycloak
+  await resetUserPassword(keycloakId, body.newPassword);
 }

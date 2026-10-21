@@ -1,5 +1,5 @@
 import { successResponse, errorResponse } from "@vidyaconnect/shared";
-import { getMyProfile, updateMyProfile } from "../services/profile.service.js";
+import { getMyProfile, updateMyProfile, changeMyPassword } from "../services/profile.service.js";
 
 function handleError(res, err, label) {
   if (err.status) return errorResponse(res, err.message, err.status);
@@ -20,5 +20,14 @@ export const updateMyProfileController = async (req, res) => {
     return successResponse(res, await updateMyProfile(req.user.userId, req.body), "Profile updated");
   } catch (err) {
     return handleError(res, err, "updateMyProfile");
+  }
+};
+
+export const changeMyPasswordController = async (req, res) => {
+  try {
+    await changeMyPassword(req.user.userId, req.body);
+    return successResponse(res, null, "Password changed successfully");
+  } catch (err) {
+    return handleError(res, err, "changeMyPassword");
   }
 };
