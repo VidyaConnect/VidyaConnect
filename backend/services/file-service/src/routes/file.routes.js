@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/",
   auth,
-  rbac(["TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
+  rbac(["ADMIN", "TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
   fileController.listFiles
 );
 
