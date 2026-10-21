@@ -48,7 +48,7 @@ function personalSection(user, config) {
     fields: [
       { label: 'Full Name', value: user.fullName, editable: true },
       { label: 'Role', value: config.roleTitle },
-      { label: 'Email Address', value: user.email },
+      { label: 'Email Address', value: user.email, editable: true },
       { label: 'Department', value: user.department || NOT_PROVIDED },
       { label: 'Phone Number', value: user.phone || '', editable: true },
       { label: 'Joined Date', value: formatDateTime(user.createdAt) },

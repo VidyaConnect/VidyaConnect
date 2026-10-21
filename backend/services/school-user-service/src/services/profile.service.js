@@ -6,7 +6,8 @@ import {
 import { buildProfile, SUPPORTED_ROLES } from "../mappers/profile.mapper.js";
 import { validateProfileUpdate, validatePasswordChange } from "../validators/profile.validator.js";
 import { requestTokenWithPassword } from "./keycloakClient.service.js";
-import { resetUserPassword } from "./keycloakAdmin.service.js";
+import { resetUserPassword, updateKeycloakUser } from "./keycloakAdmin.service.js";
+import { findUserByEmail } from "../repositories/profile.repository.js";
 
 function httpError(status, message) {
   const err = new Error(message);
@@ -34,13 +35,53 @@ export async function getMyProfile(keycloakId) {
 }
 
 export async function updateMyProfile(keycloakId, body) {
-  await loadProfileUser(keycloakId);
-  const { data, errors } = validateProfileUpdate(body);
-  if (Object.keys(errors).length) {
-    throw httpError(400, Object.values(errors).join(" "));
+  const user = await loadProfileUser(keycloakId);
+
+  const { data, errors, currentPassword } = validateProfileUpdate(body);
+  if (Object.keys(errors).length) throw httpError(400, Object.values(errors).join(" "));
+
+  if (data.email === user.email) delete data.email;
+  if (data.fullName === user.fullName) delete data.fullName;
+  if (Object.keys(data).length === 0) return profileFor(user); // nothing really changed
+
+  const emailChanging = data.email !== undefined;
+  const nameChanging = data.fullName !== undefined;
+
+  if (emailChanging) {
+    if (!currentPassword) throw httpError(400, "Current password is required to change your email.");
+    try {
+      await requestTokenWithPassword(user.email, currentPassword);
+    } catch (err) {
+      if (err.status === 401) throw httpError(400, "Current password is incorrect.");
+      throw err;
+    }
+    if (await findUserByEmail(data.email)) throw httpError(409, "That email is already in use.");
   }
-  const updated = await updateUserProfile(keycloakId, data);
-  return profileFor(updated);
+
+  // Keycloak first, so a failure there saves nothing
+  if (emailChanging || nameChanging) {
+    await updateKeycloakUser(keycloakId, {
+      fullName: nameChanging ? data.fullName : undefined,
+      email: emailChanging ? data.email : undefined,
+    });
+  }
+
+  try {
+    return profileFor(await updateUserProfile(keycloakId, data));
+  } catch (err) {
+    if (emailChanging || nameChanging) {
+      try {
+        await updateKeycloakUser(keycloakId, {
+          fullName: nameChanging ? user.fullName : undefined,
+          email: emailChanging ? user.email : undefined,
+        });
+      } catch {
+        console.error("Rollback of the Keycloak update failed for", keycloakId);
+      }
+    }
+    if (err.code === "P2002") throw httpError(409, "That email is already in use.");
+    throw err;
+  }
 }
 
 export async function changeMyPassword(keycloakId, body) {

@@ -18,3 +18,5 @@ export const updateUserProfile = (keycloakId, data) =>
   prisma.user.update({ where: { keycloakId }, data, include: profileInclude });
 
 export const countSchools = () => prisma.school.count();
+
+export const findUserByEmail = (email) => prisma.user.findUnique({ where: { email } });

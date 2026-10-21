@@ -1,8 +1,10 @@
-const ALLOWED_FIELDS = ['fullName', 'phone'];
+const ALLOWED_FIELDS = ['fullName', 'phone', 'email', 'currentPassword'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateProfileUpdate(body) {
   const errors = {};
   const data = {};
+  let currentPassword;
 
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { data, errors: { body: 'Request body is required.' } };
@@ -29,10 +31,19 @@ export function validateProfileUpdate(body) {
     } else data.phone = phone;
   }
 
+  if ('email' in body) {
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    if (!email) errors.email = 'Email address is required.';
+    else if (email.length > 100 || !EMAIL_RE.test(email)) errors.email = 'Enter a valid email address.';
+    else data.email = email;
+  }
+
+  if (typeof body.currentPassword === 'string') currentPassword = body.currentPassword;
+
   if (!Object.keys(errors).length && !Object.keys(data).length) {
     errors.body = 'Nothing to update.';
   }
-  return { data, errors };
+  return { data, errors, currentPassword };
 }
 
 export function validatePasswordChange(body) {
