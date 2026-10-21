@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["attendance"]
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXEMPTED
+  NOT_MARKED
+
+  @@schema("attendance")
+}
+
+model ClassRosterEntry {
+  id          String   @id @default(uuid())
+  schoolId    String
+  classId     String
+  className   String
+  studentId   String
+  studentName String
+  rollNumber  String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([schoolId, studentId])
+  @@index([schoolId, classId])
+  @@map("class_roster_entries")
+  @@schema("attendance")
+}
+
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+  schoolId    String
+  classId     String
+  studentId   String
+  studentName String
+  rollNumber  String
+  date        DateTime         @db.Date
+  status      AttendanceStatus @default(NOT_MARKED)
+  markedById  String?
+  markedAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  absenceResponse AbsenceResponse?
+
+  @@unique([schoolId, studentId, date])
+  @@index([schoolId, classId, date])
+  @@index([schoolId, date])
+  @@map("attendance_records")
+  @@schema("attendance")
+}
+
+model AbsenceResponse {
+  id                 String           @id @default(uuid())
+  attendanceRecordId String           @unique
+  attendanceRecord   AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  schoolId           String
+  studentId          String
+  parentId           String
+  reason             String
+  fileId             String?
+  fileName           String?
+  submittedAt        DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([schoolId, studentId])
+  @@map("absence_responses")
+  @@schema("attendance")
+}
