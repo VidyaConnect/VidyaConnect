@@ -7,37 +7,48 @@ function handleError(res, error) {
   });
 }
 
-export async function markAttendance(req, res) {
+export async function getSummary(req, res) {
   try {
-    const data = await attendanceService.markAttendance(req.user, req.body);
-    return res.status(200).json({ success: true, data });
-  } catch (error) {
-    return handleError(res, error);
-  }
-}
-
-export async function getAttendanceByClass(req, res) {
-  try {
-    const data = await attendanceService.getAttendanceByClass(
+    const data = await attendanceService.getTeacherSummary(
       req.user,
-      req.params.classId,
-      req.query.date
+      req.query.classId,
+      req.headers.authorization
     );
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json(data);
   } catch (error) {
     return handleError(res, error);
   }
 }
 
-export async function getStudentAttendance(req, res) {
+export async function getAbsences(req, res) {
   try {
-    const data = await attendanceService.getStudentAttendance(
+    const data = await attendanceService.getAbsencesFollowUp(req.user);
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function getRoster(req, res) {
+  try {
+    const data = await attendanceService.getTeacherRoster(
+      req.user,
+      req.query.classId,
+      req.headers.authorization
+    );
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function markStudent(req, res) {
+  try {
+    const data = await attendanceService.markStudentAttendance(
       req.user,
       req.params.studentId,
-      {
-        startDate: req.query.startDate,
-        endDate: req.query.endDate,
-      }
+      req.body.status,
+      req.headers.authorization
     );
     return res.status(200).json({ success: true, data });
   } catch (error) {
@@ -45,21 +56,60 @@ export async function getStudentAttendance(req, res) {
   }
 }
 
-export async function submitAbsenceResponse(req, res) {
+export async function getAdminOverview(req, res) {
   try {
-    const data = await attendanceService.submitAbsenceResponse(req.user, req.body);
-    return res.status(201).json({ success: true, data });
+    const data = await attendanceService.getAdminOverview(req.user);
+    return res.status(200).json(data);
   } catch (error) {
     return handleError(res, error);
   }
 }
 
-export async function getAbsenceResponses(req, res) {
+export async function getAdminClassRoster(req, res) {
   try {
-    const data = await attendanceService.getAbsenceResponses(
+    const data = await attendanceService.getAdminClassRoster(
+      req.user,
+      req.params.classId
+    );
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function getParentAlert(req, res) {
+  try {
+    const data = await attendanceService.getParentAbsenceAlert(req.user);
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function submitAbsenceReason(req, res) {
+  try {
+    const data = await attendanceService.submitAbsenceReason(req.user, req.body);
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function getHistory(req, res) {
+  try {
+    const data = await attendanceService.getStudentAttendanceHistory(
       req.user,
       req.params.studentId
     );
+    return res.status(200).json(data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function linkDocument(req, res) {
+  try {
+    const data = await attendanceService.linkAbsenceDocument(req.user, req.body);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     return handleError(res, error);

@@ -4,39 +4,74 @@ import * as attendanceController from "../controllers/attendance.controller.js";
 
 const router = Router();
 
+router.get(
+  "/summary",
+  auth,
+  rbac(["TEACHER", "SCHOOL_ADMIN"]),
+  attendanceController.getSummary
+);
+
+router.get(
+  "/absences",
+  auth,
+  rbac(["SCHOOL_ADMIN", "ADMIN", "TEACHER"]),
+  attendanceController.getAbsences
+);
+
+router.get(
+  "/roster",
+  auth,
+  rbac(["TEACHER", "SCHOOL_ADMIN"]),
+  attendanceController.getRoster
+);
+
 router.post(
-  "/",
+  "/roster/:studentId",
   auth,
-  rbac(["TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
-  attendanceController.markAttendance
+  rbac(["TEACHER", "SCHOOL_ADMIN"]),
+  attendanceController.markStudent
 );
 
 router.get(
-  "/class/:classId",
+  "/admin/overview",
   auth,
-  rbac(["TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
-  attendanceController.getAttendanceByClass
+  rbac(["SCHOOL_ADMIN", "ADMIN"]),
+  attendanceController.getAdminOverview
 );
 
 router.get(
-  "/student/:studentId",
+  "/admin/classes/:classId/roster",
   auth,
-  rbac(["TEACHER", "SCHOOL_ADMIN", "PARENT", "STUDENT", "SUPER_ADMIN"]),
-  attendanceController.getStudentAttendance
+  rbac(["SCHOOL_ADMIN", "ADMIN"]),
+  attendanceController.getAdminClassRoster
+);
+
+router.get(
+  "/parent/alert",
+  auth,
+  rbac(["PARENT"]),
+  attendanceController.getParentAlert
 );
 
 router.post(
-  "/absence-response",
+  "/absence/reason",
   auth,
-  rbac(["PARENT", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
-  attendanceController.submitAbsenceResponse
+  rbac(["PARENT"]),
+  attendanceController.submitAbsenceReason
+);
+
+router.post(
+  "/absence/document",
+  auth,
+  rbac(["PARENT"]),
+  attendanceController.linkDocument
 );
 
 router.get(
-  "/absence-response/:studentId",
+  "/history/:studentId",
   auth,
-  rbac(["PARENT", "TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN"]),
-  attendanceController.getAbsenceResponses
+  rbac(["PARENT", "TEACHER", "SCHOOL_ADMIN"]),
+  attendanceController.getHistory
 );
 
 export default router;

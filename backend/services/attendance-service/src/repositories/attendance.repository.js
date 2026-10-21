@@ -1,115 +1,128 @@
 import prisma from "../config/prisma.js";
+import { startOfDay } from "../utils/attendanceMapper.js";
 
-export async function findOrCreateAttendanceRecord({
+export async function findRosterEntries(schoolId, classId) {
+  return prisma.classRosterEntry.findMany({
+    where: {
+      schoolId,
+      classId,
+      isActive: true,
+    },
+    orderBy: { rollNumber: "asc" },
+  });
+}
+
+export async function findRecordsForClassDate(schoolId, classId, date) {
+  return prisma.attendanceRecord.findMany({
+    where: {
+      schoolId,
+      classId,
+      date: startOfDay(date),
+    },
+    include: {
+      absenceResponse: true,
+    },
+    orderBy: { rollNumber: "asc" },
+  });
+}
+
+export async function findRecordsForSchoolDate(schoolId, date) {
+  return prisma.attendanceRecord.findMany({
+    where: {
+      schoolId,
+      date: startOfDay(date),
+    },
+    include: {
+      absenceResponse: true,
+    },
+    orderBy: [{ classId: "asc" }, { rollNumber: "asc" }],
+  });
+}
+
+export async function findRecordByStudentDate(schoolId, studentId, date) {
+  return prisma.attendanceRecord.findUnique({
+    where: {
+      schoolId_studentId_date: {
+        schoolId,
+        studentId,
+        date: startOfDay(date),
+      },
+    },
+    include: {
+      absenceResponse: true,
+    },
+  });
+}
+
+export async function upsertAttendanceRecord({
   schoolId,
   classId,
   studentId,
   studentName,
   rollNumber,
   date,
+  status,
   markedById,
 }) {
-  const existing = await prisma.attendanceRecord.findUnique({
+  return prisma.attendanceRecord.upsert({
     where: {
-      schoolId_studentId_date: { schoolId, studentId, date: new Date(date) },
-    },
-  });
-
-  if (existing) {
-    return prisma.attendanceRecord.update({
-      where: { id: existing.id },
-      data: {
-        status: "NOT_MARKED",
-        markedById,
-        markedAt: new Date(),
+      schoolId_studentId_date: {
+        schoolId,
+        studentId,
+        date: startOfDay(date),
       },
-    });
-  }
-
-  return prisma.attendanceRecord.create({
-    data: {
+    },
+    create: {
       schoolId,
       classId,
       studentId,
       studentName,
       rollNumber,
-      date: new Date(date),
-      status: "NOT_MARKED",
+      date: startOfDay(date),
+      status,
       markedById,
       markedAt: new Date(),
     },
+    update: {
+      status,
+      markedById,
+      markedAt: new Date(),
+    },
+    include: {
+      absenceResponse: true,
+    },
   });
 }
 
-export async function markAttendanceBatch(records) {
-  const results = [];
-
-  for (const record of records) {
-    const result = await prisma.attendanceRecord.upsert({
-      where: {
-        schoolId_studentId_date: {
-          schoolId: record.schoolId,
-          studentId: record.studentId,
-          date: new Date(record.date),
-        },
-      },
-      update: {
-        status: record.status,
-        markedById: record.markedById,
-        markedAt: new Date(),
-      },
-      create: {
-        schoolId: record.schoolId,
-        classId: record.classId,
-        studentId: record.studentId,
-        studentName: record.studentName,
-        rollNumber: record.rollNumber,
-        date: new Date(record.date),
-        status: record.status,
-        markedById: record.markedById,
-        markedAt: new Date(),
-      },
-    });
-    results.push(result);
-  }
-
-  return results;
-}
-
-export async function findAttendanceByClassAndDate(schoolId, classId, date) {
-  return prisma.attendanceRecord.findMany({
+export async function findLatestAbsentRecordForStudent(schoolId, studentId) {
+  return prisma.attendanceRecord.findFirst({
     where: {
       schoolId,
-      classId,
-      date: new Date(date),
+      studentId,
+      status: "ABSENT",
     },
-    orderBy: { rollNumber: "asc" },
-  });
-}
-
-export async function findAttendanceByStudent(schoolId, studentId, { startDate, endDate } = {}) {
-  const where = { schoolId, studentId };
-
-  if (startDate || endDate) {
-    where.date = {};
-    if (startDate) where.date.gte = new Date(startDate);
-    if (endDate) where.date.lte = new Date(endDate);
-  }
-
-  return prisma.attendanceRecord.findMany({
-    where,
+    include: {
+      absenceResponse: true,
+    },
     orderBy: { date: "desc" },
   });
 }
 
-export async function findRosterByClass(schoolId, classId) {
-  return prisma.classRosterEntry.findMany({
-    where: { schoolId, classId, isActive: true },
-    orderBy: { rollNumber: "asc" },
+export async function findStudentHistory(schoolId, studentId, limit = 365) {
+  return prisma.attendanceRecord.findMany({
+    where: {
+      schoolId,
+      studentId,
+    },
+    include: {
+      absenceResponse: true,
+    },
+    orderBy: { date: "desc" },
+    take: limit,
   });
 }
 
-export async function createAbsenceResponse({
+export async function upsertAbsenceResponse({
   attendanceRecordId,
   schoolId,
   studentId,
@@ -118,36 +131,44 @@ export async function createAbsenceResponse({
   fileId,
   fileName,
 }) {
-  return prisma.absenceResponse.create({
-    data: {
+  return prisma.absenceResponse.upsert({
+    where: { attendanceRecordId },
+    create: {
       attendanceRecordId,
       schoolId,
       studentId,
       parentId,
       reason,
-      fileId: fileId || null,
-      fileName: fileName || null,
+      fileId,
+      fileName,
+    },
+    update: {
+      reason,
+      fileId,
+      fileName,
+      parentId,
     },
   });
 }
 
-export async function findAbsenceResponseByRecord(attendanceRecordId) {
-  return prisma.absenceResponse.findUnique({
-    where: { attendanceRecordId },
+export async function listDistinctClasses(schoolId) {
+  return prisma.classRosterEntry.findMany({
+    where: { schoolId, isActive: true },
+    distinct: ["classId"],
+    select: {
+      classId: true,
+      className: true,
+    },
+    orderBy: { className: "asc" },
   });
 }
 
-export async function findAbsenceResponsesByStudent(schoolId, studentId) {
-  return prisma.absenceResponse.findMany({
-    where: { schoolId, studentId },
-    include: { attendanceRecord: true },
-    orderBy: { submittedAt: "desc" },
-  });
-}
-
-export async function updateAbsenceResponseFile(attendanceRecordId, fileId, fileName) {
-  return prisma.absenceResponse.update({
-    where: { attendanceRecordId },
-    data: { fileId, fileName },
+export async function findRosterEntryByStudent(schoolId, studentId) {
+  return prisma.classRosterEntry.findFirst({
+    where: {
+      schoolId,
+      studentId,
+      isActive: true,
+    },
   });
 }

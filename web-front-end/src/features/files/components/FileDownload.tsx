@@ -18,7 +18,13 @@ export default function FileDownload({ fileId, fileName }: FileDownloadProps) {
     setError(null);
     try {
       const data = await getDownloadUrl(fileId);
-      window.open(data.downloadUrl, "_blank");
+      const link = document.createElement("a");
+      link.href = data.downloadUrl;
+      link.download = data.fileName || fileName;
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Download failed");
     } finally {

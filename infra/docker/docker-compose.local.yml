@@ -111,13 +111,14 @@ services:
       SERVICES: s3
       DEFAULT_REGION: ap-southeast-1
       LOCALSTACK_HOST: localstack
+      FILES_BUCKET: vidyaconnect-files
 
     ports:
       - "4566:4566"
 
     volumes:
       - localstack_data:/var/lib/localstack
-      - ../localstack/init:/etc/localstack/init/ready.d
+      - ../localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
@@ -291,10 +292,14 @@ services:
       PORT: 3006
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=file"
       AWS_ENDPOINT: http://localstack:4566
+      AWS_PUBLIC_ENDPOINT: http://localhost:4566
       AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      S3_BUCKET_NAME: vidyaconnect-files-local
+      S3_BUCKET: vidyaconnect-files
+      WEB_ORIGIN: http://localhost:3000
+      AUTH_DISABLED: "false"
+      KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
     depends_on:
       postgres:
         condition: service_healthy
@@ -374,6 +379,7 @@ services:
       NODE_ENV: development
       NEXT_PUBLIC_API_BASE_URL: "http://localhost:3001/api"
       NEXT_PUBLIC_KEYCLOAK_URL: "http://localhost:8080"
+      NEXT_PUBLIC_FILE_API_URL: "http://localhost:3006"
 
     depends_on:
       - keycloak

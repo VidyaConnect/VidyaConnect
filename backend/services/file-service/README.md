@@ -4,6 +4,8 @@
 
 The File Service manages secure file upload, storage, and retrieval for VidyaConnect using **LocalStack S3** (dev) / **AWS S3** (prod), with **PostgreSQL** storing file metadata.
 
+The shared API accepts files up to 25 MiB. Feature pages can apply a stricter limit and allow PDFs/images through their file input. Uploads require an authenticated user with school context; public pre-registration uploads must continue through the onboarding service until a separate staging flow is designed.
+
 ## Responsibilities
 
 - Generate **pre-signed S3 upload URLs** so clients upload directly to S3 (no server-side streaming)
@@ -69,9 +71,14 @@ Key variables:
 |----------|---------|-------------|
 | `PORT` | `3006` | Service port |
 | `DATABASE_URL` | — | PostgreSQL connection string (`schema=file`) |
-| `AWS_ENDPOINT` | `http://localhost:4566` | LocalStack endpoint |
+| `AWS_ENDPOINT` | `http://localhost:4566` | S3 endpoint used for service-side operations |
+| `AWS_PUBLIC_ENDPOINT` | `http://localhost:4566` | Browser-reachable endpoint used when signing URLs |
 | `AWS_REGION` | `ap-southeast-1` | AWS region |
 | `AWS_ACCESS_KEY_ID` | `test` | LocalStack credential |
 | `AWS_SECRET_ACCESS_KEY` | `test` | LocalStack credential |
 | `S3_BUCKET` | `vidyaconnect-files` | S3 bucket name |
-| `AUTH_DISABLED` | `true` (dev) | Bypass JWT auth in development |
+| `S3_BUCKET` | `vidyaconnect-files` | S3 bucket name |
+| `WEB_ORIGIN` | `http://localhost:3000` | Allowed browser origin for the File Service API |
+| `AUTH_DISABLED` | `false` in Compose | Bypass JWT auth only for isolated local development |
+
+For Compose, keep `AWS_ENDPOINT=http://localstack:4566` and `AWS_PUBLIC_ENDPOINT=http://localhost:4566`: the first is reachable inside Docker, while the second is reachable by the browser. LocalStack must have CORS enabled for the frontend origin and the configured bucket.

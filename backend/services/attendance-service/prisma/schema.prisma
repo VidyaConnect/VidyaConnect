@@ -20,16 +20,16 @@ enum AttendanceStatus {
 }
 
 model ClassRosterEntry {
-  id          String   @id @default(uuid())
-  schoolId    String
-  classId     String
-  className   String
-  studentId   String
+  id         String   @id @default(uuid())
+  schoolId   String
+  classId    String
+  className  String
+  studentId  String
   studentName String
-  rollNumber  String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  rollNumber String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([schoolId, studentId])
   @@index([schoolId, classId])
@@ -38,18 +38,18 @@ model ClassRosterEntry {
 }
 
 model AttendanceRecord {
-  id          String           @id @default(uuid())
-  schoolId    String
-  classId     String
-  studentId   String
-  studentName String
-  rollNumber  String
-  date        DateTime         @db.Date
-  status      AttendanceStatus @default(NOT_MARKED)
-  markedById  String?
-  markedAt    DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id           String           @id @default(uuid())
+  schoolId     String
+  classId      String
+  studentId    String
+  studentName  String
+  rollNumber   String
+  date         DateTime         @db.Date
+  status       AttendanceStatus @default(NOT_MARKED)
+  markedById   String?
+  markedAt     DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   absenceResponse AbsenceResponse?
 

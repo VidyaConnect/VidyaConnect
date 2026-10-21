@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getUploadUrl, confirmUpload } from "../services/fileApi";
+import { uploadFile as uploadStoredFile } from "../services/fileApi";
 
 interface UseFileUploadReturn {
   uploadFile: (file: File, purpose?: string) => Promise<{ fileId: string }>;
@@ -21,41 +21,12 @@ export function useFileUpload(): UseFileUploadReturn {
     setProgress(0);
 
     try {
-      const uploadData = await getUploadUrl({
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size,
-        purpose,
+      const uploaded = await uploadStoredFile(file, purpose, (value) => {
+        setProgress(Math.round(value * 0.9));
       });
-
-      setProgress(30);
-
-      const xhr = new XMLHttpRequest();
-      await new Promise<void>((resolve, reject) => {
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            setProgress(30 + Math.round((e.loaded / e.total) * 50));
-          }
-        });
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
-        });
-        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-        xhr.open("PUT", uploadData.uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.send(file);
-      });
-
-      setProgress(80);
-
-      await confirmUpload(uploadData.fileId);
-
+      setProgress(95);
       setProgress(100);
-      return { fileId: uploadData.fileId };
+      return { fileId: uploaded.fileId };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed";
       setError(message);

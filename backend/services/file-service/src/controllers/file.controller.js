@@ -18,7 +18,11 @@ export async function getUploadUrl(req, res) {
 
 export async function getDownloadUrl(req, res) {
   try {
-    const data = await fileService.generateDownloadUrl(req.user, req.params.fileId);
+    const data = await fileService.generateDownloadUrl(
+      req.user,
+      req.params.fileId,
+      req.query.inline === "true"
+    );
     return res.status(200).json({ success: true, data });
   } catch (error) {
     return handleError(res, error);

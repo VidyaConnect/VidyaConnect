@@ -1,10 +1,11 @@
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import s3Client, { S3_BUCKET } from "../config/s3.js";
+import s3Client, { publicS3Client, S3_BUCKET } from "../config/s3.js";
 import * as fileRepository from "../repositories/file.repository.js";
 import crypto from "crypto";
 
 const PRESIGNED_URL_EXPIRY = 3600;
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 function generateS3Key(schoolId, originalName) {
   const timestamp = Date.now();
@@ -37,6 +38,17 @@ export async function generateUploadUrl(user, { fileName, contentType, fileSize,
     throw error;
   }
 
+  if (!Number.isInteger(fileSize) || fileSize <= 0) {
+    const error = new Error("fileSize must be a positive integer");
+    error.status = 400;
+    throw error;
+  }
+  if (fileSize > MAX_FILE_SIZE_BYTES) {
+    const error = new Error(`File exceeds the ${MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB limit`);
+    error.status = 413;
+    throw error;
+  }
+
   const s3Key = generateS3Key(schoolId, fileName);
 
   const fileRecord = await fileRepository.createFileMetadata({
@@ -45,7 +57,7 @@ export async function generateUploadUrl(user, { fileName, contentType, fileSize,
     fileName: s3Key.split("/").pop(),
     originalName: fileName,
     contentType,
-    fileSize: fileSize || 0,
+    fileSize,
     s3Key,
     s3Bucket: S3_BUCKET,
     purpose: purpose || null,
@@ -62,7 +74,7 @@ export async function generateUploadUrl(user, { fileName, contentType, fileSize,
     },
   });
 
-  const uploadUrl = await getSignedUrl(s3Client, command, {
+  const uploadUrl = await getSignedUrl(publicS3Client, command, {
     expiresIn: PRESIGNED_URL_EXPIRY,
   });
 
@@ -74,7 +86,7 @@ export async function generateUploadUrl(user, { fileName, contentType, fileSize,
   };
 }
 
-export async function generateDownloadUrl(user, fileId) {
+export async function generateDownloadUrl(user, fileId, inline = false) {
   const schoolId = requireSchoolId(user);
 
   const fileRecord = await fileRepository.findFileById(fileId);
@@ -91,8 +103,8 @@ export async function generateDownloadUrl(user, fileId) {
     throw error;
   }
 
-  if (fileRecord.status === "DELETED") {
-    const error = new Error("File has been deleted");
+  if (fileRecord.status !== "COMPLETED") {
+    const error = new Error("File upload is not complete or file is unavailable");
     error.status = 404;
     throw error;
   }
@@ -100,9 +112,11 @@ export async function generateDownloadUrl(user, fileId) {
   const command = new GetObjectCommand({
     Bucket: S3_BUCKET,
     Key: fileRecord.s3Key,
+    ResponseContentDisposition: `${inline ? "inline" : "attachment"}; filename="${fileRecord.originalName.replace(/[\\"\r\n]/g, "_")}"`,
+    ResponseContentType: fileRecord.contentType,
   });
 
-  const downloadUrl = await getSignedUrl(s3Client, command, {
+  const downloadUrl = await getSignedUrl(publicS3Client, command, {
     expiresIn: PRESIGNED_URL_EXPIRY,
   });
 
@@ -129,6 +143,35 @@ export async function confirmUpload(user, fileId) {
   if (fileRecord.schoolId !== schoolId) {
     const error = new Error("Access denied: file belongs to another school");
     error.status = 403;
+    throw error;
+  }
+
+  if (fileRecord.status !== "PENDING") {
+    const error = new Error("File is not awaiting upload confirmation");
+    error.status = 409;
+    throw error;
+  }
+
+  let uploadedObject;
+  try {
+    uploadedObject = await s3Client.send(new HeadObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: fileRecord.s3Key,
+    }));
+  } catch {
+    const error = new Error("Uploaded file was not found in storage");
+    error.status = 400;
+    throw error;
+  }
+
+  if (uploadedObject.ContentLength !== fileRecord.fileSize) {
+    const error = new Error("Uploaded file size does not match its metadata");
+    error.status = 400;
+    throw error;
+  }
+  if (uploadedObject.ContentType && uploadedObject.ContentType !== fileRecord.contentType) {
+    const error = new Error("Uploaded file content type does not match its metadata");
+    error.status = 400;
     throw error;
   }
 

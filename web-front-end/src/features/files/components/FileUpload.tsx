@@ -8,15 +8,30 @@ interface FileUploadProps {
   purpose?: string;
   onUploadComplete: (fileId: string, fileName: string) => void;
   accept?: string;
+  maxFileSizeBytes?: number;
+  label?: string;
 }
 
-export default function FileUpload({ purpose, onUploadComplete, accept }: FileUploadProps) {
+export default function FileUpload({
+  purpose,
+  onUploadComplete,
+  accept,
+  maxFileSizeBytes,
+  label = "Choose file to upload",
+}: FileUploadProps) {
   const { uploadFile, isUploading, error, progress } = useFileUpload();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setSelectionError(null);
     if (file) {
+      if (maxFileSizeBytes && file.size > maxFileSizeBytes) {
+        setSelectedFile(null);
+        setSelectionError(`File must be smaller than ${(maxFileSizeBytes / (1024 * 1024)).toFixed(0)} MB.`);
+        return;
+      }
       setSelectedFile(file);
     }
   };
@@ -33,6 +48,7 @@ export default function FileUpload({ purpose, onUploadComplete, accept }: FileUp
 
   const handleClear = () => {
     setSelectedFile(null);
+    setSelectionError(null);
   };
 
   return (
@@ -42,7 +58,7 @@ export default function FileUpload({ purpose, onUploadComplete, accept }: FileUp
           <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors">
             <Upload className="w-4 h-4 text-on-surface-variant" />
             <span className="text-sm text-on-surface-variant">
-              {selectedFile ? selectedFile.name : "Choose file to upload"}
+              {selectedFile ? selectedFile.name : label}
             </span>
           </div>
           <input
@@ -50,6 +66,9 @@ export default function FileUpload({ purpose, onUploadComplete, accept }: FileUp
             className="hidden"
             onChange={handleFileSelect}
             accept={accept}
+            onClick={(e) => {
+              e.currentTarget.value = "";
+            }}
           />
         </label>
       </div>
@@ -76,7 +95,7 @@ export default function FileUpload({ purpose, onUploadComplete, accept }: FileUp
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {(selectionError || error) && <p className="text-sm text-red-600">{selectionError || error}</p>}
 
       <button
         onClick={handleUpload}
