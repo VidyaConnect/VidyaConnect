@@ -83,7 +83,7 @@ function buildSections(user, config, displayId, extras) {
         fields: [
           { label: 'Access Level', value: 'Full System Access' },
           { label: 'Modules Access', value: 'All Modules' },
-          { label: 'Schools Access', value: `All ${count} schools` },
+          { label: 'Schools Access', value: count === 1 ? 'All 1 school' : `All ${count} schools` },
           { label: 'Data Access', value: 'Complete System Data' },
         ],
       },
