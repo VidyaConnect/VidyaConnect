@@ -60,6 +60,33 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiBody
   return body ?? {}
 }
 
+
+// Keeps the login copy of the user in sync, signs out if the login email changed
+function syncStoredUser(updated: UserProfile) {
+  if (typeof window === 'undefined') return
+  try {
+    const stored = JSON.parse(localStorage.getItem('user') || 'null')
+    if (!stored) return
+    const stat = (label: string) => updated.quickStats.find((s) => s.label === label)?.value
+    const newEmail = stat('Email')
+    if (newEmail && stored.email && newEmail.toLowerCase() !== String(stored.email).toLowerCase()) {
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
+      alert('Your email was updated. Please sign in again with your new email.')
+      window.location.href = '/login'
+      return
+    }
+    const phone = stat('Phone')
+    localStorage.setItem(
+      'user',
+      JSON.stringify({ ...stored, fullName: updated.fullName, phone: phone && phone !== 'Not provided' ? phone : stored.phone })
+    )
+  } catch {
+    /* ignore storage problems */
+  }
+}
+
 export async function getMyProfile(role: ProfileRole): Promise<UserProfile> {
   assertRole(role)
   const body = await request<UserProfile>('/profile/me')
@@ -76,12 +103,15 @@ export async function updateMyProfile(
   const payload: Record<string, string> = {}
   if (updatedFields['Full Name'] !== undefined) payload.fullName = updatedFields['Full Name']
   if (updatedFields['Phone Number'] !== undefined) payload.phone = updatedFields['Phone Number']
+  if (updatedFields['Email Address'] !== undefined) payload.email = updatedFields['Email Address']
+  if (updatedFields['Current Password'] !== undefined) payload.currentPassword = updatedFields['Current Password']
 
   const body = await request<UserProfile>('/profile/me', {
     method: 'PUT',
     body: JSON.stringify(payload),
   })
   if (!body.data) throw new Error('Profile data was missing from the response.')
+  syncStoredUser(body.data)
   return body.data
 }
 

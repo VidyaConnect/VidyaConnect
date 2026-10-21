@@ -52,6 +52,10 @@ export default function ProfileEditForm({ profile, onSave, onCancel, saving = fa
     Object.fromEntries(editableFields.map((field) => [field.label, field.value]))
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [currentPassword, setCurrentPassword] = useState('')
+  const originalEmail = editableFields.find((f) => f.label === 'Email Address')?.value ?? ''
+  const emailChanged =
+    'Email Address' in values && values['Email Address'].trim().toLowerCase() !== originalEmail.toLowerCase()
 
   // Close the modal when the Esc key is pressed (unless a save is in progress)
   useEffect(() => {
@@ -83,6 +87,11 @@ export default function ProfileEditForm({ profile, onSave, onCancel, saving = fa
       const message = validateField(field.label, trimmed)
       if (message) newErrors[field.label] = message
     })
+
+    if (emailChanged) {
+      if (!currentPassword) newErrors['Current Password'] = 'Enter your current password to change your email.'
+      else cleaned['Current Password'] = currentPassword
+    }
 
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) return
@@ -116,6 +125,25 @@ export default function ProfileEditForm({ profile, onSave, onCancel, saving = fa
               )}
             </div>
           ))}
+
+          {emailChanged && (
+            <div>
+              <label className="text-xs font-semibold text-[#8a8f98]">Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => {
+                  setCurrentPassword(e.target.value)
+                  if (errors['Current Password']) setErrors((p) => ({ ...p, 'Current Password': '' }))
+                }}
+                className="mt-1 w-full rounded-lg border border-[#d1d5db] px-3 py-2 text-sm text-[#1a1d21] focus:border-[#07356b] focus:outline-none"
+              />
+              {errors['Current Password'] && (
+                <p className="mt-1 text-xs font-semibold text-[#dc2626]">{errors['Current Password']}</p>
+              )}
+              <p className="mt-1 text-xs text-[#6b7280]">You will be signed out after changing your email.</p>
+            </div>
+          )}
 
           <div className="mt-6 flex justify-end gap-3">
             <button
