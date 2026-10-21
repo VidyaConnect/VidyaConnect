@@ -335,8 +335,13 @@ export default function ParentHomePage() {
           </Pressable>
         </Animated.View>
 
-        {/* Messages (navy stripe) */}
-        <Pressable style={styles.messagesCard}>
+                {/* Messages (navy stripe) */}
+        <Pressable
+          style={styles.messagesCard}
+          onPress={() => router.push("/messages/thread-1")}
+          accessibilityRole="button"
+          accessibilityLabel="Open messages"
+        >
           <View style={styles.messageIcon}>
             <Ionicons name="chatbox-ellipses-outline" size={24} color={colors.navy} />
             <View style={styles.redDot} />
@@ -348,7 +353,11 @@ export default function ParentHomePage() {
               <Text style={[styles.pendingText, { color: colors.navy }]}>2 unread</Text>
             </View>
           </View>
-          <Pressable style={styles.messagesLink} hitSlop={8}>
+          <Pressable
+            style={styles.messagesLink}
+            hitSlop={8}
+            onPress={() => router.push("/messages/thread-1")}
+          >
             <Text style={styles.messagesLinkText}>Open</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.navy} />
           </Pressable>
