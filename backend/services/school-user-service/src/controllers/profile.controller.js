@@ -1,13 +1,24 @@
 import { successResponse, errorResponse } from "@vidyaconnect/shared";
-import { getMyProfile } from "../services/profile.service.js";
+import { getMyProfile, updateMyProfile } from "../services/profile.service.js";
+
+function handleError(res, err, label) {
+  if (err.status) return errorResponse(res, err.message, err.status);
+  console.error(`${label} failed:`, err);
+  return errorResponse(res, "Something went wrong", 500);
+}
 
 export const getMyProfileController = async (req, res) => {
   try {
-    const profile = await getMyProfile(req.user.userId);
-    return successResponse(res, profile, "Profile retrieved");
+    return successResponse(res, await getMyProfile(req.user.userId), "Profile retrieved");
   } catch (err) {
-    if (err.status) return errorResponse(res, err.message, err.status);
-    console.error("getMyProfile failed:", err);
-    return errorResponse(res, "Something went wrong", 500);
+    return handleError(res, err, "getMyProfile");
+  }
+};
+
+export const updateMyProfileController = async (req, res) => {
+  try {
+    return successResponse(res, await updateMyProfile(req.user.userId, req.body), "Profile updated");
+  } catch (err) {
+    return handleError(res, err, "updateMyProfile");
   }
 };

@@ -80,6 +80,7 @@ model User {
   fullName String
   email    String  @unique
   phone    String?
+  department String?
 
   role Role
 
@@ -141,6 +142,10 @@ model Teacher {
   school   School @relation(fields: [schoolId], references: [id])
 
   classTeacherOf Class? @relation("ClassTeacher")
+  qualification   String?
+  subjects        String?
+  experienceYears Int?
+  classroom       String?
 
   isActive Boolean @default(true)
 

@@ -12,9 +12,9 @@ const profileInclude = {
 };
 
 export const findProfileUserByKeycloakId = (keycloakId) =>
-  prisma.user.findUnique({
-    where: { keycloakId },
-    include: profileInclude,
-  });
+  prisma.user.findUnique({ where: { keycloakId }, include: profileInclude });
+
+export const updateUserProfile = (keycloakId, data) =>
+  prisma.user.update({ where: { keycloakId }, data, include: profileInclude });
 
 export const countSchools = () => prisma.school.count();

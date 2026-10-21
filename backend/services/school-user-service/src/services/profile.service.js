@@ -1,5 +1,10 @@
-import { findProfileUserByKeycloakId, countSchools } from "../repositories/profile.repository.js";
+import {
+  findProfileUserByKeycloakId,
+  countSchools,
+  updateUserProfile,
+} from "../repositories/profile.repository.js";
 import { buildProfile, SUPPORTED_ROLES } from "../mappers/profile.mapper.js";
+import { validateProfileUpdate } from "../validators/profile.validator.js";
 
 function httpError(status, message) {
   const err = new Error(message);
@@ -17,8 +22,21 @@ export async function loadProfileUser(keycloakId) {
   return user;
 }
 
-export async function getMyProfile(keycloakId) {
-  const user = await loadProfileUser(keycloakId);
+async function profileFor(user) {
   const extras = user.role === "ADMIN" ? { schoolCount: await countSchools() } : {};
   return buildProfile(user, extras);
+}
+
+export async function getMyProfile(keycloakId) {
+  return profileFor(await loadProfileUser(keycloakId));
+}
+
+export async function updateMyProfile(keycloakId, body) {
+  await loadProfileUser(keycloakId);
+  const { data, errors } = validateProfileUpdate(body);
+  if (Object.keys(errors).length) {
+    throw httpError(400, Object.values(errors).join(" "));
+  }
+  const updated = await updateUserProfile(keycloakId, data);
+  return profileFor(updated);
 }
