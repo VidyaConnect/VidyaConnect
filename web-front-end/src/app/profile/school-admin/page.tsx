@@ -17,10 +17,12 @@ export default function SchoolAdminProfilePage() {
   const [saving, setSaving] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordSaving, setPasswordSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     getMyProfile('admin')
       .then(setProfile)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Could not load profile.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -30,24 +32,37 @@ export default function SchoolAdminProfilePage() {
 
   const handleSaveProfile = async (updatedFields: Record<string, string>) => {
     setSaving(true)
-    const updated = await updateMyProfile('admin', updatedFields)
-    setProfile({ ...updated })
-    setSaving(false)
-    setIsEditing(false)
+    try {
+      const updated = await updateMyProfile('admin', updatedFields)
+      setProfile({ ...updated })
+      setIsEditing(false)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Could not save your changes.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleChangePassword = async (payload: { currentPassword: string; newPassword: string }) => {
     setPasswordSaving(true)
     const result = await changeMyPassword('admin', payload)
     setPasswordSaving(false)
-    setIsChangingPassword(false)
+    if (result.success) setIsChangingPassword(false)
     alert(result.message)
   }
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f7f8fa]">
         <p className="text-sm text-[#6b7280]">Loading profile...</p>
+      </div>
+    )
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f7f8fa]">
+        <p className="text-sm font-semibold text-[#dc2626]">{error || 'Profile not available.'}</p>
       </div>
     )
   }
