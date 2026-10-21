@@ -11,6 +11,7 @@ interface FileFieldProps {
   accept?: string;
   maxFileSizeBytes?: number;
   label?: string;
+  scope?: "system";
 }
 
 /** Shared upload/display/download field for feature forms that store a file ID. */
@@ -22,6 +23,7 @@ export default function FileField({
   accept,
   maxFileSizeBytes,
   label,
+  scope,
 }: FileFieldProps) {
   return (
     <div className="space-y-3">
@@ -42,6 +44,7 @@ export default function FileField({
           accept={accept}
           maxFileSizeBytes={maxFileSizeBytes}
           label={label}
+          scope={scope}
           onUploadComplete={(uploadedFileId, uploadedFileName) =>
             onChange({ fileId: uploadedFileId, fileName: uploadedFileName })
           }

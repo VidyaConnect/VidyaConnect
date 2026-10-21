@@ -18,6 +18,7 @@ export async function getUploadUrl(payload: {
   contentType: string;
   fileSize: number;
   purpose?: string;
+  scope?: "system";
 }): Promise<UploadUrlResponse> {
   const response = await apiClient.post(`${FILE_API_BASE}/files/upload-url`, payload, { headers: authHeaders() });
   return response.data.data;
@@ -57,13 +58,15 @@ export async function listFiles(params?: {
 export async function uploadFile(
   file: File,
   purpose?: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  scope?: "system"
 ): Promise<{ fileId: string; fileName: string }> {
   const upload = await getUploadUrl({
     fileName: file.name,
     contentType: file.type || "application/octet-stream",
     fileSize: file.size,
     purpose,
+    scope,
   });
 
   await new Promise<void>((resolve, reject) => {

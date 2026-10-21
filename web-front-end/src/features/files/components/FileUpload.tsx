@@ -10,6 +10,7 @@ interface FileUploadProps {
   accept?: string;
   maxFileSizeBytes?: number;
   label?: string;
+  scope?: "system";
 }
 
 export default function FileUpload({
@@ -18,6 +19,7 @@ export default function FileUpload({
   accept,
   maxFileSizeBytes,
   label = "Choose file to upload",
+  scope,
 }: FileUploadProps) {
   const { uploadFile, isUploading, error, progress } = useFileUpload();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -39,7 +41,7 @@ export default function FileUpload({
   const handleUpload = async () => {
     if (!selectedFile) return;
     try {
-      const { fileId } = await uploadFile(selectedFile, purpose);
+      const { fileId } = await uploadFile(selectedFile, purpose, scope);
       onUploadComplete(fileId, selectedFile.name);
       setSelectedFile(null);
     } catch {

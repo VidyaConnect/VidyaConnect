@@ -6,6 +6,7 @@ const credentials = {
 };
 const region = process.env.AWS_REGION || "ap-southeast-1";
 
+// File service calls use the Docker network; signed URLs use the browser-facing host.
 const s3Client = new S3Client({
   endpoint: process.env.AWS_ENDPOINT || "http://localhost:4566",
   region,
@@ -13,7 +14,6 @@ const s3Client = new S3Client({
   forcePathStyle: true,
 });
 
-// Presigned URLs are opened by the browser, which cannot resolve Docker service names.
 export const publicS3Client = new S3Client({
   endpoint: process.env.AWS_PUBLIC_ENDPOINT || "http://localhost:4566",
   region,
@@ -21,6 +21,8 @@ export const publicS3Client = new S3Client({
   forcePathStyle: true,
 });
 
-export const S3_BUCKET = process.env.S3_BUCKET || "vidyaconnect-files";
+export const S3_BUCKET =
+  process.env.S3_BUCKET_NAME || process.env.S3_BUCKET || "vidyaconnect-files-local";
 
+export { s3Client };
 export default s3Client;

@@ -38,4 +38,4 @@ import FileImage from "@/features/files/components/FileImage";
 
 ## Current demo branch scope
 
-The file-storage branch contains the generic API and reusable controls. Existing demo pages must be wired to persist file IDs through their own APIs before those screens use central storage. In particular, the school verification form is currently an unauthenticated multipart registration flow, and the announcement backend currently does not persist the file ID supplied by its UI model.
+The announcement compose/list/feed pages use the shared field and persist one attachment ID on the announcement. School verification remains on its existing unauthenticated multipart registration flow because it runs before a school account or school ID exists. Other authenticated pages can reuse `FileField`, `FileUpload`, `FileDownload`, or `FileImage`, then persist the returned file ID on their own records.

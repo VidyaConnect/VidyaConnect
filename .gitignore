@@ -47,6 +47,14 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Expo / React Native generated artifacts
+.expo/
+.expo-shared/
+android/
+ios/
+web-build/
+metro-cache/
+
 # Optional npm cache directory
 .npm
 
@@ -147,3 +155,7 @@ vite.config.ts.timestamp-*
 .expo-shared/
 mobile-front-end/.expo/
 mobile-front-end/.expo-shared/
+
+.local-postgres/
+
+/infra/docker/docker-compose.local.yml

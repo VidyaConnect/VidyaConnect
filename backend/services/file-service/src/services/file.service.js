@@ -14,7 +14,10 @@ function generateS3Key(schoolId, originalName) {
   return `${schoolId}/${timestamp}-${randomId}-${sanitizedName}`;
 }
 
-function requireSchoolId(user) {
+function requireSchoolId(user, allowSystemScope = false) {
+  if (allowSystemScope && ["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+    return "__system__";
+  }
   if (!user.schoolId) {
     const error = new Error("School context is required");
     error.status = 403;
@@ -23,8 +26,22 @@ function requireSchoolId(user) {
   return user.schoolId;
 }
 
-export async function generateUploadUrl(user, { fileName, contentType, fileSize, purpose }) {
-  const schoolId = requireSchoolId(user);
+function assertFileAccess(user, fileRecord) {
+  if (fileRecord.schoolId === "__system__") return;
+  if (!user.schoolId || fileRecord.schoolId !== user.schoolId) {
+    const error = new Error("Access denied: file belongs to another school");
+    error.status = 403;
+    throw error;
+  }
+}
+
+export async function generateUploadUrl(user, { fileName, contentType, fileSize, purpose, scope }) {
+  if (scope === "system" && !["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+    const error = new Error("System-scoped uploads are restricted to administrators");
+    error.status = 403;
+    throw error;
+  }
+  const schoolId = scope === "system" ? "__system__" : requireSchoolId(user);
 
   if (!fileName) {
     const error = new Error("fileName is required");
@@ -87,8 +104,6 @@ export async function generateUploadUrl(user, { fileName, contentType, fileSize,
 }
 
 export async function generateDownloadUrl(user, fileId, inline = false) {
-  const schoolId = requireSchoolId(user);
-
   const fileRecord = await fileRepository.findFileById(fileId);
 
   if (!fileRecord) {
@@ -97,11 +112,7 @@ export async function generateDownloadUrl(user, fileId, inline = false) {
     throw error;
   }
 
-  if (fileRecord.schoolId !== schoolId) {
-    const error = new Error("Access denied: file belongs to another school");
-    error.status = 403;
-    throw error;
-  }
+  assertFileAccess(user, fileRecord);
 
   if (fileRecord.status !== "COMPLETED") {
     const error = new Error("File upload is not complete or file is unavailable");
@@ -130,8 +141,6 @@ export async function generateDownloadUrl(user, fileId, inline = false) {
 }
 
 export async function confirmUpload(user, fileId) {
-  const schoolId = requireSchoolId(user);
-
   const fileRecord = await fileRepository.findFileById(fileId);
 
   if (!fileRecord) {
@@ -140,8 +149,12 @@ export async function confirmUpload(user, fileId) {
     throw error;
   }
 
-  if (fileRecord.schoolId !== schoolId) {
-    const error = new Error("Access denied: file belongs to another school");
+  const isSystemUpload = fileRecord.schoolId === "__system__";
+  const isAuthorizedScope = isSystemUpload
+    ? ["ADMIN", "SUPER_ADMIN"].includes(user.role)
+    : fileRecord.schoolId === user.schoolId;
+  if (!isAuthorizedScope || fileRecord.uploadedBy !== user.userId) {
+    const error = new Error("Access denied: only the uploader can confirm this file");
     error.status = 403;
     throw error;
   }
@@ -189,7 +202,7 @@ export async function confirmUpload(user, fileId) {
 }
 
 export async function getFileMetadata(user, fileId) {
-  const schoolId = requireSchoolId(user);
+  const schoolId = requireSchoolId(user, true);
 
   const fileRecord = await fileRepository.findFileById(fileId);
 
@@ -199,14 +212,11 @@ export async function getFileMetadata(user, fileId) {
     throw error;
   }
 
-  if (fileRecord.schoolId !== schoolId) {
-    const error = new Error("Access denied: file belongs to another school");
-    error.status = 403;
-    throw error;
-  }
+  assertFileAccess(user, fileRecord);
 
   return {
     fileId: fileRecord.id,
+    schoolId: fileRecord.schoolId,
     fileName: fileRecord.originalName,
     contentType: fileRecord.contentType,
     fileSize: fileRecord.fileSize,
@@ -218,7 +228,7 @@ export async function getFileMetadata(user, fileId) {
 }
 
 export async function listFiles(user, { purpose, limit, offset } = {}) {
-  const schoolId = requireSchoolId(user);
+  const schoolId = requireSchoolId(user, true);
 
   const files = await fileRepository.findFilesBySchool(schoolId, {
     purpose,
@@ -239,7 +249,7 @@ export async function listFiles(user, { purpose, limit, offset } = {}) {
 }
 
 export async function deleteFile(user, fileId) {
-  const schoolId = requireSchoolId(user);
+  const schoolId = requireSchoolId(user, true);
 
   const fileRecord = await fileRepository.findFileById(fileId);
 
@@ -249,11 +259,7 @@ export async function deleteFile(user, fileId) {
     throw error;
   }
 
-  if (fileRecord.schoolId !== schoolId) {
-    const error = new Error("Access denied: file belongs to another school");
-    error.status = 403;
-    throw error;
-  }
+  assertFileAccess(user, fileRecord);
 
   try {
     const command = new DeleteObjectCommand({

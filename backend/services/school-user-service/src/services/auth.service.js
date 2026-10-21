@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { getSigningKey } from '@vidyaconnect/shared';
 import { findUserByKeycloakId } from '../repositories/user.repository.js';
-import { requestTokenWithPassword } from './keycloakClient.service.js';
+import { requestTokenWithPassword, requestTokenWithRefresh } from './keycloakClient.service.js';
 
 /**
  * Verifies an access token's signature using Keycloak's JWKS,
@@ -115,4 +115,11 @@ async function login(email, password) {
   return buildLoginResponse(tokens, user);
 }
 
-export { verifyAndDecodeToken, loadAndValidateUser, buildLoginResponse, login };
+async function refresh(refreshToken) {
+  const tokens = await requestTokenWithRefresh(refreshToken);
+  const decoded = await verifyAndDecodeToken(tokens.access_token);
+  const user = await loadAndValidateUser(decoded.sub);
+  return buildLoginResponse(tokens, user);
+}
+
+export { verifyAndDecodeToken, loadAndValidateUser, buildLoginResponse, login, refresh };

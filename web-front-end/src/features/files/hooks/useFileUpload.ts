@@ -4,7 +4,7 @@ import { useState } from "react";
 import { uploadFile as uploadStoredFile } from "../services/fileApi";
 
 interface UseFileUploadReturn {
-  uploadFile: (file: File, purpose?: string) => Promise<{ fileId: string }>;
+  uploadFile: (file: File, purpose?: string, scope?: "system") => Promise<{ fileId: string }>;
   isUploading: boolean;
   error: string | null;
   progress: number;
@@ -15,7 +15,7 @@ export function useFileUpload(): UseFileUploadReturn {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
 
-  async function uploadFile(file: File, purpose?: string): Promise<{ fileId: string }> {
+  async function uploadFile(file: File, purpose?: string, scope?: "system"): Promise<{ fileId: string }> {
     setIsUploading(true);
     setError(null);
     setProgress(0);
@@ -23,7 +23,7 @@ export function useFileUpload(): UseFileUploadReturn {
     try {
       const uploaded = await uploadStoredFile(file, purpose, (value) => {
         setProgress(Math.round(value * 0.9));
-      });
+      }, scope);
       setProgress(95);
       setProgress(100);
       return { fileId: uploaded.fileId };
