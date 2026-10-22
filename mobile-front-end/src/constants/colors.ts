@@ -27,5 +27,7 @@ export const colors = {
   avatarPurple: "#ede9fe",
   avatarTeal: "#ccfbf1",
   avatarLavender: "#e9d5ff",
-  profileCard: "#eef2f7"
+  profileCard: "#eef2f7",
+  chatBackground: "#f6f8fb",
+  headerSubtext: "#cbd5e1"
 };

@@ -1,0 +1,35 @@
+/* VidyaConnect chat palette. Keep in sync with mobile-front-end/src/constants/colors.ts */
+@theme {
+  --color-vc-bg: #f4f6f9;
+  --color-vc-surface: #ffffff;
+  --color-vc-navy: #1a3668;
+  --color-vc-primary: #0a6b5c;
+  --color-vc-primary-dark: #085548;
+  --color-vc-primary-light: #e6f4f1;
+  --color-vc-text: #0f172a;
+  --color-vc-text-2: #64748b;
+  --color-vc-muted: #94a3b8;
+  --color-vc-muted-soft: #f1f5f9;
+  --color-vc-border: #e2e8f0;
+  --color-vc-danger: #dc2626;
+  --color-vc-danger-soft: #fee2e2;
+  --color-vc-avatar-blue: #dbeafe;
+  --color-vc-avatar-purple: #ede9fe;
+  --color-vc-avatar-teal: #ccfbf1;
+  --color-vc-avatar-lavender: #e9d5ff;
+  --color-vc-chat-bg: #f6f8fb;
+  --color-vc-header-sub: #cbd5e1;
+
+  --animate-vc-pop: vc-pop 0.22s ease-out;
+
+  @keyframes vc-pop {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
