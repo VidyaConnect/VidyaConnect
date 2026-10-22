@@ -6,7 +6,7 @@ import {
   toDbStatus,
 } from "../utils/attendanceMapper.js";
 import * as attendanceRepository from "../repositories/attendance.repository.js";
-import { getTeacherClass } from "../clients/schoolUser.client.js";
+import { getSchoolId, getTeacherClass } from "../clients/schoolUser.client.js";
 
 
 function requireSchoolId(user) {
@@ -22,7 +22,7 @@ function requireSchoolId(user) {
 async function resolveClassId(user, classId, authHeader) {
   if (user.role === "TEACHER") {
     const info = await getTeacherClass(user, authHeader);
-    if (!info || info.schoolId !== user.schoolId) {
+    if (!info || (user.schoolId && info.schoolId !== user.schoolId)) {
       const error = new Error("No class is assigned to this teacher");
       error.status = 403;
       throw error;
@@ -77,7 +77,8 @@ async function buildRosterResponse(schoolId, classId, date = new Date()) {
 }
 
 export async function getTeacherSummary(user, classId, authHeader) {
-  const schoolId = requireSchoolId(user);
+  const teacherClass = user.role === "TEACHER" ? await getTeacherClass(user, authHeader) : null;
+  const schoolId = teacherClass?.schoolId || requireSchoolId(user);
   const resolvedClassId = await resolveClassId(user, classId, authHeader);
   const date = startOfDay();
   const { className, records } = await buildRosterResponse(
@@ -99,7 +100,8 @@ export async function getTeacherSummary(user, classId, authHeader) {
 }
 
 export async function getTeacherRoster(user, classId, authHeader) {
-  const schoolId = requireSchoolId(user);
+  const teacherClass = user.role === "TEACHER" ? await getTeacherClass(user, authHeader) : null;
+  const schoolId = teacherClass?.schoolId || requireSchoolId(user);
   const resolvedClassId = await resolveClassId(user, classId, authHeader);
   const { records } = await buildRosterResponse(
     schoolId,
@@ -111,7 +113,8 @@ export async function getTeacherRoster(user, classId, authHeader) {
 }
 
 export async function markStudentAttendance(user, studentId, status, authHeader) {
-  const schoolId = requireSchoolId(user);
+  const teacherClass = user.role === "TEACHER" ? await getTeacherClass(user, authHeader) : null;
+  const schoolId = teacherClass?.schoolId || requireSchoolId(user);
   const rosterEntry = await attendanceRepository.findRosterEntryByStudent(
     schoolId,
     studentId
@@ -124,8 +127,7 @@ export async function markStudentAttendance(user, studentId, status, authHeader)
   }
 
   if (user.role === "TEACHER") {
-    const info = await getTeacherClass(user, authHeader);
-    if (!info || rosterEntry.classId !== info.classId) {
+    if (!teacherClass || rosterEntry.classId !== teacherClass.classId) {
       const error = new Error("Student is not in your assigned class");
       error.status = 403;
       throw error;
@@ -148,8 +150,8 @@ export async function markStudentAttendance(user, studentId, status, authHeader)
   return mapStudentRecord(record);
 }
 
-export async function getAdminOverview(user) {
-  const schoolId = requireSchoolId(user);
+export async function getAdminOverview(user, authHeader) {
+  const schoolId = (await getSchoolId(user, authHeader)) || requireSchoolId(user);
   
 
   const classes = await attendanceRepository.listDistinctClasses(schoolId);
@@ -193,12 +195,13 @@ export async function getAdminOverview(user) {
   };
 }
 
-export async function getAbsencesFollowUp(user) {
-  const schoolId = requireSchoolId(user);
-  const records = await attendanceRepository.findRecordsForSchoolDate(
-    schoolId,
-    new Date()
-  );
+export async function getAbsencesFollowUp(user, authHeader) {
+  const teacherClass = user.role === "TEACHER" ? await getTeacherClass(user, authHeader) : null;
+  const schoolId = teacherClass?.schoolId || (await getSchoolId(user, authHeader)) || requireSchoolId(user);
+  const date = startOfDay();
+  const records = teacherClass
+    ? await attendanceRepository.findRecordsForClassDate(schoolId, teacherClass.classId, date)
+    : await attendanceRepository.findRecordsForSchoolDate(schoolId, date);
 
   const absentRecords = records.filter(r => r.status === "ABSENT");
 
@@ -213,8 +216,8 @@ export async function getAbsencesFollowUp(user) {
   }));
 }
 
-export async function getAdminClassRoster(user, classId) {
-  const schoolId = requireSchoolId(user);
+export async function getAdminClassRoster(user, classId, authHeader) {
+  const schoolId = (await getSchoolId(user, authHeader)) || requireSchoolId(user);
   const { records } = await buildRosterResponse(
     schoolId,
     classId,

@@ -8,6 +8,7 @@ import AttendanceCard from '@/features/attendance/components/AttendanceCard'
 import StudentRoster from '@/components/StudentRoster'
 import AbsenceFollowUp from '@/components/AbsenceFollowUp'
 import { useAttendance, useAbsenceFollowUp } from '@/features/attendance/hooks'
+import { getAttendanceDate } from '@/features/attendance/services/attendanceService'
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -19,14 +20,12 @@ import {
 } from '@/components/Icons'
 
 function formatDateInput(d: Date): string {
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const yyyy = d.getFullYear()
-  return `${mm}/${dd}/${yyyy}`
-}
-
-function formatTodayIso(): string {
-  return new Date().toISOString().split('T')[0]
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Colombo',
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(d)
 }
 
 export default function TeacherAttendancePage() {
@@ -50,7 +49,7 @@ export default function TeacherAttendancePage() {
   } = useAttendance()
 
   const { followUps, updateFollowUp } = useAbsenceFollowUp()
-  const currentDate = formatTodayIso()
+  const currentDate = getAttendanceDate()
   const displayDate = formatDateInput(new Date())
 
   const filteredStudents = useMemo(() => {

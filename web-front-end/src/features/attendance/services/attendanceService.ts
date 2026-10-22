@@ -3,6 +3,16 @@ import { fetchWithAuth } from '@/services/fetchWithAuth'
 
 const API_BASE = process.env.NEXT_PUBLIC_ATTENDANCE_API_URL || 'http://localhost:3003'
 
+export function getAttendanceDate(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Colombo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? ''
+  return `${part('year')}-${part('month')}-${part('day')}`
+}
 
 function getAuthHeaders(): HeadersInit {
   const headers: Record<string, string> = {
@@ -111,7 +121,7 @@ export const attendanceService = {
     const params = classId ? `?classId=${encodeURIComponent(classId)}` : ''
     const roster = await request<RosterStudentResponse[]>(`/attendance/roster${params}`)
 
-    const today = new Date().toISOString().split('T')[0]
+    const today = getAttendanceDate()
 
     return roster.map((s) => {
       const shortStatus = STATUS_TO_SHORT[s.status] || 'N'
@@ -125,7 +135,7 @@ export const attendanceService = {
         records: [
           {
             date: today,
-            status: shortStatus === 'N' ? 'P' : (shortStatus as 'P' | 'A' | 'L' | 'E'),
+            status: shortStatus,
           },
         ],
         presentCount: s.status === 'present' || s.status === 'PRESENT' ? 1 : 0,
@@ -156,6 +166,7 @@ export const attendanceService = {
     const total = data.present + data.absent + data.late + data.notMarked
 
     return {
+      className: data.className,
       presentToday: data.present,
       absentToday: data.absent,
       lateToday: data.late,
@@ -167,7 +178,7 @@ export const attendanceService = {
 
   markAllPresent: async (classId?: string): Promise<boolean> => {
     const students = await attendanceService.getStudentsByClass(classId)
-    const today = new Date().toISOString().split('T')[0]
+    const today = getAttendanceDate()
 
     await Promise.all(
       students.map((s) => attendanceService.updateAttendance(s.student.id, today, 'P'))

@@ -10,7 +10,7 @@ export interface Student {
 
 export interface AttendanceRecord {
   studentId: string
-  status: 'P' | 'A' | 'L' | 'E' // Present, Absent, Late, Exempted
+  status: 'P' | 'A' | 'L' | 'E' | 'N' // Present, Absent, Late, Exempted, Not marked
   date: string
   remarks?: string
 }
@@ -50,6 +50,7 @@ export interface AbsenceFollowUp {
 }
 
 export interface AttendanceSummary {
+  className?: string
   presentToday: number
   absentToday: number
   lateToday: number

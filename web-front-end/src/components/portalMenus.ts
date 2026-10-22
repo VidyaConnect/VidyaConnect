@@ -15,7 +15,7 @@ export const teacherMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/teacher' },
   { label: 'Announcements', href: '/announcements/teacher-feed' },
   { label: 'Attendance', href: '/attendance/teacher' },
-  { label: 'Assignments', href: '#' },
+  { label: 'Assignments', href: '/assignments/teacher' },
   { label: 'Community', href: '#' },
   { label: 'Calendar', href: '#' },
   { label: 'Messages', href: '#' },

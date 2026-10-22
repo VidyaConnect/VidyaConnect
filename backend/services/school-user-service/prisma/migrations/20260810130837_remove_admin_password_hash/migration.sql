@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE "schools" DROP COLUMN "adminPasswordHash";
+ALTER TABLE "school_user"."schools" DROP COLUMN "adminPasswordHash";

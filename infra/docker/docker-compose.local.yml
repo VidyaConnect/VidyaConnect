@@ -43,7 +43,7 @@ services:
     container_name: vidyaconnect-keycloak
     restart: unless-stopped
 
-    command: start-dev
+    command: start-dev --import-realm
 
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
@@ -59,6 +59,8 @@ services:
 
     ports:
       - "8080:8080"
+    volumes:
+      - ../keycloak/export:/opt/keycloak/data/import:ro
 
     depends_on:
       postgres:
@@ -141,15 +143,17 @@ services:
       NODE_ENV: development
       PORT: 3001
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=school_user"
+      AUTH_DISABLED: "false"
       KEYCLOAK_TOKEN_URL: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/token"
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
       KEYCLOAK_CLIENT_ID: "school-user-service"
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-vidyaconnect-local-school-user-service}
       AWS_ENDPOINT: "http://localstack:4566"
       AWS_REGION: "ap-southeast-1"
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
       S3_BUCKET_NAME: "vidyaconnect-files-local"
+    command: sh -c "npx prisma migrate deploy && npm start"
     depends_on:
       postgres:
         condition: service_healthy
@@ -186,11 +190,14 @@ services:
       AUTH_DISABLED: "false"
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
       FILE_SERVICE_URL: "http://file-service:3006"
+      SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
 
     depends_on:
       postgres:
         condition: service_healthy
       file-service:
+        condition: service_started
+      school-user-service:
         condition: service_started
       keycloak:
         condition: service_started
@@ -198,6 +205,33 @@ services:
     networks:
       - vidyaconnect-network
 
+  assignment-service:
+    build:
+      context: ../../backend/services
+      dockerfile: assignment-service/Dockerfile
+    container_name: vidyaconnect-assignment-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=assignment"
+      AUTH_DISABLED: "false"
+      KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
+      ATTENDANCE_SERVICE_URL: "http://attendance-service:3003"
+      WEB_ORIGIN: "http://localhost:3000"
+    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      school-user-service:
+        condition: service_started
+      attendance-service:
+        condition: service_started
+    networks:
+      - vidyaconnect-network
   # ── Attendance Service ───────────────────
   attendance-service:
     image: node:20-alpine
@@ -211,7 +245,7 @@ services:
       - ../../backend/services/shared:/shared
       - attendance_node_modules:/app/node_modules
 
-    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+    command: sh -c "npm install && node scripts/prisma-local-engine.mjs generate && node scripts/prisma-local-engine.mjs migrate deploy && npm run dev"
 
     ports:
       - "3003:3003"
@@ -228,31 +262,7 @@ services:
       postgres:
         condition: service_healthy
       keycloak:
-           condition: service_started
-
-    networks:
-      - vidyaconnect-network
-
-
-  # ── Assignment Service ───────────────────
-  assignment-service:
-    image: node:20-alpine
-    container_name: vidyaconnect-assignment-service
-    restart: unless-stopped
-
-    command: sh -c "echo 'Assignment Service placeholder' && sleep infinity"
-
-    ports:
-      - "3004:3004"
-
-    environment:
-      NODE_ENV: development
-      PORT: 3004
-      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=assignment"
-
-    depends_on:
-      postgres:
-        condition: service_healthy
+        condition: service_started
 
     networks:
       - vidyaconnect-network
@@ -304,11 +314,14 @@ services:
       WEB_ORIGIN: http://localhost:3000
       AUTH_DISABLED: "false"
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
     depends_on:
       postgres:
         condition: service_healthy
       localstack:
         condition: service_healthy
+      school-user-service:
+        condition: service_started
     networks:
       - vidyaconnect-network
 
@@ -384,10 +397,14 @@ services:
       NEXT_PUBLIC_API_BASE_URL: "http://localhost:3001/api"
       NEXT_PUBLIC_KEYCLOAK_URL: "http://localhost:8080"
       NEXT_PUBLIC_FILE_API_URL: "http://localhost:3006"
+      NEXT_PUBLIC_ASSIGNMENT_API_URL: "http://localhost:3004"
 
     depends_on:
       - keycloak
       - school-user-service
+      - assignment-service
+      - attendance-service
+      - file-service
 
     networks:
       - vidyaconnect-network

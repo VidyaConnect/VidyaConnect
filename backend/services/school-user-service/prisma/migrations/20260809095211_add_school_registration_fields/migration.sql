@@ -14,18 +14,18 @@
 
 */
 -- CreateEnum
-CREATE TYPE "RegistrationStatus" AS ENUM ('UNDER_REVIEW', 'APPROVED', 'REJECTED');
+CREATE TYPE "school_user"."RegistrationStatus" AS ENUM ('UNDER_REVIEW', 'APPROVED', 'REJECTED');
 
 -- AlterTable
-ALTER TABLE "schools" ADD COLUMN     "adminEmail" TEXT NOT NULL,
-ADD COLUMN     "adminFirstName" TEXT NOT NULL,
-ADD COLUMN     "adminLastName" TEXT NOT NULL,
-ADD COLUMN     "adminPasswordHash" TEXT NOT NULL,
-ADD COLUMN     "district" TEXT NOT NULL,
-ADD COLUMN     "principalName" TEXT NOT NULL,
-ADD COLUMN     "region" TEXT NOT NULL,
-ADD COLUMN     "schoolType" TEXT NOT NULL,
-ADD COLUMN     "status" "RegistrationStatus" NOT NULL DEFAULT 'UNDER_REVIEW',
-ADD COLUMN     "studentCount" INTEGER NOT NULL,
-ADD COLUMN     "teacherCount" INTEGER NOT NULL,
+ALTER TABLE "school_user"."schools" ADD COLUMN     "adminEmail" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "adminFirstName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "adminLastName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "adminPasswordHash" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "district" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "principalName" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "region" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "schoolType" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "status" "school_user"."RegistrationStatus" NOT NULL DEFAULT 'UNDER_REVIEW',
+ADD COLUMN     "studentCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "teacherCount" INTEGER NOT NULL DEFAULT 0,
 ADD COLUMN     "verificationDocUrl" TEXT;

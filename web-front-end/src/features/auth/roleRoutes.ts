@@ -2,4 +2,5 @@
   ADMIN: "/dashboard/admin",
   SCHOOL_ADMIN: "/dashboard/school-admin",
   TEACHER: "/dashboard/teacher",
+  STUDENT: "/dashboard/student",
 };

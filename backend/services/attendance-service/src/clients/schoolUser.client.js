@@ -3,6 +3,23 @@ const BASE =
 const cache = new Map();
 const TTL_MS = 60_000;
 
+export async function getSchoolId(user, authHeader) {
+  if (user.schoolId) return user.schoolId;
+
+  const hit = cache.get(`school:${user.userId}`);
+  if (hit && hit.expires > Date.now()) return hit.value;
+
+  const res = await fetch(`${BASE}/api/users/me`, {
+    headers: { Authorization: authHeader },
+  });
+  if (!res.ok) return null;
+
+  const payload = await res.json();
+  const schoolId = payload?.data?.schoolId || payload?.data?.school?.id || null;
+  if (schoolId) cache.set(`school:${user.userId}`, { value: schoolId, expires: Date.now() + TTL_MS });
+  return schoolId;
+}
+
 export async function getTeacherClass(user, authHeader) {
   const hit = cache.get(user.userId);
   if (hit && hit.expires > Date.now()) return hit.value;

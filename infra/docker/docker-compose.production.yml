@@ -115,6 +115,9 @@ services:
 
   # ── Assignment Service ───────────────────────────────────────
   assignment-service:
+    build:
+      context: ../../backend/services
+      dockerfile: assignment-service/Dockerfile
     image: ${ECR_REGISTRY}/vidyaconnect-assignment-service:${IMAGE_TAG}
     container_name: vidyaconnect-assignment-service
     restart: always
@@ -122,12 +125,18 @@ services:
       NODE_ENV: production
       PORT: 3004
       DATABASE_URL: ${ASSIGNMENT_DB_URL}
+      SCHOOL_USER_SERVICE_URL: http://school-user-service:3001
+      ATTENDANCE_SERVICE_URL: http://attendance-service:3003
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs
     depends_on:
       postgres:
         condition: service_healthy
+      school-user-service:
+        condition: service_started
+      attendance-service:
+        condition: service_started
     networks:
       - vidyaconnect-network
-
   # ── Consent Form Service ─────────────────────────────────────
   consent-form-service:
     image: ${ECR_REGISTRY}/vidyaconnect-consent-form-service:${IMAGE_TAG}
@@ -156,6 +165,7 @@ services:
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      SCHOOL_USER_SERVICE_URL: ${SCHOOL_USER_SERVICE_URL:-http://school-user-service:3001}
     depends_on:
       postgres:
         condition: service_healthy

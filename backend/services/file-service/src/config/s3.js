@@ -12,6 +12,8 @@ const s3Client = new S3Client({
   region,
   credentials,
   forcePathStyle: true,
+  // Keep the presigned browser PUT compatible with LocalStack and XHR uploads.
+  requestChecksumCalculation: "WHEN_REQUIRED",
 });
 
 export const publicS3Client = new S3Client({
@@ -19,6 +21,7 @@ export const publicS3Client = new S3Client({
   region,
   credentials,
   forcePathStyle: true,
+  requestChecksumCalculation: "WHEN_REQUIRED",
 });
 
 export const S3_BUCKET =

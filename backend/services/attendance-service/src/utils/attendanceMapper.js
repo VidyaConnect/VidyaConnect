@@ -33,9 +33,14 @@ export function toApiStatus(status) {
 }
 
 export function startOfDay(date = new Date()) {
-  const value = new Date(date);
-  value.setHours(0, 0, 0, 0);
-  return value;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Colombo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(date));
+  const part = (type) => parts.find((item) => item.type === type)?.value;
+  return new Date(Date.UTC(Number(part("year")), Number(part("month")) - 1, Number(part("day"))));
 }
 
 export function formatDisplayDate(date = new Date()) {
@@ -44,6 +49,7 @@ export function formatDisplayDate(date = new Date()) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "Asia/Colombo",
   });
 }
 

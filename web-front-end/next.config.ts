@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/api/assignments/:path*",
+        destination: "http://assignment-service:3004/assignments/:path*",
+      },
+      {
+        source: "/api/assignment-classes/:path*",
+        destination: "http://assignment-service:3004/classes/:path*",
+      },
+      {
         source: "/api/announcements/:path*",
         destination: "http://announcement-service:3002/api/announcements/:path*",
       },
@@ -18,7 +26,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api/files/:path*",
-        destination: "http://file-service:3006/api/files/:path*",
+        destination: "http://file-service:3006/files/:path*",
       },
       // general fallback, must stay last
       {

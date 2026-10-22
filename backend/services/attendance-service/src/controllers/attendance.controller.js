@@ -22,7 +22,10 @@ export async function getSummary(req, res) {
 
 export async function getAbsences(req, res) {
   try {
-    const data = await attendanceService.getAbsencesFollowUp(req.user);
+    const data = await attendanceService.getAbsencesFollowUp(
+      req.user,
+      req.headers.authorization
+    );
     return res.status(200).json(data);
   } catch (error) {
     return handleError(res, error);
@@ -58,7 +61,10 @@ export async function markStudent(req, res) {
 
 export async function getAdminOverview(req, res) {
   try {
-    const data = await attendanceService.getAdminOverview(req.user);
+    const data = await attendanceService.getAdminOverview(
+      req.user,
+      req.headers.authorization
+    );
     return res.status(200).json(data);
   } catch (error) {
     return handleError(res, error);
@@ -69,7 +75,8 @@ export async function getAdminClassRoster(req, res) {
   try {
     const data = await attendanceService.getAdminClassRoster(
       req.user,
-      req.params.classId
+      req.params.classId,
+      req.headers.authorization
     );
     return res.status(200).json(data);
   } catch (error) {

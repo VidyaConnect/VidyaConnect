@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { StudentAttendance, AttendanceRecord, AbsenceFollowUp, ClassInfo, AttendanceSummary } from './types'
-import { attendanceService } from '@/features/attendance/services/attendanceService'
+import { attendanceService, getAttendanceDate } from '@/features/attendance/services/attendanceService'
 
 export const useAttendance = () => {
   const [students, setStudents] = useState<StudentAttendance[]>([])
@@ -35,6 +35,7 @@ export const useAttendance = () => {
       setSelectedClass((prev) => ({
         ...prev,
         id: classId || prev.id,
+        name: summaryData.className || prev.name,
         totalStudents: summaryData.totalEnrollment,
       }))
     } catch (e: unknown) {
@@ -90,11 +91,11 @@ export const useAttendance = () => {
   const saveAttendance = useCallback(async () => {
     setLoading(true)
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getAttendanceDate()
       const records = students
         .map((s) => {
           const todayRec = s.records.find((r) => r.date === today)
-          if (!todayRec) return null
+          if (!todayRec || todayRec.status === 'N') return null
           return { studentId: s.student.id, status: todayRec.status as 'P' | 'A' | 'L' | 'E' }
         })
         .filter(Boolean) as Array<{ studentId: string; status: 'P' | 'A' | 'L' | 'E' }>
@@ -134,7 +135,7 @@ export const useAbsenceFollowUp = () => {
     try {
       const data = await attendanceService.getAbsences()
       // Map raw API data into AbsenceFollowUp shape
-      const today = new Date().toISOString().split('T')[0]
+      const today = getAttendanceDate()
       setFollowUps(
         data.map((d) => ({
           studentId: d.studentId,

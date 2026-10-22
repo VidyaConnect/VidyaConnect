@@ -1,4 +1,4 @@
-import apiClient from "@/services/apiClient";
+import { fetchWithAuth } from "@/services/fetchWithAuth";
 import type {
   UploadUrlResponse,
   DownloadUrlResponse,
@@ -8,9 +8,19 @@ import type {
 
 const FILE_API_BASE = process.env.NEXT_PUBLIC_FILE_API_URL || "http://localhost:3006";
 
-function authHeaders(): Record<string, string> {
-  const token = typeof window === "undefined" ? null : localStorage.getItem("accessToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+async function requestData<T>(url: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetchWithAuth(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...((init.headers as Record<string, string>) || {}),
+    },
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(body?.message || `Request failed with status code ${response.status}`);
+  }
+  return body.data as T;
 }
 
 export async function getUploadUrl(payload: {
@@ -20,29 +30,30 @@ export async function getUploadUrl(payload: {
   purpose?: string;
   scope?: "system";
 }): Promise<UploadUrlResponse> {
-  const response = await apiClient.post(`${FILE_API_BASE}/files/upload-url`, payload, { headers: authHeaders() });
-  return response.data.data;
+  return requestData<UploadUrlResponse>(`${FILE_API_BASE}/files/upload-url`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function confirmUpload(fileId: string): Promise<ConfirmUploadResponse> {
-  const response = await apiClient.post(`${FILE_API_BASE}/files/${fileId}/confirm`, undefined, { headers: authHeaders() });
-  return response.data.data;
+  return requestData<ConfirmUploadResponse>(`${FILE_API_BASE}/files/${encodeURIComponent(fileId)}/confirm`, {
+    method: "POST",
+  });
 }
 
 export async function getDownloadUrl(
   fileId: string,
   options: { inline?: boolean } = {}
 ): Promise<DownloadUrlResponse> {
-  const response = await apiClient.get(`${FILE_API_BASE}/files/${fileId}/download-url`, {
-    headers: authHeaders(),
-    params: options.inline ? { inline: "true" } : undefined,
-  });
-  return response.data.data;
+  const query = options.inline ? "?inline=true" : "";
+  return requestData<DownloadUrlResponse>(
+    `${FILE_API_BASE}/files/${encodeURIComponent(fileId)}/download-url${query}`
+  );
 }
 
 export async function getFileMetadata(fileId: string): Promise<FileMetadata> {
-  const response = await apiClient.get(`${FILE_API_BASE}/files/${fileId}`, { headers: authHeaders() });
-  return response.data.data;
+  return requestData<FileMetadata>(`${FILE_API_BASE}/files/${encodeURIComponent(fileId)}`);
 }
 
 export async function listFiles(params?: {
@@ -50,8 +61,13 @@ export async function listFiles(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FileMetadata[]> {
-  const response = await apiClient.get(`${FILE_API_BASE}/files/`, { params, headers: authHeaders() });
-  return response.data.data;
+  const query = new URLSearchParams();
+  if (params?.purpose) query.set("purpose", params.purpose);
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  if (params?.offset !== undefined) query.set("offset", String(params.offset));
+  const queryString = query.toString();
+  const suffix = queryString ? `?${queryString}` : "";
+  return requestData<FileMetadata[]>(`${FILE_API_BASE}/files/${suffix}`);
 }
 
 /** Upload one file for any feature page and return its reusable storage ID. */
