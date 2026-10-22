@@ -1,11 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import SubNav from '@/components/SubNav'
 import Topbar from '@/components/Topbar'
 import { teacherMenu } from '@/components/portalMenus'
 import { useAuth } from '@/features/auth/hooks/userAuth'
+import { useInbox } from '@/features/communication/hooks/useInbox'
+import { Avatar } from '@/features/communication/components/Avatar'
+import { timeAgo } from '@/features/communication/utils/format'
+
+// TODO: replace with the teacher's real assigned class once the classes API exists
+const COMMUNITY_CLASS_ID = '8-a'
 
 // Card 1 icon (Graduation cap)
 const CapIcon = () => (
@@ -47,6 +54,11 @@ export default function TeacherDashboard() {
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
 
+  const { chats, totalUnread } = useInbox(COMMUNITY_CLASS_ID)
+  const recentChats = chats.slice(0, 2) // already sorted newest first
+  const communityHref = `/classes/${COMMUNITY_CLASS_ID}/community`
+  const inboxHref = `/classes/${COMMUNITY_CLASS_ID}/inbox`
+
   return (
     <div className="min-h-screen bg-[#f7f8fa] font-sans text-[#25272c]">
       <header className="sticky top-0 z-30">
@@ -59,9 +71,11 @@ export default function TeacherDashboard() {
         <SubNav items={teacherMenu} />
       </header>
 
-      <main className="mx-auto w-full max-w-[1480px] px-6 pb-8 pt-8">        {/* Welcome message */}
+      <main className="mx-auto w-full max-w-[1480px] px-6 pb-8 pt-8">
+        {/* Welcome message */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Good morning, {user?.fullName}</h1>          <p className="mt-1.5 text-sm text-[#555962]">Here's what's happening in your classes today.</p>
+          <h1 className="text-2xl font-bold leading-tight text-[#003b78]">Good morning, {user?.fullName}</h1>
+          <p className="mt-1.5 text-sm text-[#555962]">Here's what's happening in your classes today.</p>
         </div>
 
         {/* 4 Cards Grid */}
@@ -88,16 +102,19 @@ export default function TeacherDashboard() {
             </div>
           </div>
 
-          {/* Card 3: Unread Messages */}
-          <div className="flex items-center gap-4 rounded-lg border border-[#cfd4dd] bg-white p-4 shadow-sm">
+          {/* Card 3: Unread Messages (live count, opens the chats list) */}
+          <button
+            onClick={() => router.push(inboxHref)}
+            className="flex items-center gap-4 rounded-lg border border-[#cfd4dd] bg-white p-4 text-left shadow-sm transition hover:border-[#10b981] hover:shadow"
+          >
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-50">
               <MailIcon />
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Unread Messages</p>
-              <h2 className="text-2xl font-bold text-[#0f172a] mt-0.5">5</h2>
+              <h2 className="text-2xl font-bold text-[#0f172a] mt-0.5">{totalUnread}</h2>
             </div>
-          </div>
+          </button>
 
           {/* Card 4: Attendance */}
           <div className="flex items-center gap-4 rounded-lg border border-[#cfd4dd] bg-white p-4 shadow-sm">
@@ -115,11 +132,14 @@ export default function TeacherDashboard() {
         <div className="mb-6 grid grid-cols-12 gap-6">
           {/* Action buttons (left 4 columns) */}
           <div className="col-span-4 flex flex-col gap-3">
-            <button className="flex items-center justify-center gap-2 rounded-lg bg-[#005f54] hover:bg-[#004d43] py-3 text-sm font-bold text-white shadow transition-all">
+            <button
+              onClick={() => router.push(communityHref)}
+              className="flex items-center justify-center gap-2 rounded-lg bg-[#005f54] hover:bg-[#004d43] py-3 text-sm font-bold text-white shadow transition-all"
+            >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-              Send Message
+              Class Community
             </button>
 
             <button className="flex items-center justify-center gap-2 rounded-lg border-2 border-[#005f54] bg-white text-[#005f54] hover:bg-slate-50 py-3 text-sm font-bold transition-all">
@@ -233,30 +253,47 @@ export default function TeacherDashboard() {
             <div className="rounded-lg border border-[#cfd4dd] bg-white p-5 shadow-sm flex flex-col">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-base font-bold text-[#0f172a]">Recent Messages</h3>
-                <span className="rounded bg-[#c2161c] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">New</span>
+                {totalUnread > 0 && (
+                  <span className="rounded bg-[#c2161c] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                    {totalUnread} New
+                  </span>
+                )}
               </div>
+
               <div className="space-y-3">
-                {/* Msg 1 */}
-                <div className="flex gap-3 items-start">
-                  <div className="h-8 w-8 flex-none rounded-full bg-[#dce7f3] flex items-center justify-center font-bold text-[#003b78] text-sm">L</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#0f172a]">Mrs. Linda Chen</p>
-                    <p className="text-[10px] text-[#64748b] truncate mt-0.5">Hi Ms. Jenkins, about Leo's math homework help...</p>
-                    <span className="text-[9px] text-slate-400 font-bold mt-1 block">20 mins ago</span>
-                  </div>
-                </div>
-                {/* Msg 2 */}
-                <div className="flex gap-3 items-start">
-                  <div className="h-8 w-8 flex-none rounded-full bg-[#fcd34d] flex items-center justify-center font-bold text-[#78350f] text-sm">M</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#0f172a]">Mr. Marcus Kovic</p>
-                    <p className="text-[10px] text-[#64748b] truncate mt-0.5">Thank you for the update on the field trip details.</p>
-                    <span className="text-[9px] text-slate-400 font-bold mt-1 block">2 hours ago</span>
-                  </div>
-                </div>
+                {recentChats.length === 0 && (
+                  <p className="text-xs text-[#64748b]">No conversations yet.</p>
+                )}
+                {recentChats.map((c) => (
+                  <Link
+                    key={c.parentId}
+                    href={`/classes/${COMMUNITY_CLASS_ID}/messages/${c.parentId}`}
+                    className="-m-1 flex items-start gap-3 rounded-md p-1 transition hover:bg-slate-50"
+                  >
+                    <Avatar name={c.parentName} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs text-[#0f172a] ${c.unreadCount ? 'font-extrabold' : 'font-bold'}`}>
+                        {c.parentName}
+                      </p>
+                      <p className="mt-0.5 truncate text-[10px] text-[#64748b]">{c.lastMessage}</p>
+                      <span className="mt-1 block text-[9px] font-bold text-slate-400">
+                        {timeAgo(c.lastMessageAt)}
+                      </span>
+                    </div>
+                    {c.unreadCount > 0 && (
+                      <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#c2161c] px-1 text-[9px] font-bold text-white">
+                        {c.unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
-              <button className="mt-4 text-center text-xs font-bold text-[#007c6d] hover:text-[#005f54] uppercase tracking-wider">
-                Go to Inbox
+
+              <button
+                onClick={() => router.push(inboxHref)}
+                className="mt-4 text-center text-xs font-bold text-[#007c6d] hover:text-[#005f54] uppercase tracking-wider"
+              >
+                View chats
               </button>
             </div>
 
@@ -276,7 +313,7 @@ export default function TeacherDashboard() {
                   <p className="text-[11px] font-semibold text-white/95 mt-1">New ID badge policy starts Monday. Please check your emails.</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-3 border border-white/5">
-                  <span className="text-[9px] font-bold tracking-wider text-emerald-300 uppercase block">Staff Meeting</span>
+                  <span className="text-[9px] font-bold text-emerald-300 tracking-wider uppercase block">Staff Meeting</span>
                   <p className="text-[11px] font-semibold text-white/95 mt-1">Monthly general meeting scheduled for Friday at 3:30 PM in the auditorium.</p>
                 </div>
               </div>

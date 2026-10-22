@@ -1,20 +1,19 @@
+
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy shared package first (dependency)
-COPY shared /app/shared
+# Copy the shared package into the container
+COPY shared /shared
 
-# Copy file-service package files
-COPY file-service/package*.json ./
+# Copy the file-service application
+COPY file-service/ ./
 
-# Install dependencies (this will resolve file:../shared correctly)
-RUN npm install
-
-# Copy file-service source code
-COPY file-service/. .
+# Install dependencies using the correct Linux path
+RUN npm pkg set "dependencies.@vidyaconnect/shared=file:/shared" \
+    && rm -f package-lock.json \
+    && npm install
 
 EXPOSE 3006
 
-# Start the application
 CMD ["npm", "start"]
