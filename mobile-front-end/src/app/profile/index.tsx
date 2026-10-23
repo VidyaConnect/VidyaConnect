@@ -14,7 +14,17 @@ import { AppHeader, ScreenShell } from "../../components/layout/AppHeader";
 import { BottomTabBar } from "../../components/layout/BottomTabBar";
 import { colors } from "../../constants/colors";
 import { useAuth } from "../../context/AuthContext";
-import { getMyProfile } from "../../features/profile/services/profileService";
+import {
+  changeMyPassword,
+  getMyProfile,
+  updateMyProfile,
+} from "../../features/profile/services/profileService";
+import EditProfileModal from "../../features/profile/components/EditProfileModal";
+import ChangePasswordModal from "../../features/profile/components/ChangePasswordModal";
+import type {
+  ChangePasswordPayload,
+  UpdateProfilePayload,
+} from "../../features/profile/types/profile.types";
 import type { UserProfile } from "../../features/profile/types/profile.types";
 
 export default function ProfileScreen() {
@@ -23,6 +33,11 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,7 +60,32 @@ export default function ProfileScreen() {
     else router.replace("/home" as never);
   };
 
-  const comingNext = (title: string) => Alert.alert(title, "This is built in the next step.");
+  const handleSaveProfile = async (payload: UpdateProfilePayload) => {
+    setSaving(true);
+    try {
+      const updated = await updateMyProfile(payload);
+      setProfile({ ...updated });
+      setEditOpen(false);
+    } catch (err: any) {
+      Alert.alert("Could not save", err?.response?.data?.message ?? "Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (payload: ChangePasswordPayload) => {
+    setPwSaving(true);
+    setPwError(null);
+    try {
+      await changeMyPassword(payload);
+      setPwOpen(false);
+      Alert.alert("Password changed", "Your password was changed successfully.");
+    } catch (err: any) {
+      setPwError(err?.response?.data?.message ?? "Could not change password. Please try again.");
+    } finally {
+      setPwSaving(false);
+    }
+  };
 
   const confirmLogout = () => {
     Alert.alert("Log out", "Are you sure you want to log out?", [
@@ -95,7 +135,7 @@ export default function ProfileScreen() {
               </Text>
               <Text style={styles.heroRole}>{profile.roleTitle}</Text>
             </View>
-            <Pressable style={styles.editBtn} onPress={() => comingNext("Edit Profile")}>
+            <Pressable style={styles.editBtn} onPress={() => setEditOpen(true)}>
               <Text style={styles.editBtnText}>Edit</Text>
             </Pressable>
           </View>
@@ -163,7 +203,11 @@ export default function ProfileScreen() {
               <Text style={styles.fieldLabel}>Password</Text>
               <View style={styles.rowBetween}>
                 <Text style={styles.fieldValue}>{profile.security.passwordMasked}</Text>
-                <Pressable style={styles.outlineBtn} onPress={() => comingNext("Change Password")}>
+                <Pressable style={styles.outlineBtn} 
+                onPress={() => {
+                  setPwError(null);
+                  setPwOpen(true);
+                }}>
                   <Text style={styles.outlineBtnText}>Change Password</Text>
                 </Pressable>
               </View>
@@ -188,6 +232,24 @@ export default function ProfileScreen() {
           </Pressable>
         </ScrollView>
       )}
+
+      {profile ? (
+        <EditProfileModal
+          visible={editOpen}
+          profile={profile}
+          saving={saving}
+          onSave={handleSaveProfile}
+          onCancel={() => setEditOpen(false)}
+        />
+      ) : null}
+
+      <ChangePasswordModal
+        visible={pwOpen}
+        saving={pwSaving}
+        serverError={pwError}
+        onSave={handleChangePassword}
+        onCancel={() => setPwOpen(false)}
+      />
     </ScreenShell>
   );
 }
