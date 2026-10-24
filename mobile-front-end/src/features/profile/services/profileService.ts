@@ -8,7 +8,7 @@ import type {
 
 // While true, the app uses the mock data below and never calls the backend.
 // Set it to false once the backend is ready and EXPO_PUBLIC_API_BASE_URL is set.
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 let mockProfile: UserProfile = {
   id: "PAR-0001",
