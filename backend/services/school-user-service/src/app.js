@@ -5,6 +5,7 @@ import userRoutes from "./routes/user.routes.js";
 import schoolRoutes from "./routes/school.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import childrenRoutes from "./routes/children.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/children", childrenRoutes);
+app.use("/api/profile", profileRoutes);
 
 export default app;
