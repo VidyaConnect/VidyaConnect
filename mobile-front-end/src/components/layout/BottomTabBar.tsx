@@ -13,7 +13,7 @@ type IconName = React.ComponentProps<typeof Ionicons>["name"];
 const TABS: { key: TabKey; label: string; route?: string; icon: IconName; activeIcon: IconName }[] = [
   { key: "home", label: "Home", route: "/home", icon: "home-outline", activeIcon: "home" },
   { key: "announcement", label: "Announcement", route: "/announcements/parent", icon: "megaphone-outline", activeIcon: "megaphone" },
-  { key: "messages", label: "Messages", route: "/messages", icon: "chatbubble-outline", activeIcon: "chatbubble" },
+  { key: "messages", label: "Messages", route: "/messages/thread-1", icon: "chatbubble-outline", activeIcon: "chatbubble" },
   { key: "calendar", label: "Calendar", route: "/calendar", icon: "calendar-outline", activeIcon: "calendar" },
   { key: "more", label: "More", icon: "ellipsis-horizontal", activeIcon: "ellipsis-horizontal" },
 ];
