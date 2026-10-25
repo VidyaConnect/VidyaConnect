@@ -1,0 +1,5 @@
+
+# Playwright generated test output
+/test-results/
+/playwright-report/
+/playwright/.cache/
