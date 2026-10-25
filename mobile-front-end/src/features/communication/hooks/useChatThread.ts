@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { communicationApi } from "../services/communicationApi";
-import { ChatMessage, ChatThreadInfo } from "../types/communication";
+import { Attachment, ChatMessage, ChatThreadInfo, PickedFile } from "../types/communication";
+import { formatFileSize } from "../utils/buildChatItems";
 
 export function useChatThread(threadId: string) {
   const [thread, setThread] = useState<ChatThreadInfo | null>(null);
@@ -32,7 +33,12 @@ export function useChatThread(threadId: string) {
   const deliver = useCallback(
     async (local: ChatMessage) => {
       try {
-        const saved = await communicationApi.sendMessage(threadId, local.body);
+        // TODO (real API): upload each file to the file service first, then send the file ids.
+        const saved = await communicationApi.sendMessage(
+          threadId,
+          local.body,
+          local.attachments ?? []
+        );
         setMessages((prev) => prev.map((m) => (m.id === local.id ? saved : m)));
       } catch {
         setMessages((prev) =>
@@ -44,9 +50,17 @@ export function useChatThread(threadId: string) {
   );
 
   const sendMessage = useCallback(
-    async (body: string) => {
+    async (body: string, files: PickedFile[] = []) => {
       const text = body.trim();
-      if (!text) return;
+      if (!text && files.length === 0) return;
+
+      const attachments: Attachment[] = files.map((f, i) => ({
+        id: `att-${Date.now()}-${i}`,
+        name: f.name,
+        sizeLabel: formatFileSize(f.size),
+        uri: f.uri,
+        mimeType: f.mimeType
+      }));
 
       const local: ChatMessage = {
         id: `local-${Date.now()}`,
@@ -55,7 +69,8 @@ export function useChatThread(threadId: string) {
         senderName: "You",
         body: text,
         sentAt: new Date().toISOString(),
-        status: "sending"
+        status: "sending",
+        attachments
       };
       setMessages((prev) => [...prev, local]);
       await deliver(local);

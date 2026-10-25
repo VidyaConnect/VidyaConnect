@@ -1,4 +1,4 @@
-import { ChatMessage, ChatThreadInfo } from "../types/communication";
+import { Attachment, ChatMessage, ChatThreadInfo } from "../types/communication";
 import { mockMessages, mockThread } from "../data/mockChat";
 
 /**
@@ -28,9 +28,14 @@ export const communicationApi = {
   },
 
   /** Server must stamp id + sentAt and store the message immutably (audit). */
-  async sendMessage(threadId: string, body: string): Promise<ChatMessage> {
+  async sendMessage(
+    threadId: string,
+    body: string,
+    attachments: Attachment[] = []
+  ): Promise<ChatMessage> {
     if (USE_MOCK) {
       await wait(700);
+      if (body.includes("#fail")) throw new Error("Simulated failure");
       return {
         id: `srv-${Date.now()}`,
         threadId,
@@ -39,6 +44,7 @@ export const communicationApi = {
         body,
         sentAt: new Date().toISOString(),
         status: "sent",
+        attachments,
         deliveryNote: mockThread.isTeacherAvailable
           ? undefined
           : "Teacher is unavailable. Message will be delivered later."

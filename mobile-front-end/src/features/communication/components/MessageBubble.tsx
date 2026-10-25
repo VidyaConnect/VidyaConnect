@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../../constants/colors";
 import { ChatMessage, MessageStatus } from "../types/communication";
 import { formatTime } from "../utils/buildChatItems";
@@ -9,10 +10,10 @@ interface Props {
 }
 
 const statusGlyph: Record<MessageStatus, string> = {
-  sending: "…",
-  sent: "✓",
-  delivered: "✓✓",
-  read: "✓✓",
+  sending: "\u2026",
+  sent: "\u2713",
+  delivered: "\u2713\u2713",
+  read: "\u2713\u2713",
   failed: "!"
 };
 
@@ -23,9 +24,25 @@ export function MessageBubble({ message, onRetry }: Props) {
   return (
     <View style={[styles.row, isMine ? styles.rowMine : styles.rowTheirs]}>
       <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, failed && styles.bubbleFailed]}>
-        <Text style={styles.body} selectable>
-          {message.body}
-        </Text>
+        {!!message.body && (
+          <Text style={styles.body} selectable>
+            {message.body}
+          </Text>
+        )}
+
+        {message.attachments?.map((a) => (
+          <Pressable
+            key={a.id}
+            style={styles.file}
+            onPress={() => a.uri && Linking.openURL(a.uri).catch(() => undefined)}
+          >
+            <Ionicons name="document-text-outline" size={20} color={colors.surface} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fileName} numberOfLines={1}>{a.name}</Text>
+              <Text style={styles.fileSize}>{a.sizeLabel}</Text>
+            </View>
+          </Pressable>
+        ))}
       </View>
 
       <View style={[styles.meta, isMine ? styles.metaMine : styles.metaTheirs]}>
@@ -51,7 +68,7 @@ export function MessageBubble({ message, onRetry }: Props) {
 
       {!!message.deliveryNote && !failed && (
         <View style={styles.notice}>
-          <Text style={styles.noticeIcon}>ⓘ</Text>
+          <Text style={styles.noticeIcon}>{"\u24D8"}</Text>
           <Text style={styles.noticeText}>{message.deliveryNote}</Text>
         </View>
       )}
@@ -76,6 +93,17 @@ const styles = StyleSheet.create({
   },
   bubbleFailed: { opacity: 0.6 },
   body: { color: colors.surface, fontSize: 15, lineHeight: 21 },
+  file: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.16)"
+  },
+  fileName: { color: colors.surface, fontSize: 13, fontWeight: "700" },
+  fileSize: { color: "rgba(255,255,255,0.75)", fontSize: 11 },
   meta: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, paddingHorizontal: 4 },
   metaMine: { justifyContent: "flex-end" },
   metaTheirs: { justifyContent: "flex-start" },
