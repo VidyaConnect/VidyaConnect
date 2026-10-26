@@ -1,10 +1,13 @@
 import axios from "axios";
+import Constants from "expo-constants";
 
-const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+const configuredBaseUrl =
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  Constants.expoConfig?.extra?.apiBaseUrl ||
+  "http://localhost:3001/api";
+const baseUrl = configuredBaseUrl.replace(/\/+$/, "");
 
-if (!baseUrl) {
-  console.warn("EXPO_PUBLIC_API_BASE_URL is not set. API calls will fail.");
-}
+console.info(`Using API base URL: ${baseUrl}`);
 
 export const apiClient = axios.create({
   baseURL: baseUrl,

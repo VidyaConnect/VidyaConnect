@@ -9,7 +9,11 @@ import childrenRoutes from "./routes/children.routes.js";
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:8081",
+    "http://localhost:19006",
+  ],
   credentials: true,
 }));
 

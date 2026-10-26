@@ -23,3 +23,13 @@ Install dependencies:
 
 ```bash
 npm install
+```
+
+The container applies committed Prisma migrations with `prisma migrate deploy`
+before starting the service. For local runs outside Docker, apply migrations
+from this directory before starting the API:
+
+```bash
+npx prisma migrate deploy
+npm start
+```

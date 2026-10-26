@@ -12,4 +12,4 @@ RUN npm install
 RUN DATABASE_URL="postgresql://postgres:postgres@postgres:5432/vidyaconnect?schema=school_user" npx prisma generate
 
 EXPOSE 3001
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
