@@ -7,6 +7,7 @@ import {
   listPending,
   getDocument,
   reviewRequest,
+  revertRequest,
 } from "../services/linkReview.service.js";
 
 const NIC_REGEX = /^(\d{9}[vVxX]|\d{12})$/;
@@ -73,7 +74,7 @@ export const listChildren = async (req, res) => {
 
 export const pending = async (req, res) => {
   try {
-    res.json({ success: true, data: await listPending(req.user.userId) });
+    res.json({ success: true, data: await listPending(req.user.userId, req.query.status) });
   } catch (error) {
     fail(res, error);
   }
@@ -104,6 +105,15 @@ export const reject = async (req, res) => {
   try {
     const data = await reviewRequest(req.user.userId, req.params.id, "REJECTED", req.body.reason);
     res.json({ success: true, message: "Request rejected.", data });
+  } catch (error) {
+    fail(res, error);
+  }
+};
+
+export const revert = async (req, res) => {
+  try {
+    const data = await revertRequest(req.user.userId, req.params.id);
+    res.json({ success: true, message: "Request moved back to review.", data });
   } catch (error) {
     fail(res, error);
   }

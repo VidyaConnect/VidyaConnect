@@ -26,5 +26,6 @@ router.get("/link-requests/pending", auth, reviewers, controller.pending);
 router.get("/link-requests/:id/document", auth, reviewers, controller.document);
 router.patch("/link-requests/:id/approve", auth, reviewers, controller.approve);
 router.patch("/link-requests/:id/reject", auth, reviewers, controller.reject);
+router.patch("/link-requests/:id/revert", auth, reviewers, controller.revert);
 
 export default router;

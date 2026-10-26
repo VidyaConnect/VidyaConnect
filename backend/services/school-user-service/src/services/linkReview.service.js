@@ -26,27 +26,46 @@ const scopeWhere = (u) => {
   }
 };
 
-export const listPending = async (keycloakId) => {
+const STATUSES = ["PENDING", "APPROVED", "REJECTED"];
+
+export const listPending = async (keycloakId, status = "PENDING") => {
+  const wanted = String(status).toUpperCase();
+  if (!STATUSES.includes(wanted)) throw httpError(400, "Invalid status.");
+
   const reviewer = await getReviewer(keycloakId);
-  return prisma.linkRequest.findMany({
-    where: { status: "PENDING", ...scopeWhere(reviewer) },
+  const rows = await prisma.linkRequest.findMany({
+    where: { status: wanted, ...scopeWhere(reviewer) },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
+      status: true,
+      parentId: true,
       admissionNumber: true,
       schoolName: true,
       relationship: true,
       nic: true, // sensitive: staff only, never log it
       createdAt: true,
+      reviewedAt: true,
+      rejectReason: true,
       parent: { select: { user: { select: { fullName: true, phone: true } } } },
       student: {
         select: {
+          parentId: true,
+          admissionNumber: true,
           user: { select: { fullName: true } },
           class: { select: { className: true, gradeLevel: true } },
         },
       },
     },
   });
+
+  // Tell the board if a different parent is already linked to this student
+  return rows.map(({ parentId, ...r }) => ({
+    ...r,
+    studentAlreadyLinked: Boolean(
+      r.student?.parentId && r.student.parentId !== parentId
+    ),
+  }));
 };
 
 export const getDocument = async (keycloakId, requestId) => {
@@ -100,6 +119,40 @@ export const reviewRequest = async (keycloakId, requestId, decision, rejectReaso
         reviewedById: reviewer.id,
         reviewedAt: new Date(),
         rejectReason: decision === "REJECTED" ? rejectReason.trim() : null,
+      },
+      select: { id: true, status: true, reviewedAt: true },
+    });
+  });
+};
+
+export const revertRequest = async (keycloakId, requestId) => {
+  const reviewer = await getReviewer(keycloakId);
+
+  return prisma.$transaction(async (tx) => {
+    const request = await tx.linkRequest.findFirst({
+      where: {
+        id: requestId,
+        status: { in: ["APPROVED", "REJECTED"] },
+        ...scopeWhere(reviewer),
+      },
+    });
+    if (!request) throw httpError(404, "Request not found or already in review.");
+
+    // If it was approved, remove the parent link from the student
+    if (request.status === "APPROVED" && request.studentId) {
+      await tx.student.updateMany({
+        where: { id: request.studentId, parentId: request.parentId },
+        data: { parentId: null },
+      });
+    }
+
+    return tx.linkRequest.update({
+      where: { id: request.id },
+      data: {
+        status: "PENDING",
+        reviewedById: null,
+        reviewedAt: null,
+        rejectReason: null,
       },
       select: { id: true, status: true, reviewedAt: true },
     });
