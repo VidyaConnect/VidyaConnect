@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  holiday
+  exam
+  meeting
+  event
+  deadline
+  trip
+  maintenance
+  update
+  training
+}
+
+enum EventScope {
+  PLATFORM
+  SCHOOL
+  CLASS
+}
+
+model CalendarEvent {
+  id            String     @id @default(uuid())
+  schoolId      String?
+  title         String
+  description   String?
+  type          EventType  @default(event)
+
+  scope         EventScope @default(SCHOOL)
+  classIds      String[]   @default([])
+
+  start         DateTime
+  end           DateTime
+  allDay        Boolean    @default(false)
+  location      String?
+
+  createdBy     String
+  createdByRole String
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([schoolId, start, end])
+  @@map("calendar_events")
+}

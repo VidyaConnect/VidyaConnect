@@ -5,12 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../hooks/userAuth";
-
-const roleRedirects: Record<string, string> = {
-  ADMIN: "/dashboard",
-  SCHOOL_ADMIN: "/dashboard",
-  TEACHER: "/dashboard",
-};
+import { roleHome } from "../roleRoutes";
+import { ONBOARDING_ROUTES } from "../utils/onboarding";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -26,11 +22,18 @@ export default function LoginForm() {
     setError(null);
     try {
       const response = await login({ email, password });
-      const destination = roleRedirects[response.user.role];
+      const destination = roleHome[response.user.role];
 
       if (!destination) {
         logout();
         setError("This account doesn't have access to the web portal. Please use the mobile app.");
+        return;
+      }
+
+      // School Admin who has not finished registering the school:
+      // send them to the right onboarding page, not the dashboard.
+      if (response.onboardingStatus !== "ACTIVE") {
+        router.push(ONBOARDING_ROUTES[response.onboardingStatus]);
         return;
       }
 
