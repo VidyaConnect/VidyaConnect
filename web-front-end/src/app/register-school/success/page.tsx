@@ -1,10 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Headset, Lock, X, Mail, Phone } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Headset,
+  LogOut,
+  X,
+  Mail,
+  Phone,
+  Loader2,
+} from "lucide-react";
 import RegistrationHeader from "@/components/RegistrationHeader";
 import { useRegistration } from "@/features/school-registration/hooks/useRegistration";
+import { useAuth } from "@/features/auth/hooks/userAuth";
+import { getMe, type MeResponseData } from "@/features/auth/services/authApi";
+
+type SchoolInfo = NonNullable<MeResponseData["school"]>;
 
 const NEXT_STEPS = [
   {
@@ -23,40 +36,95 @@ const NEXT_STEPS = [
 
 export default function RegistrationSuccessPage() {
   const router = useRouter();
-  const { data, reset } = useRegistration();
+  const { reset } = useRegistration();
+  const { logout } = useAuth();
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [school, setSchool] = useState<SchoolInfo | null>(null);
+  const [loadError, setLoadError] = useState("");
 
-  // TEMPORARY: fallback so the page can be previewed directly without going through the wizard.
-  // Remove this fallback once the real backend is wired up, and restore the redirect guard below.
-  const result = data.submissionResult ?? {
-    admissionId: "PREVIEW-0000",
-    status: "UNDER_REVIEW" as const,
-    estimatedWaitHours: 24,
-  };
+  // Always ask the server, so the status is correct even after a long time
+  useEffect(() => {
+    let cancelled = false;
+    getMe()
+      .then((me) => {
+        if (!cancelled) setSchool(me.school);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoadError("We could not load your application status. Please refresh the page.");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleBackToHome() {
     reset();
     router.push("/");
   }
 
+  function handleSignOut() {
+    reset();
+    logout();
+    router.push("/login");
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <RegistrationHeader showSteps={false} />
+        <p className="max-w-2xl mx-auto px-6 pt-16 text-center text-sm text-red-600">
+          {loadError}
+        </p>
+      </div>
+    );
+  }
+
+  if (!school) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-teal-700" aria-label="Loading" />
+      </div>
+    );
+  }
+
+  const rejected = school.status === "REJECTED";
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <RegistrationHeader currentStep={3} />
+      <RegistrationHeader showSteps={false} />
 
       <div className="max-w-2xl mx-auto px-6 pt-12 pb-16">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-teal-50 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-teal-600" strokeWidth={2} />
+          <div
+            className={`w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center ${
+              rejected ? "bg-red-50" : "bg-teal-50"
+            }`}
+          >
+            {rejected ? (
+              <XCircle className="w-8 h-8 text-red-600" strokeWidth={2} />
+            ) : (
+              <CheckCircle2 className="w-8 h-8 text-teal-600" strokeWidth={2} />
+            )}
           </div>
 
           <h1 className="text-2xl font-bold text-[#1B3A6B] text-center mb-2">
-            Thank you for registering!
+            {rejected ? "Your registration was not approved" : "Thank you for registering!"}
           </h1>
-          <p className="text-sm text-slate-600 text-center leading-relaxed mb-6">
-            Your application is being processed. Document verification is in progress,
-            typically requiring a <strong className="text-slate-800">{result.estimatedWaitHours}</strong> hour
-            wait time.
-          </p>
+
+          {rejected ? (
+            <p className="text-sm text-slate-600 text-center leading-relaxed mb-6">
+              Unfortunately we could not approve <strong className="text-slate-800">{school.name}</strong>.
+              Please contact our support team to find out why and what to do next.
+            </p>
+          ) : (
+            <p className="text-sm text-slate-600 text-center leading-relaxed mb-6">
+              Your application for <strong className="text-slate-800">{school.name}</strong> is
+              being processed. Document verification is in progress, typically requiring a{" "}
+              <strong className="text-slate-800">{school.estimatedWaitHours}</strong> hour wait time.
+            </p>
+          )}
 
           <div className="border border-slate-200 rounded-lg mb-8">
             <div className="flex items-center justify-between p-4">
@@ -64,61 +132,65 @@ export default function RegistrationSuccessPage() {
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
                   Admission ID
                 </p>
-                <p className="text-sm font-semibold text-teal-600">#{result.admissionId}</p>
+                <p className="text-sm font-semibold text-teal-600 break-all">#{school.admissionId}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase mb-1">
                   Status
                 </p>
-                <StatusBadge status={result.status} />
+                <StatusBadge status={school.status} />
               </div>
             </div>
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-              <span className="text-sm text-slate-700">Estimated Wait:</span>
-              <span className="text-sm font-semibold text-orange-500">
-                {result.estimatedWaitHours} hours
-              </span>
-            </div>
+            {!rejected && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+                <span className="text-sm text-slate-700">Estimated Wait:</span>
+                <span className="text-sm font-semibold text-orange-500">
+                  {school.estimatedWaitHours} hours
+                </span>
+              </div>
+            )}
           </div>
 
-          <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase mb-3">
-            Next Steps
-          </p>
-          <div className="border-t border-slate-100">
-            {NEXT_STEPS.map((step, i) => {
-              const stepNumber = i + 1;
-              const isActive = stepNumber === 1;
-              return (
-                <div key={step.title} className="flex gap-3 py-4 border-b border-slate-50 last:border-0">
-                  <span
-                    className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                      isActive
-                        ? "bg-teal-700 text-white"
-                        : "bg-slate-200 text-slate-500"
-                    }`}
-                  >
-                    {stepNumber}
-                  </span>
-                  <div>
-                    <p
-                      className={`text-sm font-semibold ${
-                        isActive ? "text-slate-800" : "text-slate-400"
-                      }`}
-                    >
-                      {step.title}
-                    </p>
-                    <p
-                      className={`text-sm leading-relaxed ${
-                        isActive ? "text-slate-600" : "text-slate-400"
-                      }`}
-                    >
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {!rejected && (
+            <>
+              <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase mb-3">
+                Next Steps
+              </p>
+              <div className="border-t border-slate-100">
+                {NEXT_STEPS.map((step, i) => {
+                  const stepNumber = i + 1;
+                  const isActive = stepNumber === 1;
+                  return (
+                    <div key={step.title} className="flex gap-3 py-4 border-b border-slate-50 last:border-0">
+                      <span
+                        className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                          isActive ? "bg-teal-700 text-white" : "bg-slate-200 text-slate-500"
+                        }`}
+                      >
+                        {stepNumber}
+                      </span>
+                      <div>
+                        <p
+                          className={`text-sm font-semibold ${
+                            isActive ? "text-slate-800" : "text-slate-400"
+                          }`}
+                        >
+                          {step.title}
+                        </p>
+                        <p
+                          className={`text-sm leading-relaxed ${
+                            isActive ? "text-slate-600" : "text-slate-400"
+                          }`}
+                        >
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-3 mt-6">
@@ -129,11 +201,11 @@ export default function RegistrationSuccessPage() {
             Back to Home
           </button>
           <button
-            disabled
-            className="inline-flex items-center justify-center gap-1.5 border border-slate-200 bg-slate-100 text-slate-400 text-sm font-medium px-3 py-2.5 rounded-lg cursor-not-allowed"
+            onClick={handleSignOut}
+            className="inline-flex items-center justify-center gap-1.5 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium px-3 py-2.5 rounded-lg transition-colors"
           >
-            <Lock className="w-3.5 h-3.5" />
-            Sign In
+            <LogOut className="w-3.5 h-3.5" />
+            Sign Out
           </button>
           <button
             onClick={() => setIsSupportOpen(true)}
@@ -145,7 +217,7 @@ export default function RegistrationSuccessPage() {
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-5">
-          Refer to your Admission ID #{result.admissionId} for any future inquiries.
+          Refer to your Admission ID #{school.admissionId} for any future inquiries.
         </p>
       </div>
 

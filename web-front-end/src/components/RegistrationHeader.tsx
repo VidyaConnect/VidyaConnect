@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+const TOTAL_STEPS = 2;
+
 interface RegistrationHeaderProps {
-  // currentStep is optional so existing callers that pass it keep working
-  currentStep?: 1 | 2 | 3;
+  currentStep?: 1 | 2;
   // when false, the right-hand step text and progress dots are not rendered
   showSteps?: boolean;
 }
@@ -29,9 +30,11 @@ export default function RegistrationHeader({
 
       {showSteps ? (
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-white">Step {currentStep} of 3</span>
+          <span className="text-sm font-medium text-white">
+            Step {currentStep} of {TOTAL_STEPS}
+          </span>
           <div className="flex items-center gap-1.5">
-            {[1, 2, 3].map((step) => (
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((step) => (
               <span
                 key={step}
                 className={`h-1 w-8 rounded-full transition-colors ${
@@ -42,7 +45,6 @@ export default function RegistrationHeader({
           </div>
         </div>
       ) : (
-        // preserve layout spacing so header always has two sides (left button + right empty space)
         <div aria-hidden className="w-0 md:w-1/4" />
       )}
     </div>

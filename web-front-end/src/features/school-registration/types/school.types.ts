@@ -12,16 +12,9 @@ export interface SchoolDetailsData {
   district: string;
   studentCount: string;
   teacherCount: string;
+  censusNumber: string;
 }
 
-export interface AdminAccountData {
-  adminFirstName: string;
-  adminLastName: string;
-  adminEmail: string;
-  adminPhone: string;
-  adminRole: AdminRole;
-  termsAccepted: boolean;
-}
 
 export interface DocumentsData {
   verificationDocument: File | null;
@@ -30,7 +23,6 @@ export interface DocumentsData {
 
 export interface RegistrationWizardData {
   step1: SchoolDetailsData;
-  step2: AdminAccountData;
   step3: DocumentsData;
   submissionResult: RegistrationSubmissionResponse | null;
 }

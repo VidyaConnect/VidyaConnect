@@ -4,7 +4,6 @@ import { createContext, useState, ReactNode } from "react";
 import type {
   RegistrationWizardData,
   SchoolDetailsData,
-  AdminAccountData,
   DocumentsData,
   RegistrationSubmissionResponse,
 } from "../types/school.types";
@@ -20,15 +19,7 @@ const emptyStep1: SchoolDetailsData = {
   district: "",
   studentCount: "",
   teacherCount: "",
-};
-
-const emptyStep2: AdminAccountData = {
-  adminFirstName: "",
-  adminLastName: "",
-  adminEmail: "",
-  adminPhone: "",
-  adminRole: "SCHOOL_ADMIN",
-  termsAccepted: false,
+  censusNumber: "",
 };
 
 const emptyStep3: DocumentsData = {
@@ -39,7 +30,6 @@ const emptyStep3: DocumentsData = {
 export interface RegistrationContextType {
   data: RegistrationWizardData;
   updateStep1: (values: Partial<SchoolDetailsData>) => void;
-  updateStep2: (values: Partial<AdminAccountData>) => void;
   updateStep3: (values: Partial<DocumentsData>) => void;
   setSubmissionResult: (result: RegistrationSubmissionResponse) => void;
   reset: () => void;
@@ -52,17 +42,12 @@ export const RegistrationContext = createContext<RegistrationContextType | undef
 export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<RegistrationWizardData>({
     step1: emptyStep1,
-    step2: emptyStep2,
     step3: emptyStep3,
     submissionResult: null,
   });
 
   function updateStep1(values: Partial<SchoolDetailsData>) {
     setData((prev) => ({ ...prev, step1: { ...prev.step1, ...values } }));
-  }
-
-  function updateStep2(values: Partial<AdminAccountData>) {
-    setData((prev) => ({ ...prev, step2: { ...prev.step2, ...values } }));
   }
 
   function updateStep3(values: Partial<DocumentsData>) {
@@ -76,7 +61,6 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
   function reset() {
     setData({
       step1: emptyStep1,
-      step2: emptyStep2,
       step3: emptyStep3,
       submissionResult: null,
     });
@@ -84,7 +68,7 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
 
   return (
     <RegistrationContext.Provider
-      value={{ data, updateStep1, updateStep2, updateStep3, setSubmissionResult, reset }}
+      value={{ data, updateStep1, updateStep3, setSubmissionResult, reset }}
     >
       {children}
     </RegistrationContext.Provider>

@@ -1,4 +1,5 @@
 import { RegistrationProvider } from "@/features/school-registration/context/registrationContext";
+import OnboardingGuard from "@/features/auth/components/OnboardingGuard";
 
 export default function RegisterSchoolLayout({
   children,
@@ -7,7 +8,7 @@ export default function RegisterSchoolLayout({
 }) {
   return (
     <RegistrationProvider>
-      {children}
+      <OnboardingGuard>{children}</OnboardingGuard>
     </RegistrationProvider>
   );
 }
