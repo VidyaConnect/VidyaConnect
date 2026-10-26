@@ -36,3 +36,13 @@ export const createParentUser = async ({ keycloakId, fullName, email, phone }) =
     },
   });
 };
+
+export const findNotificationRecipients = async (schoolId, roles) =>
+  prisma.user.findMany({
+    where: {
+      isActive: true,
+      ...(schoolId ? { schoolId } : {}),
+      ...(roles.length ? { role: { in: roles } } : {}),
+    },
+    select: { keycloakId: true },
+  });

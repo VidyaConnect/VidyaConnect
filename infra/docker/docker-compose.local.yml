@@ -144,6 +144,7 @@ services:
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
       KEYCLOAK_CLIENT_ID: "school-user-service"
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-local-internal-key}
       AWS_ENDPOINT: "http://localstack:4566"
       AWS_REGION: "ap-southeast-1"
       AWS_ACCESS_KEY_ID: "test"
@@ -184,6 +185,9 @@ services:
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=announcement"
       AUTH_DISABLED: "false"
       KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3007"
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-local-internal-key}
 
     depends_on:
       postgres:
@@ -322,19 +326,30 @@ services:
     container_name: vidyaconnect-notification-service
     restart: unless-stopped
 
-    command: sh -c "echo 'Notification Service placeholder' && sleep infinity"
+    working_dir: /app
+
+    volumes:
+      - ../../backend/services/notification-service:/app
+      - ../../backend/services/shared:/shared
+      - notification_node_modules:/app/node_modules
+
+    command: sh -c "npm install && npm run prisma:generate && npm run prisma:migrate && npm run dev"
 
     ports:
       - "3007:3007"
 
     environment:
       NODE_ENV: development
+      KEYCLOAK_JWKS_URI: "http://keycloak:8080/realms/vidyaconnect/protocol/openid-connect/certs"
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-local-internal-key}
       PORT: 3007
       DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=notification"
 
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
     networks:
       - vidyaconnect-network
@@ -403,6 +418,7 @@ volumes:
   announcement_node_modules:
   attendance_node_modules:
   consent_form_node_modules:
+  notification_node_modules:
 
 
 # ─────────────────────────────────────────

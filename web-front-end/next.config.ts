@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
         destination: "http://announcement-service:3002/api/announcements/:path*",
       },
       {
+        source: "/api/notifications/:path*",
+        destination: "http://notification-service:3007/api/notifications/:path*",
+      },
+      {
         source: "/api/attendance/:path*",
         destination: "http://attendance-service:3003/api/attendance/:path*",
       },

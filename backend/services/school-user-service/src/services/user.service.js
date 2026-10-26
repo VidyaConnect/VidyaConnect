@@ -1,6 +1,7 @@
 import {
   findUserByKeycloakId,
   findClassByTeacherId,
+  findNotificationRecipients,
 } from "../repositories/user.repository.js";
 
 export const getCurrentUserProfile = async (keycloakId) => {
@@ -12,6 +13,10 @@ export const getCurrentUserProfile = async (keycloakId) => {
 
   return user;
 };
+
+export async function getUsersForNotifications(schoolId, roles) {
+  return findNotificationRecipients(schoolId, roles);
+}
 
 export async function getTeacherClass(keycloakId) {
   const user = await findUserByKeycloakId(keycloakId);

@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  schemas = ["notification"]
+}
+
+model Notification {
+  id              String   @id @default(uuid())
+  recipientUserId String
+  title           String
+  message         String
+  type            String   @default("ANNOUNCEMENT")
+  sourceId        String?
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([recipientUserId, createdAt])
+  @@index([recipientUserId, readAt])
+  @@schema("notification")
+}

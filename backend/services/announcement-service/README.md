@@ -156,10 +156,19 @@ npx prisma migrate status
 Open Prisma Studio:
 
 ```bash
-npx prisma studio
+npm run studio
 ```
 
 Prisma Studio allows developers to view and manage database tables through a web interface.
+
+Run this command from the announcement-service directory so Prisma loads its `.env`
+file. If Studio was already open while the database host was `postgres`, stop that
+process, close its browser tab, and start it again:
+
+```bash
+cd backend/services/announcement-service
+npm run studio
+```
 
 ---
 

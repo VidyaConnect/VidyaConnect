@@ -41,7 +41,36 @@ function parseDateOrNull(value, fieldName) {
   return parsed;
 }
 
-export const createNewAnnouncement = async (announcementData) => {
+async function notifyRecipients(announcement, publisher) {
+  const schoolUserUrl = process.env.SCHOOL_USER_SERVICE_URL || "http://localhost:3001";
+  const notificationUrl = process.env.NOTIFICATION_SERVICE_URL || "http://localhost:3007";
+  const roles = announcement.type === "SYSTEM"
+    ? ["SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"]
+    : ["TEACHER", "PARENT", "STUDENT"];
+  const recipientResponse = await fetch(
+    `${schoolUserUrl}/api/users/notification-recipients?${new URLSearchParams({
+      ...(announcement.schoolId ? { schoolId: announcement.schoolId } : {}),
+      roles: roles.join(","),
+    })}`,
+    { headers: { "x-internal-key": process.env.INTERNAL_SERVICE_KEY || "" } },
+  );
+  if (!recipientResponse.ok) throw new Error("Unable to resolve announcement recipients");
+  const recipients = await recipientResponse.json();
+  const notificationResponse = await fetch(`${notificationUrl}/api/notifications/internal/announcement`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-key": process.env.INTERNAL_SERVICE_KEY || "",
+    },
+    body: JSON.stringify({
+      announcement,
+      recipientUserIds: recipients.data.map((recipient) => recipient.keycloakId),
+    }),
+  });
+  if (!notificationResponse.ok) throw new Error("Unable to create announcement notifications");
+}
+
+export const createNewAnnouncement = async (announcementData, publisher) => {
   if (!announcementData?.title || !String(announcementData.title).trim()) {
     throw makeError("Announcement title is required", 400);
   }
@@ -56,8 +85,8 @@ export const createNewAnnouncement = async (announcementData) => {
     type: normalizeEnum(announcementData.type, ALLOWED_TYPE, "SCHOOL", "type"),
     status: normalizeEnum(announcementData.status, ALLOWED_STATUS, "PUBLISHED", "status"),
     priority: normalizeEnum(announcementData.priority, ALLOWED_PRIORITY, "NORMAL", "priority"),
-    schoolId: announcementData.schoolId ?? null,
-    createdByUserId: "TEMP_USER",
+    schoolId: announcementData.schoolId ?? publisher?.schoolId ?? null,
+    createdByUserId: publisher?.userId || "TEMP_USER",
     attachmentId: announcementData.attachmentId ?? null,
     requiresConfirmation: Boolean(announcementData.requiresConfirmation),
     isRetracted: false,
@@ -65,7 +94,9 @@ export const createNewAnnouncement = async (announcementData) => {
     expiresAt: parseDateOrNull(announcementData.expiresAt, "expiresAt")
   };
 
-  return createAnnouncementRepo(payload);
+  const created = await createAnnouncementRepo(payload);
+  if (created.status === "PUBLISHED") await notifyRecipients(created, publisher);
+  return created;
 };
 
 export const listAnnouncements = async () => {

@@ -16,7 +16,7 @@ function sendError(res, error) {
 
 export const createAnnouncement = async (req, res) => {
   try {
-    const created = await createNewAnnouncement(req.body);
+    const created = await createNewAnnouncement(req.body, req.user);
     return res.status(201).json({
       success: true,
       data: created

@@ -3,6 +3,7 @@ import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import './globals.css'
 import { AuthProvider } from '@/features/auth/context/authProvider'
+import { NotificationProvider } from '@/features/notifications/context/NotificationContext'
 
 config.autoAddCss = false
 
@@ -20,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>
-          {children}
+          <NotificationProvider>{children}</NotificationProvider>
         </AuthProvider>
       </body>
     </html>

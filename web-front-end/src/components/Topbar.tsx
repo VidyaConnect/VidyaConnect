@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import SearchBar from './SearchBar'
-import { NotificationIcon } from './Icons'
+import NotificationBell from './NotificationBell'
 import { useAuth } from '@/features/auth/hooks/userAuth'
 
 interface TopbarProps {
@@ -61,12 +61,7 @@ export default function Topbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-4 whitespace-nowrap">
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[#2d2f31] transition-colors hover:bg-[#f1f4f8]"
-          aria-label="Notifications"
-        >
-          <NotificationIcon size={20} />
-        </button>
+        <NotificationBell />
 
         <div className="h-8 w-px bg-[#cfd4dd]" />
 
