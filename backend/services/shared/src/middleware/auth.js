@@ -4,9 +4,22 @@ import { error } from "../utils/response.js";
 import logger from "../utils/logger.js";
 
 const auth = (req, res, next) => {
+  if (process.env.AUTH_DISABLED === "true") {
+    req.user = {
+      userId: process.env.DEV_USER_ID || "dev-user-id",
+      email: "dev@vidyaconnect.local",
+      fullName: "Dev User",
+      role: process.env.DEV_USER_ROLE || "TEACHER",
+      schoolId: process.env.DEV_SCHOOL_ID || "dev-school-id",
+      classId: process.env.DEV_CLASS_ID || null,
+      studentId: process.env.DEV_STUDENT_ID || null,
+      parentId: process.env.DEV_PARENT_ID || null,
+    };
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
 
-  // Check if Authorization header exists
   if (!authHeader) {
     return error(res, "No authorization header provided", 401);
   }
@@ -83,17 +96,12 @@ function extractRole(decoded) {
 
   // Default Keycloak realm roles
   if (decoded.realm_access?.roles) {
-    const appRoles = [
-      "admin",
-      "school-admin",
-      "teacher",
-      "parent",
-      "student",
-    ];
+    const appRoles = ["ADMIN", "SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"];
 
-    const role = decoded.realm_access.roles.find((r) =>
-      appRoles.includes(r)
-    );
+    // "school-admin" and "SCHOOL_ADMIN" both become "SCHOOL_ADMIN"
+    const role = decoded.realm_access.roles
+      .map((r) => r.toUpperCase().replace(/-/g, "_"))
+      .find((r) => appRoles.includes(r));
 
     if (role) {
       return role;
