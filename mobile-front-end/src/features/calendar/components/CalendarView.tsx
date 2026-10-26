@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   LayoutAnimation,
   Modal,
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../../constants/colors";
+import { ApiEvent, EventType, fetchEvents } from "../services/calendarService";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -26,69 +28,33 @@ const NAVY_SOFT = "#DCE4F5";
 const ORANGE = "#F59E0B";
 const ORANGE_SOFT = "#FFF1DC";
 const ORANGE_DARK = "#B45309";
-const GRID = "#E8EDF5"; // grid line color
+const RED = "#DC2626";
+const RED_SOFT = "#FEE2E2";
+const PURPLE = "#7C3AED";
+const PURPLE_SOFT = "#EDE9FE";
+const GRID = "#E8EDF5";
 
-// ---------- Mock data (replace with API later) ----------
-type EventKind = "sports" | "academic" | "meeting";
+// ---------- Event kinds (grouped from backend types) ----------
+type EventKind = "sports" | "academic" | "meeting" | "holiday" | "system";
 
-type CalendarEvent = {
-  id: string;
-  day: number; // day of the month
-  title: string;
-  description: string;
-  details: string;
-  location: string;
-  time: string;
-  kind: EventKind;
+const TYPE_TO_KIND: Record<EventType, EventKind> = {
+  event: "sports",
+  trip: "sports",
+  exam: "academic",
+  deadline: "academic",
+  meeting: "meeting",
+  holiday: "holiday",
+  maintenance: "system",
+  update: "system",
+  training: "system",
 };
-
-// The same events show in every month for now, only the day number is used.
-const EVENTS: CalendarEvent[] = [
-  {
-    id: "1",
-    day: 12,
-    title: "Sports Day",
-    description: "Annual inter-house athletic meet",
-    details:
-      "Students compete in track and field events for their houses. Parents are welcome to attend and cheer. Students should wear their house sports kit and bring a water bottle.",
-    location: "Main School Grounds",
-    time: "08:30 AM",
-    kind: "sports",
-  },
-  {
-    id: "2",
-    day: 15,
-    title: "Maths Quiz",
-    description: "Inter-school regional championship",
-    details:
-      "Selected students represent the school in the regional maths quiz. Please make sure your child arrives 15 minutes early and brings a pen and a calculator.",
-    location: "School Auditorium",
-    time: "10:00 AM",
-    kind: "academic",
-  },
-  {
-    id: "3",
-    day: 21,
-    title: "Parent Teacher Meeting",
-    description: "Term end review session",
-    details:
-      "Meet the class teacher to discuss your child's progress for the term. Each parent has a 10 minute slot. Please bring your child's report book.",
-    location: "Main Hall",
-    time: "02:00 PM",
-    kind: "meeting",
-  },
-];
 
 const KIND_STYLE: Record<EventKind, { main: string; soft: string; text: string }> = {
   sports: { main: NAVY, soft: NAVY_SOFT, text: NAVY },
   academic: { main: TEAL, soft: TEAL_SOFT, text: TEAL },
   meeting: { main: ORANGE, soft: ORANGE_SOFT, text: ORANGE_DARK },
-};
-
-const KIND_LABEL: Record<EventKind, string> = {
-  sports: "Sports",
-  academic: "Academic",
-  meeting: "Meeting",
+  holiday: { main: RED, soft: RED_SOFT, text: RED },
+  system: { main: PURPLE, soft: PURPLE_SOFT, text: PURPLE },
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -100,10 +66,75 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const TYPE_LABEL: Record<EventType, string> = {
+  holiday: "Holiday",
+  exam: "Exam",
+  meeting: "Meeting",
+  event: "Event",
+  deadline: "Deadline",
+  trip: "Trip",
+  maintenance: "Maintenance",
+  update: "System Update",
+  training: "Training",
+};
+
+// ---------- Event shape used by the UI ----------
+type CalendarEvent = {
+  id: string;
+  day: number;
+  title: string;
+  description: string;
+  details: string;
+  location: string;
+  time: string;
+  kind: EventKind;
+  typeLabel: string;
+  start: Date;
+  end: Date;
+};
+
+const fmtTime = (d: Date) =>
+  d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function timeText(e: ApiEvent, start: Date, end: Date): string {
+  if (e.allDay) return "All day";
+  if (e.type === "deadline") return `Due ${fmtTime(end)}`;
+  return `${fmtTime(start)} – ${fmtTime(end)}`;
+}
+
+// One UI event per day the API event covers in the viewed month
+function expandForMonth(e: ApiEvent, year: number, month: number): CalendarEvent[] {
+  const start = new Date(e.start);
+  const end = new Date(e.end);
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+
+  const first = start < monthStart ? monthStart : start;
+  const last = end > monthEnd ? monthEnd : end;
+
+  const out: CalendarEvent[] = [];
+  const cur = new Date(first.getFullYear(), first.getMonth(), first.getDate());
+  while (cur <= last) {
+    out.push({
+      id: `${e.id}-${cur.getDate()}`,
+      day: cur.getDate(),
+      title: e.title,
+      description: e.description || TYPE_LABEL[e.type],
+      details: e.description || "No extra details for this event.",
+      location: e.location || "Not specified",
+      time: timeText(e, start, end),
+      kind: TYPE_TO_KIND[e.type],
+      typeLabel: TYPE_LABEL[e.type],
+      start,
+      end,
+    });
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
 type Cell = { day: number; inMonth: boolean };
 
-// Builds the grid: days of the month, plus grey days from the
-// previous and next month so every week has 7 cells.
 function buildCells(year: number, month: number): Cell[] {
   const startOffset = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -130,14 +161,45 @@ export function CalendarView() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [apiEvents, setApiEvents] = useState<ApiEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const fade = useRef(new Animated.Value(1)).current;
 
+  // Load events whenever the month changes
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    const from = new Date(year, month, 1, 0, 0, 0);
+    const to = new Date(year, month + 1, 0, 23, 59, 59);
+
+    fetchEvents(from, to)
+      .then((data) => {
+        if (!cancelled) setApiEvents(data);
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setError(e.message || "Could not load events");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [year, month, reloadKey]);
+
   const cells = useMemo(() => buildCells(year, month), [year, month]);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const monthEvents = useMemo(
-    () => EVENTS.filter((e) => e.day <= daysInMonth).sort((a, b) => a.day - b.day),
-    [daysInMonth]
+    () =>
+      apiEvents
+        .flatMap((e) => expandForMonth(e, year, month))
+        .sort((a, b) => a.day - b.day || a.start.getTime() - b.start.getTime()),
+    [apiEvents, year, month]
   );
 
   const visibleEvents =
@@ -179,31 +241,30 @@ export function CalendarView() {
   };
 
   const closeEvent = () => setModalVisible(false);
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
 
   const weeks: Cell[][] = [];
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   const monthShort = MONTHS[month].slice(0, 3).toUpperCase();
 
-  // Full date text for the popup, e.g. "Saturday, 12 December 2026"
   const fullDate = (day: number) => {
     const weekday = WEEKDAYS_FULL[new Date(year, month, day).getDay()];
     return `${weekday}, ${day} ${MONTHS[month]} ${year}`;
   };
 
   const activeStyle = activeEvent ? KIND_STYLE[activeEvent.kind] : KIND_STYLE.academic;
+  const eventCount = new Set(monthEvents.map((e) => e.id.split("-")[0])).size;
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Calendar card */}
         <View style={styles.calendarCard}>
-          {/* Navy header */}
           <View style={styles.cardHeader}>
             <View style={{ flex: 1 }}>
               <Text style={styles.monthTitle}>{MONTHS[month]}</Text>
               <Text style={styles.monthSub}>
-                {year} · {monthEvents.length} {monthEvents.length === 1 ? "event" : "events"}
+                {year} · {eventCount} {eventCount === 1 ? "event" : "events"}
               </Text>
             </View>
             <Pressable style={styles.todayBtn} onPress={goToday} hitSlop={6}>
@@ -217,7 +278,6 @@ export function CalendarView() {
             </Pressable>
           </View>
 
-          {/* Weekday header row */}
           <View style={styles.weekdayRow}>
             {WEEKDAYS.map((w, i) => (
               <View key={w} style={[styles.weekdayCell, i === 6 && styles.noRightBorder]}>
@@ -228,7 +288,6 @@ export function CalendarView() {
             ))}
           </View>
 
-          {/* Table */}
           <Animated.View style={{ opacity: fade }}>
             {weeks.map((week, wi) => (
               <View key={wi} style={styles.weekRow}>
@@ -285,14 +344,14 @@ export function CalendarView() {
           </Animated.View>
         </View>
 
-        {/* Legend */}
         <View style={styles.legendRow}>
-          <LegendItem color={NAVY} label="Sports" />
+          <LegendItem color={NAVY} label="Events" />
           <LegendItem color={TEAL} label="Academic" />
           <LegendItem color={ORANGE} label="Meetings" />
+          <LegendItem color={RED} label="Holidays" />
+          <LegendItem color={PURPLE} label="System" />
         </View>
 
-        {/* Events */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
             {selectedDay === null
@@ -306,7 +365,20 @@ export function CalendarView() {
           ) : null}
         </View>
 
-        {visibleEvents.length === 0 ? (
+        {loading ? (
+          <View style={styles.emptyCard}>
+            <ActivityIndicator color={TEAL} />
+            <Text style={styles.emptyText}>Loading events…</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.emptyCard}>
+            <Ionicons name="alert-circle-outline" size={28} color={colors.danger} />
+            <Text style={styles.emptyText}>{error}</Text>
+            <Pressable onPress={reload} hitSlop={8}>
+              <Text style={styles.clearText}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : visibleEvents.length === 0 ? (
           <View style={styles.emptyCard}>
             <Ionicons name="calendar-clear-outline" size={28} color={colors.textMuted} />
             <Text style={styles.emptyText}>No events on this day</Text>
@@ -341,7 +413,6 @@ export function CalendarView() {
           })
         )}
 
-        {/* Sync banner */}
         <View style={styles.banner}>
           <View style={styles.bannerIcon}>
             <Ionicons name="notifications-outline" size={22} color="#fff" />
@@ -353,12 +424,10 @@ export function CalendarView() {
         </View>
       </ScrollView>
 
-      {/* Floating sync button */}
-      <Pressable style={styles.fab}>
+      <Pressable style={styles.fab} onPress={reload}>
         <Ionicons name="sync-outline" size={24} color="#fff" />
       </Pressable>
 
-      {/* Event details popup */}
       <Modal
         visible={modalVisible}
         transparent
@@ -376,7 +445,7 @@ export function CalendarView() {
                 <View style={[styles.kindPill, { backgroundColor: activeStyle.soft }]}>
                   <View style={[styles.kindDot, { backgroundColor: activeStyle.main }]} />
                   <Text style={[styles.kindText, { color: activeStyle.text }]}>
-                    {KIND_LABEL[activeEvent.kind]}
+                    {activeEvent.typeLabel}
                   </Text>
                 </View>
                 <Pressable style={styles.closeBtn} onPress={closeEvent} hitSlop={10}>
@@ -477,7 +546,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, paddingBottom: 100 },
 
-  // Calendar card
   calendarCard: {
     backgroundColor: "#fff",
     borderRadius: 20,
@@ -514,7 +582,6 @@ const styles = StyleSheet.create({
   },
   todayBtnText: { color: TEAL, fontSize: 13, fontWeight: "800" },
 
-  // Table
   weekdayRow: {
     flexDirection: "row",
     backgroundColor: "#F3F6FB",
@@ -572,13 +639,17 @@ const styles = StyleSheet.create({
   dotRow: { flexDirection: "row", gap: 3, height: 6, alignItems: "center" },
   dot: { width: 5, height: 5, borderRadius: 3 },
 
-  // Legend
-  legendRow: { flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 14 },
+  legendRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 14,
+    marginTop: 14,
+  },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { fontSize: 12, color: colors.textSecondary, fontWeight: "600" },
 
-  // Events
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -621,9 +692,8 @@ const styles = StyleSheet.create({
     gap: 8,
     ...shadow,
   },
-  emptyText: { fontSize: 14, color: colors.textMuted, fontWeight: "600" },
+  emptyText: { fontSize: 14, color: colors.textMuted, fontWeight: "600", textAlign: "center" },
 
-  // Banner
   banner: {
     backgroundColor: NAVY,
     borderRadius: 16,
@@ -642,7 +712,6 @@ const styles = StyleSheet.create({
   bannerTitle: { color: "#fff", fontSize: 20, fontWeight: "800" },
   bannerSub: { color: "#C9D6F0", fontSize: 14, marginTop: 6, lineHeight: 20 },
 
-  // Floating button
   fab: {
     position: "absolute",
     right: 20,
@@ -660,7 +729,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  // Event details popup
   modalRoot: { flex: 1, justifyContent: "flex-end" },
   backdrop: {
     position: "absolute",

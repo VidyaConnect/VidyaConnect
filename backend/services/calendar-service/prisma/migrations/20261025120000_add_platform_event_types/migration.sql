@@ -1,0 +1,3 @@
+ALTER TYPE "EventType" ADD VALUE IF NOT EXISTS 'maintenance';
+ALTER TYPE "EventType" ADD VALUE IF NOT EXISTS 'update';
+ALTER TYPE "EventType" ADD VALUE IF NOT EXISTS 'training';
