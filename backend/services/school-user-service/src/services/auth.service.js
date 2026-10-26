@@ -4,6 +4,7 @@ import {
   findUserByKeycloakId,
   findUserByEmail,
   createParentUser,
+  createSchoolAdminUser,
 } from '../repositories/user.repository.js';
 import {
   requestTokenWithPassword,
@@ -12,6 +13,7 @@ import {
   deleteKeycloakUser,
   assignRealmRole,
 } from './keycloakClient.service.js';
+
 /**
  * Verifies an access token's signature using Keycloak's JWKS,
  * and returns its decoded payload if valid.
@@ -55,6 +57,23 @@ function verifyAndDecodeToken(accessToken) {
 }
 
 /**
+ * Tells the frontend where a user should go after login.
+ * Only School Admins have this flow. Other roles are always ACTIVE.
+ *
+ * NO_SCHOOL         -> account exists, school not registered yet
+ * PENDING_APPROVAL  -> school registered, waiting for review
+ * REJECTED          -> school was rejected
+ * ACTIVE            -> normal access
+ */
+function getOnboardingStatus(user) {
+  if (user.role !== 'SCHOOL_ADMIN') return 'ACTIVE';
+  if (!user.school) return 'NO_SCHOOL';
+  if (user.school.status === 'UNDER_REVIEW') return 'PENDING_APPROVAL';
+  if (user.school.status === 'REJECTED') return 'REJECTED';
+  return 'ACTIVE';
+}
+
+/**
  * Loads the local User record by keycloakId and validates
  * the account and school are active.
  *
@@ -77,7 +96,13 @@ async function loadAndValidateUser(keycloakId) {
     throw err;
   }
 
-  if (user.school && !user.school.isActive) {
+  // A school that is still waiting for approval is not "deactivated",
+  // so only block users whose school was approved and then deactivated.
+  if (
+    getOnboardingStatus(user) === 'ACTIVE' &&
+    user.school &&
+    !user.school.isActive
+  ) {
     const err = new Error('This school account has been deactivated');
     err.status = 401;
     throw err;
@@ -91,6 +116,7 @@ function buildLoginResponse(tokens, user) {
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
     expiresIn: tokens.expires_in,
+    onboardingStatus: getOnboardingStatus(user),
     user: {
       id: user.id,
       fullName: user.fullName,
@@ -197,4 +223,118 @@ async function registerParent({ fullName, email, phone, password }) {
   }
 }
 
-export { verifyAndDecodeToken, loadAndValidateUser, buildLoginResponse, login, refresh, registerParent};
+/**
+ * Checks and cleans the school admin signup data.
+ * Phone: the form allows spaces and dashes (07X XXX XXXX), so we remove them first.
+ */
+function cleanSignupInput({ fullName, email, phone, password }) {
+  const name = fullName?.trim();
+  const mail = email?.trim().toLowerCase();
+  const phoneNo = phone?.replace(/[\s-]/g, '');
+
+  if (!name || !mail || !phoneNo || !password) {
+    throw badRequest('Full name, email, phone and password are required');
+  }
+  if (!EMAIL_REGEX.test(mail)) throw badRequest('Please enter a valid email address');
+  if (!PHONE_REGEX.test(phoneNo)) throw badRequest('Please enter a valid phone number');
+  if (password.length < 8) throw badRequest('Password must be at least 8 characters');
+
+  return { name, mail, phoneNo };
+}
+
+/**
+ * Self-signup for school admins (step 1 of 3).
+ * Creates the Keycloak account and the local User row.
+ * If a step fails, the Keycloak account is deleted so nothing is left half-created.
+ */
+async function registerSchoolAdmin(input) {
+  const { name, mail, phoneNo } = cleanSignupInput(input);
+
+  if (await findUserByEmail(mail)) {
+    const err = new Error('An account with this email already exists');
+    err.status = 409;
+    throw err;
+  }
+
+  const keycloakId = await createKeycloakUser({
+    email: mail,
+    password: input.password,
+    fullName: name,
+  });
+
+  try {
+    await assignRealmRole(keycloakId, 'SCHOOL_ADMIN');
+  } catch (roleErr) {
+    await deleteKeycloakUser(keycloakId);
+    throw roleErr;
+  }
+
+  try {
+    const user = await createSchoolAdminUser({
+      keycloakId,
+      fullName: name,
+      email: mail,
+      phone: phoneNo,
+    });
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    };
+  } catch (dbErr) {
+    await deleteKeycloakUser(keycloakId);
+    if (dbErr.code === 'P2002') {
+      const err = new Error('An account with this email already exists');
+      err.status = 409;
+      throw err;
+    }
+    throw dbErr;
+  }
+}
+
+/**
+ * Returns the logged-in user's current onboarding status and school info.
+ * The frontend uses this to decide which page to show.
+ */
+async function getMe(keycloakId) {
+  if (!keycloakId) {
+    const err = new Error('Not authenticated');
+    err.status = 401;
+    throw err;
+  }
+
+  const user = await loadAndValidateUser(keycloakId);
+
+  return {
+    onboardingStatus: getOnboardingStatus(user),
+    user: {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    },
+    school: user.school
+      ? {
+          id: user.school.id,
+          name: user.school.name,
+          status: user.school.status,
+          admissionId: user.school.id,
+          estimatedWaitHours: '48',
+        }
+      : null,
+  };
+}
+
+export {
+  verifyAndDecodeToken,
+  loadAndValidateUser,
+  buildLoginResponse,
+  login,
+  refresh,
+  registerParent,
+  registerSchoolAdmin,
+  getMe,
+};

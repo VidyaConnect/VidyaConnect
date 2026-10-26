@@ -36,3 +36,15 @@ export const createParentUser = async ({ keycloakId, fullName, email, phone }) =
     },
   });
 };
+
+export const createSchoolAdminUser = async ({ keycloakId, fullName, email, phone }) => {
+  return prisma.user.create({
+    data: {
+      keycloakId,
+      fullName,
+      email,
+      phone,
+      role: 'SCHOOL_ADMIN', // always set on the server, never taken from the request
+    },
+  });
+};

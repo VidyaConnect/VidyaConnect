@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       setSchool(data.school);
     } catch (err: any) {
+      console.log("LOGIN ERROR:", err?.message, err?.response?.status, err?.response?.data);
       const message =
         err?.response?.data?.message || "Login failed. Please try again.";
       setError(message);

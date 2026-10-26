@@ -1,3 +1,4 @@
+import prisma from "../config/prisma.js";
 import {
   findUserByKeycloakId,
   findClassByTeacherId,
@@ -29,4 +30,31 @@ export async function getTeacherClass(keycloakId) {
   }
 
   return { schoolId: cls.schoolId, classId: cls.id, className: cls.className };
+}
+
+// A parent's school and classes come from their linked children
+// (a student is "linked" once the class teacher approved the request,
+// which sets Student.parentId).
+export async function getParentChildrenClasses(keycloakId) {
+  const students = await prisma.student.findMany({
+    where: { isActive: true, parent: { user: { keycloakId } } },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, schoolId: true, classId: true },
+  });
+
+  if (students.length === 0) {
+    return { schoolId: null, classIds: [], children: [] };
+  }
+
+  // The calendar works with one school per user, so use the first child's
+  // school and only that school's classes.
+  const schoolId = students[0].schoolId;
+  const inSchool = students.filter((s) => s.schoolId === schoolId);
+  const classIds = [...new Set(inSchool.map((s) => s.classId).filter(Boolean))];
+
+  return {
+    schoolId,
+    classIds,
+    children: inSchool.map((s) => ({ studentId: s.id, classId: s.classId })),
+  };
 }
