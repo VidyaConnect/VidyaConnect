@@ -24,7 +24,7 @@ const PARENT_NAME = "Mrs. Perera";
 const UNREAD_NOTIFICATIONS = 2;
 
 // Set to false once the announcement backend is ready
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
 
@@ -94,12 +94,20 @@ export function AnnouncementListView({ role }: AnnouncementListViewProps) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filter, setFilter] = useState<FilterTab>("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    const data = USE_MOCK ? MOCK_ANNOUNCEMENTS : await getAnnouncements(role);
-    setAnnouncements(data);
-    setIsLoading(false);
+    setError(null);
+    try {
+      const data = USE_MOCK ? MOCK_ANNOUNCEMENTS : await getAnnouncements(role);
+      setAnnouncements(data);
+    } catch (e) {
+      console.error("Failed to load announcements:", e);
+      setError("Could not load announcements. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }, [role]);
 
   useEffect(() => {
@@ -149,6 +157,8 @@ export function AnnouncementListView({ role }: AnnouncementListViewProps) {
 
         {isLoading ? (
           <Text style={styles.loadingText}>Loading announcements...</Text>
+        ) : error ? (
+          <Text style={styles.emptyText}>{error}</Text>
         ) : (
           <FlatList
             data={filtered}

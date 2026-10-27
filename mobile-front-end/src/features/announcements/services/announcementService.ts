@@ -2,27 +2,30 @@ import { apiClient } from '../../../services/api';
 import { UserRole } from '../../../types';
 import { Announcement, AnnouncementViewRecord, CreateAnnouncementInput } from '../types/announcement';
 
+const ANNOUNCEMENT_API_URL = process.env.EXPO_PUBLIC_ANNOUNCEMENT_API_URL;
+
 function mapBackendAnnouncement(a: any): Announcement {
+  const isImportant =
+    a.type === 'SYSTEM' || a.priority === 'URGENT' || a.priority === 'EMERGENCY';
   return {
     id: a.id,
     title: a.title,
     content: a.content,
-    priority: (a.priority || 'normal').toLowerCase(),
-    tag: a.type === 'SYSTEM' ? 'important' : 'general',
+    tag: isImportant ? 'important' : 'general',
     targetAudience: a.type === 'SYSTEM' ? 'all-schools' : 'school-wide',
     postedBy: {
       id: a.createdByUserId,
       name: a.type === 'SYSTEM' ? 'System Admin' : 'School Admin',
-      role: a.type === 'SYSTEM' ? 'super-admin' : 'school-admin',
+      role: 'school-admin',
     },
     source: a.type === 'SYSTEM' ? 'System Core' : 'School Admin',
-    publishDate: a.publishedAt,
+    publishDate: a.publishedAt ?? a.createdAt,
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
     attachments: [],
     totalViews: 0,
-    requireParentConfirmation: a.requiresConfirmation,
-    status: (a.status || 'published').toLowerCase(),
+    requireParentConfirmation: Boolean(a.requiresConfirmation),
+    status: 'published',
     viewRecords: [],
   };
 }
@@ -158,13 +161,20 @@ function buildAnnouncement(
  */
 export async function getAnnouncements(role: UserRole): Promise<Announcement[]> {
   if (role === 'parent') {
-    try {
-      const response = await apiClient.get('/api/announcements');
-      return response.data.data.map(mapBackendAnnouncement);
-    } catch (error) {
-      console.error('Failed to fetch real backend announcements:', error);
-      return [];
+    if (!ANNOUNCEMENT_API_URL) {
+      throw new Error('EXPO_PUBLIC_ANNOUNCEMENT_API_URL is not set');
     }
+    // Absolute URL: axios ignores the :3001 baseURL, the login token header is still sent
+    const response = await apiClient.get(`${ANNOUNCEMENT_API_URL}/api/announcements`);
+    const now = Date.now();
+    return response.data.data
+      .filter(
+        (a: any) =>
+          a.status === 'PUBLISHED' &&
+          !a.isRetracted &&
+          (!a.expiresAt || new Date(a.expiresAt).getTime() > now)
+      )
+      .map(mapBackendAnnouncement);
   }
 
   await delay(400);
