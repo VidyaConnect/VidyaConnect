@@ -153,13 +153,41 @@ services:
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
       S3_BUCKET_NAME: "vidyaconnect-files-local"
-    command: sh -c "npx prisma migrate deploy && npm start"
+    volumes:
+      - ../../backend/services/school-user-service:/app/school-user-service
+      - ../../backend/services/shared:/app/shared
+      - school_user_node_modules:/app/school-user-service/node_modules
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
     depends_on:
       postgres:
         condition: service_healthy
       keycloak:
         condition: service_started
       localstack:
+        condition: service_started
+    networks:
+      - vidyaconnect-network
+
+  # Prisma Studio runs inside the Compose network and uses the same database
+  # endpoint and credentials as the school-user service.
+  school-user-prisma-studio:
+    image: docker-school-user-service
+    container_name: vidyaconnect-school-user-prisma-studio
+    restart: unless-stopped
+    ports:
+      - "5556:5556"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: "postgresql://vidyaconnect_user:localpassword@postgres:5432/vidyaconnect?schema=school_user"
+    volumes:
+      - ../../backend/services/school-user-service:/app/school-user-service
+      - ../../backend/services/shared:/app/shared
+      - school_user_node_modules:/app/school-user-service/node_modules
+    command: npx prisma studio --schema prisma/schema.prisma --hostname 0.0.0.0 --port 5556
+    depends_on:
+      postgres:
+        condition: service_healthy
+      school-user-service:
         condition: service_started
     networks:
       - vidyaconnect-network
@@ -213,6 +241,7 @@ services:
     restart: unless-stopped
     ports:
       - "3004:3004"
+      - "5555:5555"
     environment:
       NODE_ENV: development
       PORT: 3004
@@ -222,7 +251,11 @@ services:
       SCHOOL_USER_SERVICE_URL: "http://school-user-service:3001"
       ATTENDANCE_SERVICE_URL: "http://attendance-service:3003"
       WEB_ORIGIN: "http://localhost:3000"
-    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+    volumes:
+      - ../../backend/services/assignment-service:/app/assignment-service
+      - ../../backend/services/shared:/app/shared
+      - assignment_node_modules:/app/assignment-service/node_modules
+    command: sh -c "npm run prisma:generate && npm run prisma:migrate && npm run dev"
     depends_on:
       postgres:
         condition: service_healthy
@@ -422,6 +455,8 @@ volumes:
   web_admin_next:
   announcement_node_modules:
   attendance_node_modules:
+  school_user_node_modules:
+  assignment_node_modules:
 
 
 # ─────────────────────────────────────────

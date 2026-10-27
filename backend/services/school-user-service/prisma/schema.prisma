@@ -140,7 +140,7 @@ model Teacher {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherOf Class? @relation("ClassTeacher")
+  classes Class[] @relation("ClassTeacher")
 
   isActive Boolean @default(true)
 
@@ -181,7 +181,7 @@ model Class {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherId String? @unique
+  classTeacherId String?
 
   classTeacher Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
@@ -198,6 +198,7 @@ model Class {
 
   @@unique([schoolId, className, gradeLevel, academicYear])
   @@index([schoolId])
+  @@index([classTeacherId])
   @@map("classes")
   @@schema("school_user")
 }

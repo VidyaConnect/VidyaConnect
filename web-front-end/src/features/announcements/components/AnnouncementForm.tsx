@@ -115,7 +115,7 @@ const SendIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
   </svg>
 );
 
-const PRIORITY_ICONS = { normal: <InfoIcon />, urgent: <BellIcon />, emergency: <AlertIcon /> };
+const PRIORITY_ICONS: Partial<Record<AnnouncementPriority, React.ReactNode>> = { normal: <InfoIcon />, urgent: <BellIcon />, emergency: <AlertIcon /> };
 
 /* ---------- Section wrapper ---------- */
 function Section({
@@ -431,7 +431,7 @@ export default function AnnouncementForm({
                         on ? 'bg-white/20 text-white' : p.iconWrap
                       }`}
                     >
-                      {PRIORITY_ICONS[p.value]}
+                      {PRIORITY_ICONS[p.value] ?? <InfoIcon />}
                     </span>
                     <span>
                       <span className={`block text-sm font-bold ${on ? 'text-white' : 'text-[#242629]'}`}>

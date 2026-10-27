@@ -25,7 +25,9 @@ From `backend/services/assignment-service`, copy `.env.example` to `.env` once (
 - `GET /classes` — authenticated teacher's assigned class
 - `GET /assignments` and `GET /assignments/:assignmentId`
 - `POST /assignments` — create draft with `title`, `subject`, `description`, `publishAt`, `dueAt`, and optional `{ fileId, fileName }` attachments
+- `PATCH /assignments/:assignmentId` — edit a draft; attachments are replaced when included
+- `DELETE /assignments/:assignmentId` — delete a draft
 - `POST /assignments/:assignmentId/publish`
-- `PATCH /assignments/:assignmentId/status` with `studentId`, `status` (`PENDING`, `COMPLETED`, `MISSING`), optional `marks`, and optional feedback
+- `PATCH /assignments/:assignmentId/students/:studentId/status` — record physical hand-in status (`PENDING`, `COMPLETED`, `MISSING`), marks (0–100), and feedback
 
-Teacher role and class membership are checked server-side. The deadline must follow the publication date. Files upload through the shared File Service to S3 or local object storage.
+Teacher role and class membership are checked server-side. The class roster is captured when an assignment is created. Publication can be scheduled for a future `publishAt`; it becomes visible at that time. The deadline must follow the publication date. Files upload through the shared File Service to S3 or local object storage; students do not submit online.

@@ -6,7 +6,7 @@ import {
   toDbStatus,
 } from "../utils/attendanceMapper.js";
 import * as attendanceRepository from "../repositories/attendance.repository.js";
-import { getSchoolId, getTeacherClass } from "../clients/schoolUser.client.js";
+import { getSchoolId, getTeacherClass, getTeacherClasses } from "../clients/schoolUser.client.js";
 
 
 function requireSchoolId(user) {
@@ -21,6 +21,16 @@ function requireSchoolId(user) {
 
 async function resolveClassId(user, classId, authHeader) {
   if (user.role === "TEACHER") {
+    if (classId) {
+      const classes = await getTeacherClasses(user, authHeader);
+      const assignedClass = classes.find((item) => item.classId === classId);
+      if (!assignedClass) {
+        const error = new Error("Class is not assigned to this teacher");
+        error.status = 403;
+        throw error;
+      }
+      return assignedClass.classId;
+    }
     const info = await getTeacherClass(user, authHeader);
     if (!info || (user.schoolId && info.schoolId !== user.schoolId)) {
       const error = new Error("No class is assigned to this teacher");

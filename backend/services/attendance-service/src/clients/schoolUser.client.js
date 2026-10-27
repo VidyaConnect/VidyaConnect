@@ -3,6 +3,30 @@ const BASE =
 const cache = new Map();
 const TTL_MS = 60_000;
 
+export async function getTeacherClasses(user, authHeader) {
+  const key = `${user.userId}:classes`;
+  const hit = cache.get(key);
+  if (hit && hit.expires > Date.now()) return hit.value;
+
+  const res = await fetch(`${BASE}/api/users/me/classes`, {
+    headers: authHeader ? { Authorization: authHeader } : {},
+  });
+  if (!res.ok) {
+    const error = new Error("Could not load teacher's classes");
+    error.status = res.status === 404 ? 403 : 502;
+    throw error;
+  }
+  const payload = await res.json();
+  const classes = payload?.data;
+  if (!Array.isArray(classes)) {
+    const error = new Error("Teacher classes response is invalid");
+    error.status = 502;
+    throw error;
+  }
+  cache.set(key, { value: classes, expires: Date.now() + TTL_MS });
+  return classes;
+}
+
 export async function getSchoolId(user, authHeader) {
   if (user.schoolId) return user.schoolId;
 

@@ -1,6 +1,7 @@
 import {
   findUserByKeycloakId,
   findClassByTeacherId,
+  findClassesByTeacherId,
 } from "../repositories/user.repository.js";
 
 export const getCurrentUserProfile = async (keycloakId) => {
@@ -29,4 +30,22 @@ export async function getTeacherClass(keycloakId) {
   }
 
   return { schoolId: cls.schoolId, classId: cls.id, className: cls.className };
+}
+
+export async function getTeacherClasses(keycloakId) {
+  const user = await findUserByKeycloakId(keycloakId);
+  if (!user || !user.teacher) {
+    const error = new Error("Teacher profile not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const classes = await findClassesByTeacherId(user.teacher.id);
+  return classes.map((cls) => ({
+    schoolId: cls.schoolId,
+    classId: cls.id,
+    className: cls.className,
+    gradeLevel: cls.gradeLevel,
+    academicYear: cls.academicYear,
+  }));
 }

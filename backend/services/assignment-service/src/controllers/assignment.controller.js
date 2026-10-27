@@ -8,6 +8,8 @@ const run = (handler) => async (req, res, next) => {
 export const listAssignments = run(service.listAssignments);
 export const getAssignment = run(service.getAssignment);
 export const createAssignment = run(service.createAssignment);
+export const updateAssignment = run(service.updateAssignment);
+export const deleteAssignment = run(service.deleteAssignment);
 export const publishAssignment = run(service.publishAssignment);
 export const updateStudentStatus = run((req) => service.updateStudentStatus(req, req.params.studentId));
 
