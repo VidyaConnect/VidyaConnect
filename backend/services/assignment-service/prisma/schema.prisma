@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["assignment"]
+}
+
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+  @@schema("assignment")
+}
+
+enum AssignmentProgressStatus {
+  PENDING
+  COMPLETED
+  MISSING
+  @@schema("assignment")
+}
+
+model Assignment {
+  id            String                    @id @default(uuid())
+  schoolId      String
+  classId       String
+  className     String
+  teacherId     String
+  teacherName   String
+  title         String
+  description   String                    @db.Text
+  subject       String
+  dueAt         DateTime
+  publishAt     DateTime
+  publishedAt   DateTime?
+  status        AssignmentStatus          @default(DRAFT)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  attachments   AssignmentAttachment[]
+  studentStatuses AssignmentStudentStatus[]
+
+  @@index([schoolId, classId, status])
+  @@index([schoolId, dueAt])
+  @@index([schoolId, teacherId])
+  @@map("assignments")
+  @@schema("assignment")
+}
+
+model AssignmentAttachment {
+  id           String     @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  fileId       String
+  fileName     String
+  createdAt    DateTime   @default(now())
+
+  @@unique([assignmentId, fileId])
+  @@map("assignment_attachments")
+  @@schema("assignment")
+}
+
+model AssignmentStudentStatus {
+  id           String                    @id @default(uuid())
+  assignmentId String
+  assignment   Assignment                @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  schoolId     String
+  studentId    String
+  studentName  String
+  rollNumber   String?
+  status       AssignmentProgressStatus  @default(PENDING)
+  marks        Float?
+  feedback     String?                   @db.Text
+  markedAt     DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@unique([assignmentId, studentId])
+  @@index([schoolId, studentId, status])
+  @@map("assignment_student_statuses")
+  @@schema("assignment")
+}

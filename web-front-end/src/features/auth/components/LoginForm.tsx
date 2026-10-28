@@ -5,12 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../hooks/userAuth";
+import { roleHome } from "../roleRoutes";
 
-const roleRedirects: Record<string, string> = {
-  ADMIN: "/dashboard",
-  SCHOOL_ADMIN: "/dashboard",
-  TEACHER: "/dashboard",
-};
 
 export default function LoginForm() {
   const router = useRouter();
@@ -26,7 +22,7 @@ export default function LoginForm() {
     setError(null);
     try {
       const response = await login({ email, password });
-      const destination = roleRedirects[response.user.role];
+      const destination = roleHome[response.user.role];
 
       if (!destination) {
         logout();

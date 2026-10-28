@@ -14,3 +14,17 @@ export const findUserByKeycloakId = async (keycloakId, schoolId = undefined) => 
     },
   });
 };
+
+export const findClassByTeacherId = async (teacherId) => {
+  return prisma.class.findFirst({
+    where: { classTeacherId: teacherId, isActive: true },
+    orderBy: [{ academicYear: "desc" }, { className: "asc" }],
+  });
+};
+
+export const findClassesByTeacherId = async (teacherId) => {
+  return prisma.class.findMany({
+    where: { classTeacherId: teacherId, isActive: true },
+    orderBy: [{ academicYear: "desc" }, { className: "asc" }],
+  });
+};

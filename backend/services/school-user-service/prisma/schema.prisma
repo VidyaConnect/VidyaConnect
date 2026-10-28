@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -30,6 +30,23 @@ model School {
 
   isActive Boolean @default(true)
 
+  // New fields for registration
+  schoolType    String
+  principalName String
+  region        String
+  district      String
+  studentCount  Int
+  teacherCount  Int
+
+  status             RegistrationStatus @default(UNDER_REVIEW)
+  verificationDocUrl String?
+
+  // Staged admin details (no Keycloak user yet)
+  adminEmail        String
+  adminFirstName    String
+  adminLastName     String
+  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -40,6 +57,14 @@ model School {
   parents  Parent[]
 
   @@map("schools")
+  @@schema("school_user")
+}
+
+enum RegistrationStatus {
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+
   @@schema("school_user")
 }
 
@@ -115,7 +140,7 @@ model Teacher {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherOf Class? @relation("ClassTeacher")
+  classes Class[] @relation("ClassTeacher")
 
   isActive Boolean @default(true)
 
@@ -156,7 +181,7 @@ model Class {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherId String? @unique
+  classTeacherId String?
 
   classTeacher Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
@@ -173,6 +198,7 @@ model Class {
 
   @@unique([schoolId, className, gradeLevel, academicYear])
   @@index([schoolId])
+  @@index([classTeacherId])
   @@map("classes")
   @@schema("school_user")
 }
