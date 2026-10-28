@@ -1,0 +1,87 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["communication"]
+}
+
+enum SenderRole {
+  TEACHER
+  PARENT
+
+  @@schema("communication")
+}
+
+/// One conversation per child between the parent and the class teacher.
+/// IDs are plain strings pointing to school_user rows (no cross-schema foreign keys).
+model Conversation {
+  id            String   @id @default(uuid())
+  schoolId      String
+  classId       String
+  studentId     String   @unique
+  teacherUserId String
+  parentUserId  String
+  createdAt     DateTime @default(now())
+
+  messages Message[]
+  reads    ConversationRead[]
+
+  @@index([schoolId, classId])
+  @@index([teacherUserId])
+  @@index([parentUserId])
+  @@map("conversations")
+  @@schema("communication")
+}
+
+/// Insert-only. No updatedAt and no delete endpoint, so the history is auditable.
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderUserId String
+  senderName   String
+  senderRole   SenderRole
+  body         String       @default("")
+  createdAt    DateTime     @default(now())
+
+  attachments MessageAttachment[]
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+  @@schema("communication")
+}
+
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+
+  fileId    String
+  fileName  String
+  mimeType  String
+  sizeBytes Int
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+  @@map("message_attachments")
+  @@schema("communication")
+}
+
+/// Per-user read marker. Unread = messages from the other person created after lastReadAt.
+model ConversationRead {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  userId         String
+  lastReadAt     DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@map("conversation_reads")
+  @@schema("communication")
+}

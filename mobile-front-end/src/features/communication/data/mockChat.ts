@@ -4,7 +4,7 @@ export const mockThread: ChatThreadInfo = {
   id: "thread-1",
   teacherName: "Mrs. Silva",
   className: "Class Teacher 8-A",
-  availabilityLabel: "Available 4pm - 6pm",
+  availabilityLabel: "Available 6am - 6pm",
   isTeacherAvailable: false // set true to test the "available" path
 };
 
