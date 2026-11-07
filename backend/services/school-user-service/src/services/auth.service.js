@@ -1,8 +1,17 @@
 import jwt from 'jsonwebtoken';
 import { getSigningKey } from '@vidyaconnect/shared';
-import { findUserByKeycloakId } from '../repositories/user.repository.js';
-import { requestTokenWithPassword } from './keycloakClient.service.js';
-
+import {
+  findUserByKeycloakId,
+  findUserByEmail,
+  createParentUser,
+} from '../repositories/user.repository.js';
+import {
+  requestTokenWithPassword,
+  requestTokenWithRefresh,
+  createKeycloakUser,
+  deleteKeycloakUser,
+  assignRealmRole,
+} from './keycloakClient.service.js';
 /**
  * Verifies an access token's signature using Keycloak's JWKS,
  * and returns its decoded payload if valid.
@@ -115,4 +124,77 @@ async function login(email, password) {
   return buildLoginResponse(tokens, user);
 }
 
-export { verifyAndDecodeToken, loadAndValidateUser, buildLoginResponse, login };
+async function refresh(refreshToken) {
+  const tokens = await requestTokenWithRefresh(refreshToken);
+  const decoded = await verifyAndDecodeToken(tokens.access_token);
+  const user = await loadAndValidateUser(decoded.sub);
+  return buildLoginResponse(tokens, user);
+}
+
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+const PHONE_REGEX = /^\+?\d{9,15}$/;
+
+function badRequest(message) {
+  const err = new Error(message);
+  err.status = 400;
+  return err;
+}
+
+/**
+ * Self-signup for parents. Creates the Keycloak account and the local
+ * User + Parent rows. If the database step fails, the Keycloak account
+ * is deleted so no half-created account is left behind.
+ */
+async function registerParent({ fullName, email, phone, password }) {
+  const name = fullName?.trim();
+  const mail = email?.trim().toLowerCase();
+  const phoneNo = phone?.trim();
+
+  if (!name || !mail || !phoneNo || !password) {
+    throw badRequest('Full name, email, phone and password are required');
+  }
+  if (!EMAIL_REGEX.test(mail)) throw badRequest('Please enter a valid email address');
+  if (!PHONE_REGEX.test(phoneNo)) throw badRequest('Please enter a valid phone number');
+  if (password.length < 8) throw badRequest('Password must be at least 8 characters');
+
+  if (await findUserByEmail(mail)) {
+    const err = new Error('An account with this email already exists');
+    err.status = 409;
+    throw err;
+  }
+
+  const keycloakId = await createKeycloakUser({ email: mail, password, fullName: name });
+
+  try {
+    await assignRealmRole(keycloakId, 'PARENT');
+  } catch (roleErr) {
+    await deleteKeycloakUser(keycloakId); // no half-created account
+    throw roleErr;
+  }
+
+  try {
+    const user = await createParentUser({
+      keycloakId,
+      fullName: name,
+      email: mail,
+      phone: phoneNo,
+    });
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    };
+  } catch (dbErr) {
+    await deleteKeycloakUser(keycloakId);
+    if (dbErr.code === 'P2002') {
+      const err = new Error('An account with this email already exists');
+      err.status = 409;
+      throw err;
+    }
+    throw dbErr;
+  }
+}
+
+export { verifyAndDecodeToken, loadAndValidateUser, buildLoginResponse, login, refresh, registerParent};

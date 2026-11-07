@@ -11,6 +11,7 @@ import type {
 
 const emptyStep1: SchoolDetailsData = {
   schoolName: "",
+  address: "",
   schoolType: "",
   officialEmail: "",
   principalName: "",
@@ -27,8 +28,6 @@ const emptyStep2: AdminAccountData = {
   adminEmail: "",
   adminPhone: "",
   adminRole: "SCHOOL_ADMIN",
-  password: "",
-  confirmPassword: "",
   termsAccepted: false,
 };
 

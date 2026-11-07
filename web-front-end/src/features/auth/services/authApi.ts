@@ -15,3 +15,22 @@ export async function loginUser(
   );
   return response.data.data;
 }
+
+export async function refreshSession(): Promise<string | null> {
+  const refreshToken =
+    typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+  if (!refreshToken) return null;
+
+  try {
+    const response = await apiClient.post<ApiSuccessResponse<LoginResponseData>>(
+      "/auth/refresh",
+      { refreshToken }
+    );
+    const data = response.data.data;
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    return data.accessToken;
+  } catch {
+    return null; // refresh token expired or revoked
+  }
+}

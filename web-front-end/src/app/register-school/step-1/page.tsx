@@ -75,6 +75,20 @@ export default function RegisterSchoolStep1Page() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1.5">
+                  School Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) => updateStep1({ address: e.target.value })}
+                  placeholder="e.g. 123 Galle Road, Colombo 03"
+                  required
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-800 mb-1.5">

@@ -1,0 +1,68 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["consent_form"]
+}
+
+enum ConsentFormStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+
+  @@schema("consent_form")
+}
+
+enum ConsentResponseStatus {
+  ACCEPTED
+  DECLINED
+
+  @@schema("consent_form")
+}
+
+model ConsentForm {
+  id           String             @id @default(uuid())
+  title        String
+  description  String
+  instructions String?
+  audience     String
+  classId      String?
+  scope        String
+  status       ConsentFormStatus  @default(DRAFT)
+  schoolId     String
+  createdBy    String
+  publishedAt  DateTime?
+  deadline     DateTime
+  closedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  recipients   ConsentRecipient[]
+
+  @@index([schoolId])
+  @@index([createdBy])
+  @@index([status])
+  @@map("consent_forms")
+  @@schema("consent_form")
+}
+
+model ConsentRecipient {
+  id          String                 @id @default(uuid())
+  formId      String
+  studentId   String
+  status      ConsentResponseStatus?
+  remarks     String?
+  respondedAt DateTime?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  form        ConsentForm            @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, studentId])
+  @@index([studentId])
+  @@map("consent_recipients")
+  @@schema("consent_form")
+}

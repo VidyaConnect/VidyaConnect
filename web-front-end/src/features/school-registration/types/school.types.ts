@@ -3,6 +3,7 @@ export type AdminRole = "SCHOOL_ADMIN";
 
 export interface SchoolDetailsData {
   schoolName: string;
+  address: string;
   schoolType: SchoolCategory | "";
   officialEmail: string;
   principalName: string;
@@ -19,8 +20,6 @@ export interface AdminAccountData {
   adminEmail: string;
   adminPhone: string;
   adminRole: AdminRole;
-  password: string;
-  confirmPassword: string;
   termsAccepted: boolean;
 }
 

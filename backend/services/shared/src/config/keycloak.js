@@ -1,26 +1,27 @@
-import 'dotenv/config';
-import jwksClient from "jwks-rsa";
+import jwksClient from 'jwks-rsa';
 
-console.log('DEBUG shared/keycloak.js - JWKS_URI:', process.env.KEYCLOAK_JWKS_URI);
+let client;
 
-const client = jwksClient({
-  jwksUri: process.env.KEYCLOAK_JWKS_URI,
-  cache: true,
-  cacheMaxAge: 600000, // 10 minutes
-  rateLimit: true,
-  jwksRequestsPerMinute: 10,
-});
+// Created lazily so process.env is already loaded when it first runs
+function getClient() {
+  if (!client) {
+    client = jwksClient({
+      jwksUri: process.env.KEYCLOAK_JWKS_URI,
+      cache: true,
+      cacheMaxAge: 600000, // 10 minutes
+      rateLimit: true,
+      jwksRequestsPerMinute: 10
+    });
+  }
+  return client;
+}
 
-/**
- * Returns the public signing key for JWT verification.
- */
-export function getSigningKey(header, callback) {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      return callback(err);
-    }
-
-    const signingKey = key.getPublicKey();
+// Accepts either the kid string or the whole decoded JWT header
+export function getSigningKey(kidOrHeader, callback) {
+  const kid = typeof kidOrHeader === 'string' ? kidOrHeader : kidOrHeader?.kid;
+  getClient().getSigningKey(kid, (err, key) => {
+    if (err) return callback(err);
+    const signingKey = key.publicKey || key.rsaPublicKey;
     callback(null, signingKey);
   });
 }
