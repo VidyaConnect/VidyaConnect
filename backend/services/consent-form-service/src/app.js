@@ -15,4 +15,11 @@ app.use(express.json());
 app.use("/health", healthRoutes);
 app.use("/api/consent-forms", consentFormRoutes);
 
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && "body" in error) {
+    return res.status(400).json({ success: false, message: "Request body must contain valid JSON" });
+  }
+  return next(error);
+});
+
 export default app;

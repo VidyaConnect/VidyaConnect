@@ -1,34 +1,53 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { NotificationIcon } from './Icons'
-import NotificationDropdown from './NotificationDropdown'
-import { useNotifications } from '@/features/notifications/context/NotificationContext'
+import { useEffect, useRef, useState } from 'react';
 
-export default function NotificationBell() {
-  const [open, setOpen] = useState(false)
-  const { unreadCount, refresh } = useNotifications()
+import { NotificationIcon } from '@/components/Icons';
+
+import NotificationDropdown from './NotificationDropdown';
+import { NotificationProvider, useNotifications } from './NotificationContext';
+
+function BellButton() {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { unreadCount } = useNotifications();
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
-        onClick={() => {
-          setOpen((current) => !current)
-          if (!open) void refresh()
-        }}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#2d2f31] transition-colors hover:bg-[#f1f4f8]"
-        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
-        aria-expanded={open}
-        title="Notifications"
+        type="button"
+        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+        className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <NotificationIcon size={20} />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
-      {open && <NotificationDropdown onClose={() => setOpen(false)} />}
+
+      {isOpen && <NotificationDropdown onClose={() => setIsOpen(false)} />}
     </div>
-  )
+  );
+}
+
+export default function NotificationBell() {
+  return (
+    <NotificationProvider>
+      <BellButton />
+    </NotificationProvider>
+  );
 }

@@ -10,17 +10,28 @@ function fail(message, statusCode = 400) {
   return error;
 }
 
+function inputObject(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw fail("Request body must be a JSON object");
+  }
+  return input;
+}
+
 function text(value, field, required = true) {
   if (value === undefined || value === null) {
     if (required) throw fail(`${field} is required`);
     return null;
   }
+  if (typeof value === "object") throw fail(`${field} must be text`);
   const result = String(value).trim();
   if (required && !result) throw fail(`${field} is required`);
   return result || null;
 }
 
 function date(value, field) {
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    throw fail(`${field} must be a valid date`);
+  }
   const result = new Date(value);
   if (!value || Number.isNaN(result.getTime())) throw fail(`${field} must be a valid date`);
   return result;
@@ -107,6 +118,7 @@ export async function getForm(id, user) {
 }
 
 export async function createForm(input, user) {
+  input = inputObject(input);
   const schoolId = await resolveSchoolId(user);
   const scope = String(input.scope || (user.role === "SCHOOL_ADMIN" ? "SCHOOL" : "CLASS")).toUpperCase();
   if (!SCOPES.has(scope)) throw fail("scope must be CLASS or SCHOOL");
@@ -171,6 +183,7 @@ export async function createForm(input, user) {
 }
 
 export async function updateDraft(id, input, user) {
+  input = inputObject(input);
   const existing = await getFormRecord(id, user);
   if (existing.status !== "DRAFT") throw fail("Only draft forms can be edited", 409);
   const data = {};
@@ -221,6 +234,7 @@ export async function listResponses(id, user) {
 }
 
 export async function respondToForm(id, input, user) {
+  input = inputObject(input);
   if (user.role !== "PARENT") throw fail("Only parents can submit consent responses", 403);
   const status = String(input.status || "").toUpperCase();
   if (!RESPONSE_STATUSES.has(status)) throw fail("status must be ACCEPTED or DECLINED");

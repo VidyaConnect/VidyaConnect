@@ -56,7 +56,7 @@ export default function StudentRoster({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px]">
+        <table className="w-full min-w-180">
           <thead>
             <tr className="bg-[#f1f1f2] text-left text-xs font-bold uppercase tracking-wider text-[#555962]">
               <th className="px-5 py-3">Student Name</th>

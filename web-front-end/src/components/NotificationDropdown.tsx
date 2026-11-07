@@ -1,52 +1,170 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useNotifications } from '@/features/notifications/context/NotificationContext'
+import Link from 'next/link';
 
-function formatTime(value: string) {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+import { useNotifications } from './NotificationContext';
+import { useAuth } from '@/features/auth/hooks/userAuth';
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+
+  if (minutes < 1) {
+    return 'Just now';
+  }
+
+  if (minutes < 60) {
+    return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+
+  return `${days} day${days === 1 ? '' : 's'} ago`;
 }
 
-export default function NotificationDropdown({ onClose }: { onClose: () => void }) {
-  const router = useRouter()
-  const { notifications, isLoading, error, markAsRead } = useNotifications()
+function announcementsPath(role?: string) {
+  switch (role) {
+    case 'TEACHER':
+      return '/announcements/teacher-feed';
+    case 'SCHOOL_ADMIN':
+      return '/announcements/admin-view';
+    default:
+      return '/announcements';
+  }
+}
+
+export default function NotificationDropdown({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  const {
+    announcements,
+    unreadCount,
+    isLoading,
+    error,
+    markAsRead,
+    markAllAsRead,
+    isRead,
+  } = useNotifications();
+  const { user } = useAuth();
+  const feedHref = announcementsPath(user?.role);
+
+  const recentAnnouncements = announcements.slice(0, 5);
 
   return (
-    <div className="absolute right-0 top-12 z-50 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#d1d2e0] bg-white shadow-xl">
-      <div className="flex items-center justify-between border-b border-[#e5e7eb] px-4 py-3">
-        <h2 className="font-bold text-[#003b78]">Notifications</h2>
-        <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-900">Close</button>
-      </div>
-      <div className="max-h-96 overflow-y-auto">
-        {isLoading && <p className="p-5 text-sm text-gray-500">Loading notifications...</p>}
-        {!isLoading && error && <p className="p-5 text-sm text-red-600">{error}</p>}
-        {!isLoading && !error && notifications.length === 0 && (
-          <p className="p-5 text-sm text-gray-500">You have no notifications.</p>
-        )}
-        {!isLoading && !error && notifications.map((notification) => (
+    <div className="absolute right-0 top-12 z-50 w-90 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">
+            Notifications
+          </h3>
+          <p className="text-xs text-slate-500">{unreadCount} unread</p>
+        </div>
+
+        {unreadCount > 0 && (
           <button
-            key={notification.id}
-            className={`block w-full border-b border-[#f0f1f4] px-4 py-3 text-left hover:bg-[#f7f9fa] ${notification.readAt ? '' : 'bg-blue-50'}`}
-            onClick={async () => {
-              await markAsRead(notification.id)
-              if (notification.sourceId) {
-                router.push(`/announcements/${notification.type === 'SYSTEM' ? 'admin' : 'school-admin'}`)
-                onClose()
-              }
-            }}
+            type="button"
+            onClick={markAllAsRead}
+            className="text-xs font-medium text-blue-600 hover:text-blue-800"
           >
-            <div className="flex items-start gap-2">
-              {!notification.readAt && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#00a896]" />}
-              <span className="min-w-0">
-                <span className="block font-semibold text-[#242629]">{notification.title}</span>
-                <span className="mt-1 block text-sm text-gray-600">{notification.message}</span>
-                <span className="mt-1 block text-xs text-gray-400">{formatTime(notification.createdAt)}</span>
-              </span>
-            </div>
+            Mark all as read
           </button>
-        ))}
+        )}
+      </div>
+
+      {isLoading && (
+        <div className="p-6 text-center text-sm text-slate-500">
+          Loading notifications...
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <div className="p-5 text-center">
+          <p className="text-sm font-medium text-red-600">
+            Unable to load notifications
+          </p>
+          <p className="mt-1 text-xs text-slate-500">{error}</p>
+        </div>
+      )}
+
+      {!isLoading && !error && recentAnnouncements.length === 0 && (
+        <div className="p-8 text-center">
+          <p className="text-sm font-medium text-slate-700">
+            No notifications
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            New announcements will appear here.
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !error && recentAnnouncements.length > 0 && (
+        <div className="max-h-105 overflow-y-auto">
+          {recentAnnouncements.map((announcement) => {
+            const isUnread = !isRead(announcement.id);
+
+            return (
+              <Link
+                key={announcement.id}
+                href={feedHref}
+                onClick={() => {
+                  markAsRead(announcement.id);
+                  onClose();
+                }}
+                className={`block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50 ${
+                  isUnread ? 'bg-blue-50/40' : ''
+                }`}
+              >
+                <div className="flex gap-3">
+                  <div
+                    className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
+                      isUnread ? 'bg-blue-500' : 'bg-slate-300'
+                    }`}
+                  />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="line-clamp-1 text-sm font-semibold text-slate-900">
+                        {announcement.title}
+                      </p>
+                      <span className="shrink-0 text-[10px] text-slate-400">
+                        {timeAgo(announcement.publishDate)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                      {announcement.content}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="border-t border-slate-100 px-4 py-3">
+        <Link
+          href={feedHref}
+          onClick={onClose}
+          className="block text-center text-xs font-semibold text-blue-600 hover:text-blue-800"
+        >
+          View all announcements
+        </Link>
       </div>
     </div>
-  )
+  );
 }
