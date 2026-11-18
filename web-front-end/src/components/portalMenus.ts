@@ -8,7 +8,7 @@ export const schoolAdminMenu: SubNavItem[] = [
   { label: 'Community', href: '#' },
   { label: 'Calendar', href: '#' },
   { label: 'Bulk Data', href: '#' },
-  { label: 'Reports', href: '#' },
+  { label: 'Reports', href: '/reports/school-admin' },
 ]
 
 export const teacherMenu: SubNavItem[] = [
@@ -26,7 +26,7 @@ export const adminMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/admin' },
   { label: 'Announcements', href: '/announcements/admin' },
   { label: 'School Requests', href: '#' },
-  { label: 'System Reports', href: '#' },
+  { label: 'System Reports', href: '/reports/super-admin' },
   { label: 'Calendar', href: '#' },
   { label: 'Audit Logs', href: '#' },
 ]
