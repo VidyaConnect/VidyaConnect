@@ -10,6 +10,10 @@ datasource db {
   schemas  = ["school_user"]
 }
 
+// ==========================================
+// ENUMS
+// ==========================================
+
 enum Role {
   ADMIN
   SCHOOL_ADMIN
@@ -17,46 +21,6 @@ enum Role {
   PARENT
   STUDENT
 
-  @@schema("school_user")
-}
-
-model School {
-  id      String  @id @default(uuid())
-  name    String
-  email   String  @unique
-  phone   String?
-  address String?
-  logoUrl String?
-
-  isActive Boolean @default(true)
-
-  // New fields for registration
-  schoolType    String
-  principalName String
-  region        String
-  district      String
-  studentCount  Int
-  teacherCount  Int
-
-  status             RegistrationStatus @default(UNDER_REVIEW)
-  verificationDocUrl String?
-
-  // Staged admin details (no Keycloak user yet)
-  adminEmail        String
-  adminFirstName    String
-  adminLastName     String
-  
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users    User[]
-  classes  Class[]
-  students Student[]
-  teachers Teacher[]
-  parents  Parent[]
-
-  @@map("schools")
   @@schema("school_user")
 }
 
@@ -68,10 +32,74 @@ enum RegistrationStatus {
   @@schema("school_user")
 }
 
-model User {
-  id String @id @default(uuid())
+enum LinkRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 
-  /// User ID from Keycloak
+  @@schema("school_user")
+}
+
+enum Relationship {
+  FATHER
+  MOTHER
+  GUARDIAN
+
+  @@schema("school_user")
+}
+
+// ==========================================
+// 1. SCHOOL
+// ==========================================
+
+model School {
+  id           String  @id @default(uuid())
+  censusNumber String? @unique
+
+  name    String
+  email   String  @unique
+  phone   String?
+  address String?
+  logoUrl String?
+
+  schoolType    String
+  principalName String
+  region        String
+  district      String
+
+  studentCount Int
+  teacherCount Int
+
+  verificationDocUrl String?
+
+  // Proposed administrator details
+  adminEmail     String
+  adminFirstName String
+  adminLastName  String
+
+  status   RegistrationStatus @default(UNDER_REVIEW)
+  isActive Boolean            @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  students     Student[]
+  teachers     Teacher[]
+  classes      Class[]
+  linkRequests LinkRequest[]
+
+  @@map("schools")
+  @@schema("school_user")
+}
+
+// ==========================================
+// 2. USER
+// Common account information for all roles
+// ==========================================
+
+model User {
+  id         String @id @default(uuid())
   keycloakId String @unique
 
   schoolId String?
@@ -92,11 +120,16 @@ model User {
   teacher Teacher?
   parent  Parent?
 
-  @@index([schoolId])
-  @@index([role])
+  reviewedLinkRequests LinkRequest[] @relation("LinkRequestReviewer")
+
+  @@index([schoolId, role])
   @@map("users")
   @@schema("school_user")
 }
+
+// ==========================================
+// 3. STUDENT
+// ==========================================
 
 model Student {
   id String @id @default(uuid())
@@ -107,29 +140,31 @@ model Student {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  parentId String?
-
-  parent Parent? @relation(fields: [parentId], references: [id])
-
   classId String?
   class   Class?  @relation(fields: [classId], references: [id])
 
-  admissionNumber String?   @unique
+  admissionNumber String?
   dateOfBirth     DateTime?
   gender          String?
 
   enrollmentDate DateTime @default(now())
   isActive       Boolean  @default(true)
 
+  parents      StudentParent[]
+  linkRequests LinkRequest[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([schoolId])
-  @@index([classId])
-  @@index([parentId])
+  @@unique([schoolId, admissionNumber])
+  @@index([schoolId, classId])
   @@map("students")
   @@schema("school_user")
 }
+
+// ==========================================
+// 4. TEACHER
+// ==========================================
 
 model Teacher {
   id String @id @default(uuid())
@@ -140,17 +175,23 @@ model Teacher {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherOf Class? @relation("ClassTeacher")
+  teacherCode String?
 
-  isActive Boolean @default(true)
+  classTeacherOf Class? @relation("ClassTeacher")
+  teaching       TeachingAssignment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([schoolId, teacherCode])
   @@index([schoolId])
   @@map("teachers")
   @@schema("school_user")
 }
+
+// ==========================================
+// 5. PARENT
+// ==========================================
 
 model Parent {
   id String @id @default(uuid())
@@ -158,22 +199,21 @@ model Parent {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  schoolId String
-  school   School? @relation(fields: [schoolId], references: [id])
-
   occupation String?
 
-  isActive Boolean @default(true)
+  students     StudentParent[]
+  linkRequests LinkRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  students Student[]
-
-  @@index([schoolId])
   @@map("parents")
   @@schema("school_user")
 }
+
+// ==========================================
+// 6. CLASS
+// ==========================================
 
 model Class {
   id String @id @default(uuid())
@@ -181,9 +221,8 @@ model Class {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id])
 
-  classTeacherId String? @unique
-
-  classTeacher Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  classTeacherId String?  @unique
+  classTeacher   Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
   className    String
   gradeLevel   String
@@ -191,13 +230,99 @@ model Class {
 
   isActive Boolean @default(true)
 
+  students Student[]
+  teaching TeachingAssignment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  students Student[]
 
   @@unique([schoolId, className, gradeLevel, academicYear])
   @@index([schoolId])
   @@map("classes")
+  @@schema("school_user")
+}
+
+// ==========================================
+// 7. STUDENT-PARENT
+// Many-to-many relationship
+// ==========================================
+
+model StudentParent {
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  parentId String
+  parent   Parent @relation(fields: [parentId], references: [id])
+
+  relationship Relationship
+  isPrimary    Boolean      @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([studentId, parentId])
+  @@index([parentId])
+  @@map("student_parents")
+  @@schema("school_user")
+}
+
+// ==========================================
+// 8. LINK REQUEST
+// ==========================================
+
+model LinkRequest {
+  id String @id @default(uuid())
+
+  parentId String
+  parent   Parent @relation(fields: [parentId], references: [id])
+
+  // Information submitted by the parent
+  admissionNumber String
+  schoolName      String
+  censusNumber    String
+  nic             String
+  relationship    Relationship
+  documentPath    String
+
+  // Matched school and student
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id])
+
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id])
+
+  status LinkRequestStatus @default(PENDING)
+
+  reviewedById String?
+  reviewedBy   User?     @relation("LinkRequestReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  rejectReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId, status])
+  @@index([schoolId, status])
+  @@index([studentId, status])
+  @@map("link_requests")
+  @@schema("school_user")
+}
+
+model TeachingAssignment {
+  id String @id @default(uuid())
+
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  subject String
+
+  createdAt DateTime @default(now())
+
+  @@unique([classId, subject])
+  @@index([teacherId])
+  @@map("teaching_assignments")
   @@schema("school_user")
 }

@@ -5,6 +5,7 @@ import SearchBar from './SearchBar'
 import { NotificationIcon } from './Icons'
 import { useAuth } from '@/features/auth/hooks/userAuth'
 
+
 interface TopbarProps {
   title?: string
   subtitle?: string
@@ -46,7 +47,7 @@ export default function Topbar({
   }
 
   return (
-    <div className="relative flex h-[72px] items-center gap-6 border-b border-[#d1d2e0] bg-white px-8">
+        <div suppressHydrationWarning className="relative flex h-[72px] items-center gap-6 border-b border-[#d1d2e0] bg-white px-8">
       <span className="shrink-0 text-2xl font-extrabold tracking-tight text-[#003b78]">
         VidyaConnect
       </span>

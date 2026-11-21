@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get("/me", auth, getCurrentSchool);
 
-router.post("/register", (req, res, next) => {
+router.post("/register", auth, (req, res, next) => {
   upload.single("verificationDoc")(req, res, (err) => {
     if (err) {
       return res.status(400).json({

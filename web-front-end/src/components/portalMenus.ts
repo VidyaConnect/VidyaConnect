@@ -6,8 +6,9 @@ export const schoolAdminMenu: SubNavItem[] = [
   { label: 'Attendance', href: '/attendance/school-admin' },
   { label: 'Consent Forms', href: '#' },
   { label: 'Community', href: '#' },
-  { label: 'Calendar', href: '#' },
-  { label: 'Bulk Data', href: '#' },
+  { label: 'Calendar', href: '/calendar/school-admin' },
+  { label: 'Bulk Registration', href: '/bulk-registration' },
+  { label: 'Academics', href: '/academics' },
   { label: 'Reports', href: '#' },
 ]
 
@@ -17,17 +18,18 @@ export const teacherMenu: SubNavItem[] = [
   { label: 'Attendance', href: '/attendance/teacher' },
   { label: 'Assignments', href: '#' },
   { label: 'Community', href: '#' },
-  { label: 'Calendar', href: '#' },
+  { label: 'Calendar', href: '/calendar/teacher' },
   { label: 'Messages', href: '#' },
   { label: 'Reports', href: '#' },
+  { label: 'Parent Requests', href: '/parent-requests/teacher' }
 ]
 
 export const adminMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/admin' },
   { label: 'Announcements', href: '/announcements/admin' },
-  { label: 'School Requests', href: '#' },
+  { label: 'School Requests', href: '/school-requests' },
   { label: 'System Reports', href: '#' },
-  { label: 'Calendar', href: '#' },
+  { label: 'Calendar', href: '/calendar/admin' },
   { label: 'Audit Logs', href: '#' },
 ]
 

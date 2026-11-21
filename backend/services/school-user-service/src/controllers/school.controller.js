@@ -1,4 +1,5 @@
 import { getCurrentSchoolContext, registerSchool } from "../services/school.service.js";
+import { getKeycloakId } from "../middleware/requestUser.js";
 
 export const getCurrentSchool = async (req, res) => {
   try {
@@ -8,14 +9,11 @@ export const getCurrentSchool = async (req, res) => {
       success: true,
       data: school,
     });
-
   } catch (error) {
-
     res.status(404).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
@@ -29,13 +27,12 @@ export const register = async (req, res) => {
     }
 
     const verificationDocUrl = `/uploads/verification-docs/${req.file.filename}`;
-    const result = await registerSchool(req.body, verificationDocUrl);
+    const result = await registerSchool(req.body, verificationDocUrl, getKeycloakId(req));
 
     res.status(201).json({
       success: true,
       data: result,
     });
-
   } catch (error) {
     const status = error.statusCode || 500;
 

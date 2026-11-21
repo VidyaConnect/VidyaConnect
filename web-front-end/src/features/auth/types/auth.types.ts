@@ -25,6 +25,7 @@ export interface LoginResponseData {
   expiresIn: number;
   user: User;
   school: School | null;
+  onboardingStatus: "NO_SCHOOL" | "PENDING_APPROVAL" | "REJECTED" | "ACTIVE";
 }
 
 export interface ApiSuccessResponse<T> {
