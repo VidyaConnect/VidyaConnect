@@ -7,7 +7,8 @@ export const schoolAdminMenu: SubNavItem[] = [
   { label: 'Consent Forms', href: '#' },
   { label: 'Community', href: '#' },
   { label: 'Calendar', href: '/calendar/school-admin' },
-  { label: 'Bulk Data', href: '#' },
+  { label: 'Bulk Registration', href: '/bulk-registration' },
+  { label: 'Academics', href: '/academics' },
   { label: 'Reports', href: '#' },
 ]
 
@@ -26,7 +27,7 @@ export const teacherMenu: SubNavItem[] = [
 export const adminMenu: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard/admin' },
   { label: 'Announcements', href: '/announcements/admin' },
-  { label: 'School Requests', href: '#' },
+  { label: 'School Requests', href: '/school-requests' },
   { label: 'System Reports', href: '#' },
   { label: 'Calendar', href: '/calendar/admin' },
   { label: 'Audit Logs', href: '#' },

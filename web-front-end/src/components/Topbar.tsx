@@ -5,6 +5,7 @@ import SearchBar from './SearchBar'
 import { NotificationIcon } from './Icons'
 import { useAuth } from '@/features/auth/hooks/userAuth'
 
+
 interface TopbarProps {
   title?: string
   subtitle?: string
