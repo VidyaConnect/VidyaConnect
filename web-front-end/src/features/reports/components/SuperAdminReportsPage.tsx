@@ -8,6 +8,7 @@ import EChart from './EChart'
 import {
   deliveryRateOption,
   newSchoolsOption,
+  schoolsByStatusOption,
   securityEventsOption,
   usersByRoleOption,
 } from './chartOptions'
@@ -115,30 +116,35 @@ export default function SuperAdminReportsPage() {
               </ChartCard>
             </div>
 
-            <DataTable
-              title="School adoption"
-              sample
-              exportName="school-adoption"
-              rows={report.schoolAdoption}
-              columns={[
-                { header: 'School', value: (r) => r.school },
-                { header: 'Created', value: (r) => fmt(r.created) },
-                { header: 'Activated', value: (r) => fmt(r.activated) },
-                {
-                  header: 'Activation',
-                  value: (r) => `${Math.round((r.activated / r.created) * 100)}%`,
-                  render: (r) => {
-                    const pct = Math.round((r.activated / r.created) * 100)
-                    return (
-                      <span className={pct < 70 ? 'font-semibold text-[#c3161c]' : ''}>
-                        {pct}%
-                      </span>
-                    )
-                  },
-                },
-                { header: 'Logins', value: (r) => fmt(r.logins) },
-              ]}
-            />
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+              <ChartCard title="Schools by registration status">
+                <EChart option={schoolsByStatusOption(report.schoolsByStatus)} />
+              </ChartCard>
+              <div className="lg:col-span-2">
+                <DataTable
+                  title="School adoption (accounts created vs active)"
+                  exportName="school-adoption"
+                  rows={report.schoolAdoption}
+                  columns={[
+                    { header: 'School', value: (r) => r.school },
+                    { header: 'Created', value: (r) => fmt(r.created) },
+                    { header: 'Activated', value: (r) => fmt(r.activated) },
+                    {
+                      header: 'Activation',
+                      value: (r) => `${Math.round((r.activated / r.created) * 100)}%`,
+                      render: (r) => {
+                        const pct = Math.round((r.activated / r.created) * 100)
+                        return (
+                          <span className={pct < 70 ? 'font-semibold text-[#c3161c]' : ''}>
+                            {pct}%
+                          </span>
+                        )
+                      },
+                    },
+                  ]}
+                />
+              </div>
+            </div>
           </div>
         )}
       </main>

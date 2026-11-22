@@ -10,11 +10,15 @@ export const getSystemSummary = async () => {
   const monthStart = new Date(Date.UTC(year, month, 1));
   const sixMonthsAgo = new Date(Date.UTC(year, month - 5, 1));
 
-  const [schools, roleRows, recentSchools] = await Promise.all([
-    reportRepository.countSchools(monthStart),
-    reportRepository.countAccountsByRole(),
-    reportRepository.findSchoolCreatedDatesSince(sixMonthsAgo),
-  ]);
+  const [schools, roleRows, recentSchools, statusRows, accountRows, schoolNames] =
+    await Promise.all([
+      reportRepository.countSchools(monthStart),
+      reportRepository.countAccountsByRole(),
+      reportRepository.findSchoolCreatedDatesSince(sixMonthsAgo),
+      reportRepository.countSchoolsByStatus(),
+      reportRepository.countAccountsBySchool(),
+      reportRepository.findApprovedSchoolNames(),
+    ]);
 
   const byRole = Object.fromEntries(roleRows.map((r) => [r.role, r._count._all]));
   const usersByRole = [
@@ -35,6 +39,29 @@ export const getSystemSummary = async () => {
     newSchoolsByMonth.push({ month: MONTHS[start.getUTCMonth()], count });
   }
 
+  // ---- schools by registration status (zeros included) ----
+  const statusCount = Object.fromEntries(statusRows.map((r) => [r.status, r._count._all]));
+  const schoolsByStatus = [
+    { status: "Under review", count: statusCount.UNDER_REVIEW ?? 0 },
+    { status: "Approved", count: statusCount.APPROVED ?? 0 },
+    { status: "Rejected", count: statusCount.REJECTED ?? 0 },
+  ];
+
+  // ---- school adoption: accounts created vs active, per approved school ----
+  const nameById = new Map(schoolNames.map((s) => [s.id, s.name]));
+  const perSchool = new Map();
+  for (const row of accountRows) {
+    if (!nameById.has(row.schoolId)) continue;
+    const entry = perSchool.get(row.schoolId) ?? { created: 0, activated: 0 };
+    entry.created += row._count._all;
+    if (row.isActive) entry.activated += row._count._all;
+    perSchool.set(row.schoolId, entry);
+  }
+  const schoolAdoption = [...perSchool.entries()]
+    .map(([id, v]) => ({ school: nameById.get(id), ...v }))
+    .sort((a, b) => b.created - a.created)
+    .slice(0, 10);
+
   return {
     totalSchools: schools.total,
     activeSchools: schools.active,
@@ -42,6 +69,8 @@ export const getSystemSummary = async () => {
     totalUsers: usersByRole.reduce((sum, r) => sum + r.count, 0),
     usersByRole,
     newSchoolsByMonth,
+    schoolsByStatus,
+    schoolAdoption,
   };
 };
 

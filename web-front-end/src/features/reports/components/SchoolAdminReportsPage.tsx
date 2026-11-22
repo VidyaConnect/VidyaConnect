@@ -11,6 +11,7 @@ import {
   classComparisonOption,
   consentOption,
   heatmapOption,
+  statusSplitOption,
 } from './chartOptions'
 import {
   ChartCard,
@@ -132,9 +133,16 @@ export default function SchoolAdminReportsPage() {
               </ChartCard>
             </div>
 
-            <ChartCard title="Attendance calendar heatmap">
-              <EChart option={heatmapOption(report.heatmap)} height={240} />
-            </ChartCard>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <ChartCard title="Attendance calendar heatmap">
+                  <EChart option={heatmapOption(report.heatmap)} height={240} />
+                </ChartCard>
+              </div>
+              <ChartCard title="Attendance status split">
+                <EChart option={statusSplitOption(report.statusSplit)} height={240} />
+              </ChartCard>
+            </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <ChartCard title="Announcement reach (%)" sample>

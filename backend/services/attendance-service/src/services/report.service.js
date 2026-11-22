@@ -92,6 +92,17 @@ export const getSchoolAttendanceSummary = async (schoolId, { days, classId }) =>
     .sort((a, b) => a.rate - b.rate)
     .slice(0, MAX_STUDENTS);
 
+  // ---- present / late / absent split for the selected range and class ----
+  const statusTotals = { PRESENT: 0, LATE: 0, ABSENT: 0 };
+  for (const row of studentRows) {
+    statusTotals[row.status] += row._count._all;
+  }
+  const statusSplit = [
+    { status: "Present", count: statusTotals.PRESENT },
+    { status: "Late", count: statusTotals.LATE },
+    { status: "Absent", count: statusTotals.ABSENT },
+  ];
+
   return {
     days,
     from: isoDay(from),
@@ -103,5 +114,6 @@ export const getSchoolAttendanceSummary = async (schoolId, { days, classId }) =>
     daily,
     classComparison,
     studentsBelow80,
+    statusSplit,
   };
 };

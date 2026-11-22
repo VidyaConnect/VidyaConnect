@@ -17,6 +17,7 @@ export interface SuperAdminReport {
   }
   usersByRole: { role: string; count: number }[]
   newSchoolsByMonth: { month: string; count: number }[]
+  schoolsByStatus: { status: string; count: number }[]
   deliveryRate: { day: string; rate: number }[]
   securityEvents: {
     day: string
@@ -28,7 +29,6 @@ export interface SuperAdminReport {
     school: string
     created: number
     activated: number
-    logins: number
   }[]
 }
 
@@ -48,6 +48,7 @@ export interface SchoolAdminReport {
   attendanceTrend: { date: string; rate: number }[]
   classComparison: { className: string; rate: number }[]
   heatmap: { date: string; rate: number }[] // date = YYYY-MM-DD
+  statusSplit: { status: string; count: number }[]
   announcementReach: { title: string; read: number; confirmed: number }[]
   consentResponses: {
     form: string

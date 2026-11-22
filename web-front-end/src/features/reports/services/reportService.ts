@@ -48,6 +48,8 @@ interface SystemSummaryResponse {
   totalUsers: number
   usersByRole: { role: string; count: number }[]
   newSchoolsByMonth: { month: string; count: number }[]
+  schoolsByStatus: { status: string; count: number }[]
+  schoolAdoption: { school: string; created: number; activated: number }[]
 }
 
 interface SchoolAttendanceResponse {
@@ -57,6 +59,7 @@ interface SchoolAttendanceResponse {
   daily: { date: string; rate: number }[]
   classComparison: { classId: string; className: string; rate: number }[]
   studentsBelow80: { studentId: string; name: string; className: string; rate: number }[]
+  statusSplit: { status: string; count: number }[]
 }
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -84,6 +87,11 @@ async function mockSuperAdminReport(): Promise<SuperAdminReport> {
       { month: 'Oct', count: 36 },
       { month: 'Nov', count: 18 },
     ],
+    schoolsByStatus: [
+      { status: 'Under review', count: 23 },
+      { status: 'Approved', count: 1204 },
+      { status: 'Rejected', count: 9 },
+    ],
     deliveryRate: [97, 96, 95, 96, 94, 96, 97, 98, 96, 95, 96, 97, 96, 96].map(
       (rate, i) => ({ day: `D${i + 1}`, rate })
     ),
@@ -97,9 +105,9 @@ async function mockSuperAdminReport(): Promise<SuperAdminReport> {
       { day: 'Sun', failedLogins: 18, forbidden: 1, exports: 1 },
     ],
     schoolAdoption: [
-      { school: 'Royal College', created: 1900, activated: 1710, logins: 9800 },
-      { school: 'Visakha Vidyalaya', created: 1650, activated: 1320, logins: 7400 },
-      { school: "St. Thomas'", created: 1200, activated: 770, logins: 3900 },
+      { school: 'Royal College', created: 1900, activated: 1710 },
+      { school: 'Visakha Vidyalaya', created: 1650, activated: 1320 },
+      { school: "St. Thomas'", created: 1200, activated: 770 },
     ],
   }
 }
@@ -156,6 +164,11 @@ async function mockSchoolAdminReport(): Promise<SchoolAdminReport> {
       { title: 'Fee', read: 72, confirmed: 55 },
       { title: 'Holiday', read: 66, confirmed: 40 },
     ],
+    statusSplit: [
+      { status: 'Present', count: 1180 },
+      { status: 'Late', count: 60 },
+      { status: 'Absent', count: 140 },
+    ],
     consentResponses: [
       { form: 'Field trip', submitted: 310, pending: 60, overdue: 15 },
       { form: 'Photo', submitted: 340, pending: 40, overdue: 5 },
@@ -195,6 +208,8 @@ export async function getSuperAdminReport(
     },
     usersByRole: real.usersByRole,
     newSchoolsByMonth: real.newSchoolsByMonth,
+    schoolsByStatus: real.schoolsByStatus,
+    schoolAdoption: real.schoolAdoption,
   }
 }
 
@@ -221,6 +236,7 @@ export async function getSchoolAdminReport(
     },
     attendanceTrend: real.daily.map((d) => ({ date: d.date.slice(5), rate: d.rate })),
     heatmap: real.daily,
+    statusSplit: real.statusSplit,
     classComparison: real.classComparison.map((c) => ({
       className: c.className,
       rate: c.rate,

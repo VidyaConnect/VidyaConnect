@@ -226,3 +226,49 @@ export function consentOption(data: SchoolAdminReport['consentResponses']): ECha
     ],
   }
 }
+
+export function statusSplitOption(data: SchoolAdminReport['statusSplit']): EChartsOption {
+  const colors: Record<string, string> = { Present: GREEN, Late: AMBER, Absent: RED }
+  return {
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
+    series: [
+      {
+        type: 'pie',
+        radius: ['55%', '78%'],
+        center: ['50%', '44%'],
+        label: { show: false },
+        data: data.map((d) => ({
+          name: d.status,
+          value: d.count,
+          itemStyle: { color: colors[d.status] },
+        })),
+      },
+    ],
+  }
+}
+
+export function schoolsByStatusOption(data: SuperAdminReport['schoolsByStatus']): EChartsOption {
+  const colors: Record<string, string> = {
+    'Under review': AMBER,
+    Approved: GREEN,
+    Rejected: RED,
+  }
+  return {
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
+    series: [
+      {
+        type: 'pie',
+        radius: ['55%', '78%'],
+        center: ['50%', '44%'],
+        label: { show: false },
+        data: data.map((d) => ({
+          name: d.status,
+          value: d.count,
+          itemStyle: { color: colors[d.status] },
+        })),
+      },
+    ],
+  }
+}

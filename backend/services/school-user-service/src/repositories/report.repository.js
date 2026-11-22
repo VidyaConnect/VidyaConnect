@@ -29,3 +29,25 @@ export const findSchoolCreatedDatesSince = async (since) => {
     select: { createdAt: true },
   });
 };
+
+export const countSchoolsByStatus = async () => {
+  return prisma.school.groupBy({
+    by: ["status"],
+    _count: { _all: true },
+  });
+};
+
+export const countAccountsBySchool = async () => {
+  return prisma.user.groupBy({
+    by: ["schoolId", "isActive"],
+    where: { role: { in: ACCOUNT_ROLES }, schoolId: { not: null } },
+    _count: { _all: true },
+  });
+};
+
+export const findApprovedSchoolNames = async () => {
+  return prisma.school.findMany({
+    where: { status: "APPROVED" },
+    select: { id: true, name: true },
+  });
+};
