@@ -35,9 +35,10 @@ export interface SuperAdminReport {
 /* ---------- School Admin ---------- */
 
 export interface SchoolAdminReport {
+  classes: { id: string; name: string }[] // used to fill the class dropdown
   kpis: {
-    todayAttendance: number
-    attendanceChange: number // vs last week, in percentage points
+    todayAttendance: number | null // null = no attendance marked yet
+    attendanceChange: number | null // vs same day last week, in percentage points
     avgAnnouncementRead: number
     consentResponseRate: number
     openForms: number

@@ -27,11 +27,6 @@ const RANGES = [
   { value: '90d', label: 'Last 90 days' },
 ]
 
-const CLASSES = [
-  { value: 'all', label: 'All classes' },
-  ...['6A', '6B', '7A', '7B', '8A', '8B'].map((c) => ({ value: c, label: c })),
-]
-
 export default function SchoolAdminReportsPage() {
   const [filters, setFilters] = useState<ReportFilters>({ range: '30d', classId: 'all' })
   const [report, setReport] = useState<SchoolAdminReport | null>(null)
@@ -64,7 +59,10 @@ export default function SchoolAdminReportsPage() {
             label="Class"
             value={filters.classId}
             onChange={(v) => setFilters({ ...filters, classId: v })}
-            options={CLASSES}
+            options={[
+              { value: 'all', label: 'All classes' },
+              ...(report?.classes ?? []).map((c) => ({ value: c.id, label: c.name })),
+            ]}
           />
           <FilterSelect
             label="Date range"
@@ -82,42 +80,59 @@ export default function SchoolAdminReportsPage() {
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <KpiCard
-                label="Today's attendance"
-                value={`${report.kpis.todayAttendance}%`}
-                sub={`${report.kpis.attendanceChange >= 0 ? '+' : ''}${
-                  report.kpis.attendanceChange
-                }% vs last week`}
-                tone={report.kpis.attendanceChange >= 0 ? 'good' : 'bad'}
+                label="Latest attendance"
+                value={
+                  report.kpis.todayAttendance === null
+                    ? '--'
+                    : `${report.kpis.todayAttendance}%`
+                }
+                sub={
+                  report.kpis.attendanceChange === null
+                    ? 'no data for same day last week'
+                    : `${report.kpis.attendanceChange >= 0 ? '+' : ''}${
+                        report.kpis.attendanceChange
+                      }% vs same day last week`
+                }
+                tone={
+                  report.kpis.attendanceChange === null
+                    ? 'neutral'
+                    : report.kpis.attendanceChange >= 0
+                    ? 'good'
+                    : 'bad'
+                }
               />
               <KpiCard
                 label="Avg announcement read"
                 value={`${report.kpis.avgAnnouncementRead}%`}
                 sub="last 30 days"
                 tone="warn"
+                sample
               />
               <KpiCard
                 label="Consent response rate"
                 value={`${report.kpis.consentResponseRate}%`}
                 sub={`${report.kpis.openForms} forms open`}
+                sample
               />
               <KpiCard
                 label="Never logged in"
                 value={String(report.kpis.neverLoggedIn)}
                 sub={`of ${report.kpis.totalAccounts.toLocaleString('en-US')} accounts`}
                 tone="bad"
+                sample
               />
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <ChartCard title="Attendance trend (%)" sample>
+              <ChartCard title="Attendance trend (%)">
                 <EChart option={attendanceTrendOption(report.attendanceTrend)} />
               </ChartCard>
-              <ChartCard title="Class vs class attendance (%)" sample>
+              <ChartCard title="Class vs class attendance (%)">
                 <EChart option={classComparisonOption(report.classComparison)} />
               </ChartCard>
             </div>
 
-            <ChartCard title="Attendance calendar heatmap" sample>
+            <ChartCard title="Attendance calendar heatmap">
               <EChart option={heatmapOption(report.heatmap)} height={240} />
             </ChartCard>
 
@@ -133,7 +148,6 @@ export default function SchoolAdminReportsPage() {
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <DataTable
                 title="Students below 80% attendance"
-                sample
                 exportName="students-below-80"
                 rows={report.studentsBelow80}
                 columns={[

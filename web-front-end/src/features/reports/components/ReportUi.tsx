@@ -63,15 +63,20 @@ export function KpiCard({
   value,
   sub,
   tone = 'neutral',
+  sample = false,
 }: {
   label: string
   value: string
   sub?: string
   tone?: keyof typeof TONES
+  sample?: boolean
 }) {
   return (
     <div className="rounded-lg border border-[#cfd4dd] bg-white px-5 py-4 shadow-sm">
-      <p className="text-sm text-[#6b7280]">{label}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-sm text-[#6b7280]">{label}</p>
+        {sample && <SampleBadge />}
+      </div>
       <p className="mt-1 text-3xl font-bold text-[#25272c]">{value}</p>
       {sub && <p className={`mt-1 text-sm ${TONES[tone]}`}>{sub}</p>}
     </div>

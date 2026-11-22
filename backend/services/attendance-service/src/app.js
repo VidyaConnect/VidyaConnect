@@ -3,6 +3,7 @@ import { errorHandler } from "@vidyaconnect/shared";
 import healthRoutes from "./routes/health.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import cors from "cors";
+import reportRoutes from "./routes/report.routes.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use("/health", healthRoutes);
 app.use("/attendance", attendanceRoutes);
+app.use("/attendance/reports", reportRoutes);
 
 app.use(errorHandler);
 

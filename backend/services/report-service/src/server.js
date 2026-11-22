@@ -1,8 +1,6 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import app from "./app.js";
 import { logger } from "@vidyaconnect/shared";
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3008;
 

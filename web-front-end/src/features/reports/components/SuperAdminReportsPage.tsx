@@ -79,25 +79,32 @@ export default function SuperAdminReportsPage() {
               <KpiCard
                 label="Active schools"
                 value={fmt(report.kpis.activeSchools)}
-                sub={`${Math.round(
-                  (report.kpis.activeSchools / report.kpis.totalSchools) * 100
-                )}% of all schools`}
+                sub={`${
+                  report.kpis.totalSchools === 0
+                    ? 0
+                    : Math.round((report.kpis.activeSchools / report.kpis.totalSchools) * 100)
+                }% of all schools`}
                 tone="good"
               />
-              <KpiCard label="Total users" value={fmt(report.kpis.totalUsers)} sub="all roles" />
+              <KpiCard
+                label="Total users (accounts)"
+                value={fmt(report.kpis.totalUsers)}
+                sub="parents, teachers, school admins"
+              />
               <KpiCard
                 label="Push delivery rate"
                 value={`${report.kpis.pushDeliveryRate}%`}
                 sub="target 95% or more"
                 tone={report.kpis.pushDeliveryRate >= 95 ? 'good' : 'bad'}
+                sample
               />
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <ChartCard title="Users by role" sample>
+              <ChartCard title="Users by role">
                 <EChart option={usersByRoleOption(report.usersByRole)} />
               </ChartCard>
-              <ChartCard title="New schools per month" sample>
+              <ChartCard title="New schools per month">
                 <EChart option={newSchoolsOption(report.newSchoolsByMonth)} />
               </ChartCard>
               <ChartCard title="Notification delivery rate (%) vs 95% target" sample>
