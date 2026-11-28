@@ -1,6 +1,6 @@
 // backend/services/report-service/src/controllers/report.controller.js
 import { error } from "@vidyaconnect/shared";
-import { fetchSystemSummary } from "../clients/schoolUser.client.js";
+import { fetchSystemSummary, fetchSchoolAccounts } from "../clients/schoolUser.client.js";
 import { fetchSchoolAttendanceSummary } from "../clients/attendance.client.js";
 
 const ALLOWED_DAYS = [7, 30, 90];
@@ -32,6 +32,15 @@ export async function schoolAdminAttendance(req, res) {
     // No schoolId here on purpose: attendance-service reads it from the token.
     const summary = await fetchSchoolAttendanceSummary(req.headers.authorization, { days, classId });
     return res.json(summary);
+  } catch (err) {
+    return fail(res, err);
+  }
+}
+
+export async function schoolAdminAccounts(req, res) {
+  try {
+    const data = await fetchSchoolAccounts(req.headers.authorization);
+    return res.json(data);
   } catch (err) {
     return fail(res, err);
   }

@@ -116,11 +116,10 @@ export default function SchoolAdminReportsPage() {
                 sample
               />
               <KpiCard
-                label="Never logged in"
-                value={String(report.kpis.neverLoggedIn)}
+                label="Inactive accounts"
+                value={String(report.kpis.inactiveAccounts)}
                 sub={`of ${report.kpis.totalAccounts.toLocaleString('en-US')} accounts`}
-                tone="bad"
-                sample
+                tone={report.kpis.inactiveAccounts > 0 ? 'bad' : 'good'}
               />
             </div>
 
@@ -171,14 +170,13 @@ export default function SchoolAdminReportsPage() {
                 ]}
               />
               <DataTable
-                title="Accounts that never logged in"
-                sample
-                exportName="never-logged-in"
-                rows={report.neverLoggedIn}
+                title="Inactive accounts"
+                exportName="inactive-accounts"
+                rows={report.inactiveAccountsList}
                 columns={[
                   { header: 'Name', value: (r) => r.name },
                   { header: 'Role', value: (r) => r.role },
-                  { header: 'Class', value: (r) => r.className },
+                  { header: 'Email', value: (r) => r.email },
                 ]}
               />
             </div>

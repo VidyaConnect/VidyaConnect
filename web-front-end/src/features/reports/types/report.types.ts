@@ -42,7 +42,7 @@ export interface SchoolAdminReport {
     avgAnnouncementRead: number
     consentResponseRate: number
     openForms: number
-    neverLoggedIn: number
+    inactiveAccounts: number
     totalAccounts: number
   }
   attendanceTrend: { date: string; rate: number }[]
@@ -57,5 +57,5 @@ export interface SchoolAdminReport {
     overdue: number
   }[]
   studentsBelow80: { name: string; className: string; rate: number }[]
-  neverLoggedIn: { name: string; role: string; className: string }[]
+  inactiveAccountsList: { name: string; role: string; email: string }[]
 }

@@ -7,3 +7,7 @@ const baseUrl = () => process.env.SCHOOL_USER_SERVICE_URL || "http://school-user
 export function fetchSystemSummary(authHeader) {
   return getJson(`${baseUrl()}/api/reports/system-summary`, authHeader);
 }
+
+export function fetchSchoolAccounts(authHeader) {
+  return getJson(`${baseUrl()}/api/reports/school-accounts`, authHeader);
+}

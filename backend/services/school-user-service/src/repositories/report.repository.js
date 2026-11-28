@@ -51,3 +51,28 @@ export const findApprovedSchoolNames = async () => {
     select: { id: true, name: true },
   });
 };
+
+export const findSchoolIdByKeycloakId = async (keycloakId) => {
+  const user = await prisma.user.findUnique({
+    where: { keycloakId },
+    select: { schoolId: true },
+  });
+  return user?.schoolId ?? null;
+};
+
+export const countSchoolAccounts = async (schoolId) => {
+  return prisma.user.groupBy({
+    by: ["isActive"],
+    where: { schoolId, role: { in: ACCOUNT_ROLES } },
+    _count: { _all: true },
+  });
+};
+
+export const findInactiveAccounts = async (schoolId) => {
+  return prisma.user.findMany({
+    where: { schoolId, isActive: false, role: { in: ACCOUNT_ROLES } },
+    select: { fullName: true, role: true, email: true },
+    orderBy: { fullName: "asc" },
+    take: 50,
+  });
+};

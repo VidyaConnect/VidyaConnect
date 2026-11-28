@@ -11,3 +11,14 @@ export const systemSummary = async (req, res) => {
     return error(res, "Could not load system report data", 500);
   }
 };
+
+export const schoolAccounts = async (req, res) => {
+  try {
+    const data = await reportService.getSchoolAccountsSummary(req.user.userId);
+    return res.json(data);
+  } catch (err) {
+    if (err.status) return error(res, err.message, err.status);
+    logger.error("Failed to build school accounts summary", err);
+    return error(res, "Could not load account report data", 500);
+  }
+};

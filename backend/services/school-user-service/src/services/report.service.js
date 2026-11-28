@@ -74,3 +74,32 @@ export const getSystemSummary = async () => {
   };
 };
 
+
+const ROLE_LABEL = { PARENT: "Parent", TEACHER: "Teacher", SCHOOL_ADMIN: "School admin" };
+
+export const getSchoolAccountsSummary = async (keycloakId) => {
+  const schoolId = await reportRepository.findSchoolIdByKeycloakId(keycloakId);
+  if (!schoolId) {
+    const err = new Error("This account is not linked to a school");
+    err.status = 403;
+    throw err;
+  }
+
+  const [countRows, inactive] = await Promise.all([
+    reportRepository.countSchoolAccounts(schoolId),
+    reportRepository.findInactiveAccounts(schoolId),
+  ]);
+
+  const total = countRows.reduce((sum, r) => sum + r._count._all, 0);
+  const inactiveCount = countRows.find((r) => !r.isActive)?._count._all ?? 0;
+
+  return {
+    totalAccounts: total,
+    inactiveAccounts: inactiveCount,
+    inactiveList: inactive.map((u) => ({
+      name: u.fullName,
+      role: ROLE_LABEL[u.role] ?? u.role,
+      email: u.email,
+    })),
+  };
+};

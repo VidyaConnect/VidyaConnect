@@ -62,6 +62,12 @@ interface SchoolAttendanceResponse {
   statusSplit: { status: string; count: number }[]
 }
 
+interface SchoolAccountsResponse {
+  totalAccounts: number
+  inactiveAccounts: number
+  inactiveList: { name: string; role: string; email: string }[]
+}
+
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function mockSuperAdminReport(): Promise<SuperAdminReport> {
@@ -142,7 +148,7 @@ async function mockSchoolAdminReport(): Promise<SchoolAdminReport> {
       avgAnnouncementRead: 78,
       consentResponseRate: 81,
       openForms: 3,
-      neverLoggedIn: 146,
+      inactiveAccounts: 146,
       totalAccounts: 2400,
     },
     attendanceTrend: [
@@ -179,10 +185,10 @@ async function mockSchoolAdminReport(): Promise<SchoolAdminReport> {
       { name: 'N. Silva', className: '8A', rate: 76 },
       { name: 'A. Fernando', className: '7B', rate: 78 },
     ],
-    neverLoggedIn: [
-      { name: 'S. Jayasuriya', role: 'Parent', className: '6B' },
-      { name: 'T. Wickrama', role: 'Parent', className: '7A' },
-      { name: 'M. Rajapaksa', role: 'Teacher', className: '8B' },
+    inactiveAccountsList: [
+      { name: 'S. Jayasuriya', role: 'Parent', email: 's.jayasuriya@example.com' },
+      { name: 'T. Wickrama', role: 'Parent', email: 't.wickrama@example.com' },
+      { name: 'M. Rajapaksa', role: 'Teacher', email: 'm.rajapaksa@example.com' },
     ],
   }
 }
@@ -222,9 +228,10 @@ export async function getSchoolAdminReport(
   const days = { '7d': 7, '30d': 30, '90d': 90 }[filters.range]
   const params = new URLSearchParams({ days: String(days) })
   if (filters.classId !== 'all') params.set('classId', filters.classId)
-  const real = await request<SchoolAttendanceResponse>(
-    `/reports/school-admin/attendance?${params}`
-  )
+  const [real, accounts] = await Promise.all([
+    request<SchoolAttendanceResponse>(`/reports/school-admin/attendance?${params}`),
+    request<SchoolAccountsResponse>('/reports/school-admin/accounts'),
+  ])
 
   return {
     ...mock, // announcements, consent forms and account tables stay sample
@@ -233,6 +240,8 @@ export async function getSchoolAdminReport(
       ...mock.kpis,
       todayAttendance: real.todayAttendance,
       attendanceChange: real.attendanceChange,
+      inactiveAccounts: accounts.inactiveAccounts,
+      totalAccounts: accounts.totalAccounts,
     },
     attendanceTrend: real.daily.map((d) => ({ date: d.date.slice(5), rate: d.rate })),
     heatmap: real.daily,
@@ -246,5 +255,6 @@ export async function getSchoolAdminReport(
       className: s.className,
       rate: s.rate,
     })),
+    inactiveAccountsList: accounts.inactiveList,
   }
 }
