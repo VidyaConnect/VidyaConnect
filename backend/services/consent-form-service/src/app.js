@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import healthRoutes from "./routes/health.routes.js";
 import consentFormRoutes from "./routes/consent-form.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/health", healthRoutes);
+app.use("/api/consent-forms/reports", reportRoutes);
 app.use("/api/consent-forms", consentFormRoutes);
 
 export default app;

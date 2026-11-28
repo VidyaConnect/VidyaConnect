@@ -113,7 +113,6 @@ export default function SchoolAdminReportsPage() {
                 label="Consent response rate"
                 value={`${report.kpis.consentResponseRate}%`}
                 sub={`${report.kpis.openForms} forms open`}
-                sample
               />
               <KpiCard
                 label="Inactive accounts"
@@ -147,7 +146,7 @@ export default function SchoolAdminReportsPage() {
               <ChartCard title="Announcement reach (%)" sample>
                 <EChart option={announcementReachOption(report.announcementReach)} />
               </ChartCard>
-              <ChartCard title="Consent form responses" sample>
+              <ChartCard title="Consent form responses">
                 <EChart option={consentOption(report.consentResponses)} />
               </ChartCard>
             </div>

@@ -2,6 +2,7 @@
 import { error } from "@vidyaconnect/shared";
 import { fetchSystemSummary, fetchSchoolAccounts } from "../clients/schoolUser.client.js";
 import { fetchSchoolAttendanceSummary } from "../clients/attendance.client.js";
+import { fetchConsentSummary } from "../clients/consent.client.js";
 
 const ALLOWED_DAYS = [7, 30, 90];
 
@@ -41,6 +42,14 @@ export async function schoolAdminAccounts(req, res) {
   try {
     const data = await fetchSchoolAccounts(req.headers.authorization);
     return res.json(data);
+  } catch (err) {
+    return fail(res, err);
+  }
+}
+
+export async function schoolAdminConsent(req, res) {
+  try {
+    return res.json(await fetchConsentSummary(req.headers.authorization));
   } catch (err) {
     return fail(res, err);
   }

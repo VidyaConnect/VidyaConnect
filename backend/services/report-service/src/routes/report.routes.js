@@ -5,6 +5,7 @@ import {
   superAdminSummary,
   schoolAdminAttendance,
   schoolAdminAccounts,
+  schoolAdminConsent,
 } from "../controllers/report.controller.js";
 
 const router = express.Router();
@@ -12,5 +13,6 @@ const router = express.Router();
 router.get("/super-admin/summary", auth, rbac(["ADMIN"]), superAdminSummary);
 router.get("/school-admin/attendance", auth, rbac(["SCHOOL_ADMIN"]), schoolAdminAttendance);
 router.get("/school-admin/accounts", auth, rbac(["SCHOOL_ADMIN"]), schoolAdminAccounts);
+router.get("/school-admin/consent", auth, rbac(["SCHOOL_ADMIN"]), schoolAdminConsent);
 
 export default router;

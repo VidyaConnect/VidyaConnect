@@ -68,6 +68,12 @@ interface SchoolAccountsResponse {
   inactiveList: { name: string; role: string; email: string }[]
 }
 
+interface SchoolConsentResponse {
+  responseRate: number | null
+  openForms: number
+  forms: { form: string; submitted: number; pending: number; overdue: number }[]
+}
+
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function mockSuperAdminReport(): Promise<SuperAdminReport> {
@@ -228,13 +234,14 @@ export async function getSchoolAdminReport(
   const days = { '7d': 7, '30d': 30, '90d': 90 }[filters.range]
   const params = new URLSearchParams({ days: String(days) })
   if (filters.classId !== 'all') params.set('classId', filters.classId)
-  const [real, accounts] = await Promise.all([
+  const [real, accounts, consent] = await Promise.all([
     request<SchoolAttendanceResponse>(`/reports/school-admin/attendance?${params}`),
     request<SchoolAccountsResponse>('/reports/school-admin/accounts'),
+    request<SchoolConsentResponse>('/reports/school-admin/consent'),
   ])
 
   return {
-    ...mock, // announcements, consent forms and account tables stay sample
+    ...mock, // announcement reach stays sample
     classes: real.classes,
     kpis: {
       ...mock.kpis,
@@ -242,6 +249,8 @@ export async function getSchoolAdminReport(
       attendanceChange: real.attendanceChange,
       inactiveAccounts: accounts.inactiveAccounts,
       totalAccounts: accounts.totalAccounts,
+      consentResponseRate: consent.responseRate ?? 0,
+      openForms: consent.openForms,
     },
     attendanceTrend: real.daily.map((d) => ({ date: d.date.slice(5), rate: d.rate })),
     heatmap: real.daily,
@@ -256,5 +265,6 @@ export async function getSchoolAdminReport(
       rate: s.rate,
     })),
     inactiveAccountsList: accounts.inactiveList,
+    consentResponses: consent.forms,
   }
 }
